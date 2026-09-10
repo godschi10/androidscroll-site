@@ -11,7 +11,11 @@ const started = POSTS.reduce((min, p) => p.date < min ? p.date : min, POSTS[0].d
     <div class="foot-grid">
       <div class="foot-col foot-brand">
         <a class="nameplate" href="/" aria-label="AndroidScroll — home">
-          <span class="brand-mark" aria-hidden="true"></span>
+          <svg class="brand-mark" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M4 0 H24 V24 H0 V4 A4 4 0 0 1 4 0 Z" fill="var(--teal)"/>
+            <path d="M24 10 H14 A4 4 0 0 0 10 14 V24 H16 V17 A1 1 0 0 1 17 16 H24 Z" fill="#0C2B24"/>
+            <rect x="15" y="3.5" width="6" height="2.4" fill="#0C2B24"/>
+          </svg>
           <span class="brand-name">Android<em style="color:var(--teal)">Scroll</em></span>
         </a>
         <p>{SITE.tagline} Built as a static publication: Astro on the edge, no trackers without your consent.</p>
@@ -87,8 +91,7 @@ const started = POSTS.reduce((min, p) => p.date < min ? p.date : min, POSTS[0].d
     root.setAttribute('data-ads', on ? 'on' : 'off');
     state.textContent = on ? 'ON' : 'OFF';
     try { localStorage.setItem('as-ads', on ? 'on' : 'off'); } catch {}
-    const head = document.getElementById('ads-toggle');
-    if (head) { head.checked = on; }
+    document.querySelectorAll('.ad-toggle[data-role="slots"]').forEach(b => { b.checked = on; });
     toast.textContent = on ? 'Site-wide ad slots ON (zero requests in this prototype).' : 'Site-wide ad slots OFF — zero height, zero shift.';
     toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2600);
   };

@@ -1,53 +1,53 @@
 ---
-/* Header v0.2 — TERMINAL EDITORIAL (design-plan-v3.md):
-   STATUS-LINE top bar (mono: AS://androidscroll.com — 13 fixes live —
-   battery-glyph category chips) above the real masthead row (wordmark,
-   Browse sheet, search, theme, ad-toggle). Sticky compact state hides
-   the status line. No hamburger: Browse owns navigation. Law 8: ad
-   slots + placeholders independently switchable, persisted on-device. */
+/* Header v0.3 — ONE BAR (header-patterns.md decisions, Sep 10):
+   - Single sticky bar 54px mobile / 60px desktop (Cloudflare 54 + Velt 69 bracket).
+   - Wordmark = biggest element: green square SVG mark with terminal-notch cut
+     (echo of the approved Terminal G logo, executed clean) + "AndroidScroll"
+     weight 800, "Scroll" in deep teal. NO status-line, NO ad-flag in the bar.
+   - Right cluster: 3 stroke-SVG icon buttons (browse, search, theme sun/moon),
+     20px icons in 44px hotspots. Zero text glyphs.
+   - Scroll >8px adds .is-compact: 1px bottom hairline + 4px soft shadow,
+     height eases to 48px.
+   - Desktop ≥900px: up to 4 inline category links, mono 12px, between wordmark
+     and icons (Cloudflare's labeled-links pattern).
+   - Law 8 ad-toggles live in the Browse sheet footer (duplicated markup, classed
+     .ad-toggle, wired by event delegation — no duplicate IDs; Footer.astro keeps
+     its own instance). Browse bottom sheet + search overlay IDs preserved. */
 import { SITE, CATS, PILLARS, TOTALS, childrenOf, postsIn, POSTS } from '../data/site';
-const roots = CATS.filter(c => !c.parent);
 const pillarsWithPosts = PILLARS.map(p => ({ ...p, real: postsIn(p).length }));
-const chip = (name: string) => name.split(/[ &]/)[0].toLowerCase();
+const navCats = pillarsWithPosts.filter(p => p.real > 0).slice(0, 4);
+const navLabel = (name: string) => name.split(/[ &—-]+/).filter(Boolean)[0] || name;
+const shortCount = (name: string) => navLabel(name).toLowerCase();
 ---
 <header class="site-header" id="site-header">
-  <div class="status-line" aria-hidden={undefined}>
-    <div class="status-in">
-      <span class="host">AS://<b>androidscroll</b>.com</span>
-      <span class="live mono">{TOTALS.posts} fixes live</span>
-      <nav class="status-chips" aria-label="Category quick chips">
-        {pillarsWithPosts.map(p => (
-          <a href={p.path} title={`${p.name} — ${p.real} live ${p.real === 1 ? 'guide' : 'guides'}`}>
-            <span class="batt" data-lvl={Math.min(5, p.real)} aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
-            {chip(p.name)}<em>{p.real}</em>
-          </a>
+  <div class="header-in">
+    <a class="wordmark" href="/" aria-label="AndroidScroll — home">
+      <svg class="mark" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M4 0 H24 V24 H0 V4 A4 4 0 0 1 4 0 Z" fill="var(--deep)"/>
+        <path d="M24 10 H14 A4 4 0 0 0 10 14 V24 H16 V17 A1 1 0 0 1 17 16 H24 Z" fill="var(--canvas)"/>
+        <rect x="15" y="3.5" width="6" height="2.4" fill="var(--canvas)"/>
+      </svg>
+      <span class="word-text">Android<em>Scroll</em></span>
+    </a>
+
+    {navCats.length > 0 && (
+      <nav class="head-cats" aria-label="Featured shelves">
+        {navCats.map(p => (
+          <a href={p.path} title={`${p.name} — ${p.real} live ${p.real === 1 ? 'guide' : 'guides'}`}>{shortCount(p.name)}</a>
         ))}
       </nav>
-    </div>
-  </div>
-  <div class="header-in">
-    <div class="masthead">
-      <a class="nameplate" href="/" aria-label="AndroidScroll — home">
-        <span class="brand-mark" aria-hidden="true"></span>
-        <span class="brand-name">Android<em>Scroll</em></span>
-      </a>
-      <span class="tagline">{SITE.tagline}</span>
-    </div>
-    <div class="header-row">
-      <button class="h-btn" id="browse-trigger" aria-expanded="false" aria-controls="browse-sheet">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h12" stroke-linecap="square"/></svg>
-        Browse <span class="browse-key">{TOTALS.categories} shelves</span>
+    )}
+
+    <div class="head-actions">
+      <button class="icon-btn" id="browse-trigger" aria-expanded="false" aria-controls="browse-sheet" aria-label="Open browse menu" title="Browse the shelves">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.5 6.5h17M3.5 12h17M3.5 17.5h11"/></svg>
       </button>
-      <span class="h-spacer"></span>
-      <span class="ad-flag" title="Ad slots and their placeholders are independently switchable. OFF = zero height, zero request, zero layout shift (Law 8).">
-        <label><input type="checkbox" id="ads-toggle" /> Slots</label>
-        <label><input type="checkbox" id="ph-toggle" checked /> Placeholders</label>
-      </span>
-      <button class="h-btn icon" id="search-trigger" aria-label="Search guides" title="Search (/ key)">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21" stroke-linecap="square"/></svg>
+      <button class="icon-btn" id="search-trigger" aria-label="Search guides" aria-controls="search-layer" title="Search (/)">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="6.3"/><path d="M15.6 15.6 20.5 20.5"/></svg>
       </button>
-      <button class="h-btn icon" id="theme-toggle" aria-label="Switch to dark mode" title="Light / dark">
-        <span aria-hidden="true" id="theme-glyph">☾</span>
+      <button class="icon-btn" id="theme-toggle" aria-label="Switch to dark mode" title="Light / dark">
+        <svg class="glyph-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.6v2.5M12 18.9v2.5M2.6 12h2.5M18.9 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M18.7 5.3l-1.8 1.8M7.1 16.9l-1.8 1.8"/></svg>
+        <svg class="glyph-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.2 14.5A8.5 8.5 0 0 1 9.5 3.8a8.5 8.5 0 1 0 10.7 10.7Z"/></svg>
       </button>
     </div>
   </div>
@@ -58,7 +58,9 @@ const chip = (name: string) => name.split(/[ &]/)[0].toLowerCase();
 <aside class="sheet" id="browse-sheet" role="dialog" aria-modal="true" aria-label="Browse all shelves" hidden>
   <div class="sheet-head">
     <h2>The shelves</h2>
-    <button class="close-x" id="browse-close" aria-label="Close browse">✕</button>
+    <button class="close-x" id="browse-close" aria-label="Close browse">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5 5 19"/></svg>
+    </button>
   </div>
   <nav class="sheet-body" aria-label="Categories">
     {pillarsWithPosts.map(p => (
@@ -80,8 +82,16 @@ const chip = (name: string) => name.split(/[ &]/)[0].toLowerCase();
       </div>
     ))}
     <div class="sheet-note">
-      Counts are honest: {TOTALS.posts} guides live today across {roots.length} shelves — the rest open as the
+      Counts are honest: {TOTALS.posts} guides live today across {TOTALS.categories} shelves — the rest open as the
       200-post library lands. <a href="/about/">How we work →</a>
+    </div>
+    <div class="sheet-foot" aria-label="Ad slot settings">
+      <span class="foot-kicker mono">Ad slots (law 8)</span>
+      <div class="ad-toggles">
+        <label><input type="checkbox" class="ad-toggle" data-role="slots" /> Slots</label>
+        <label><input type="checkbox" class="ad-toggle" data-role="placeholders" /> Placeholders</label>
+      </div>
+      <span class="sheet-foot-note">off = zero height · zero requests · zero shift</span>
     </div>
   </nav>
 </aside>
@@ -102,7 +112,8 @@ const chip = (name: string) => name.split(/[ &]/)[0].toLowerCase();
 
 <script type="module">
   /* One progressive-enhancement script: theme, compact header, browse sheet,
-     search overlay (client index), ad-toggle law 8, battery fill, rail stagger. */
+     search overlay (client index), Law-8 ad toggles (delegated, classed),
+     rail stagger. */
   const root = document.documentElement;
   const header = document.getElementById('site-header');
   const scrim = document.getElementById('scrim');
@@ -117,12 +128,11 @@ const chip = (name: string) => name.split(/[ &]/)[0].toLowerCase();
   let toastTimer;
   const say = m => { toast.textContent = m; toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 2600); };
 
-  /* theme */
+  /* theme — SVG sun/moon swap, no text glyphs */
   const themeBtn = document.getElementById('theme-toggle');
-  const glyph = document.getElementById('theme-glyph');
   const paintTheme = () => {
     const dark = root.getAttribute('data-theme') === 'dark';
-    glyph.textContent = dark ? '☀' : '☾';
+    themeBtn.classList.toggle('is-dark', dark);
     themeBtn.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
   };
   paintTheme();
@@ -130,10 +140,6 @@ const chip = (name: string) => name.split(/[ &]/)[0].toLowerCase();
     const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     root.setAttribute('data-theme', next); store.set('as-theme', next); paintTheme();
   });
-
-  /* battery glyphs fill on first paint (one-time, 300ms) */
-  const fillBatteries = () => document.querySelectorAll('.batt').forEach(b => b.classList.add('batt-on'));
-  requestAnimationFrame(() => requestAnimationFrame(fillBatteries));
 
   /* rails stagger-in on scroll (IntersectionObserver, 40ms steps, translateY 8px) */
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -151,10 +157,10 @@ const chip = (name: string) => name.split(/[ &]/)[0].toLowerCase();
     stag.forEach(el => el.classList.add('in'));
   }
 
-  /* compact sticky state (160ms ease-out) */
+  /* compact sticky state: >8px scroll adds hairline + 4px shadow, eases to 48px */
   let compact = false;
   const onScroll = () => {
-    const want = window.scrollY > 64;
+    const want = window.scrollY > 8;
     if (want !== compact) { compact = want; header.classList.toggle('is-compact', want); }
   };
   addEventListener('scroll', onScroll, { passive: true }); onScroll();
@@ -164,6 +170,7 @@ const chip = (name: string) => name.split(/[ &]/)[0].toLowerCase();
   const closeSheet = () => { scrim.classList.remove('is-open'); sheet.classList.remove('is-open'); document.getElementById('browse-trigger').setAttribute('aria-expanded', 'false'); setTimeout(() => { sheet.hidden = true; scrim.hidden = true; }, 200); };
   document.getElementById('browse-trigger').addEventListener('click', openSheet);
   document.getElementById('browse-close').addEventListener('click', closeSheet);
+  scrim.addEventListener('click', closeSheet);
 
   /* search overlay */
   const INDEX = JSON.parse(document.getElementById('search-index').textContent);
@@ -184,22 +191,29 @@ const chip = (name: string) => name.split(/[ &]/)[0].toLowerCase();
   }
   searchInput.addEventListener('input', () => render(searchInput.value));
 
-  /* ad-toggle law 8 — slots + placeholders independently; persisted; zero request */
-  const ads = document.getElementById('ads-toggle'), ph = document.getElementById('ph-toggle');
-  ads.checked = store.get('as-ads') === 'on'; ph.checked = store.get('as-ph') !== 'off';
-  root.setAttribute('data-ads', ads.checked ? 'on' : 'off');
-  root.setAttribute('data-ph', ph.checked ? 'on' : 'off');
-  const syncAds = () => {
-    root.setAttribute('data-ads', ads.checked ? 'on' : 'off');
-    root.setAttribute('data-ph', ph.checked ? 'on' : 'off');
-    store.set('as-ads', ads.checked ? 'on' : 'off');
-    store.set('as-ph', ph.checked ? 'on' : 'off');
+  /* Law 8 ad toggles — one source of truth via event delegation on .ad-toggle.
+     Every instance (Browse sheet here, Footer control elsewhere) reads and
+     writes the same localStorage keys + html[data-ads]/[data-ph]; no IDs, so
+     multiple placements can never collide. */
+  const paintAds = () => {
+    document.querySelectorAll('.ad-toggle').forEach(box => {
+      box.checked = box.dataset.role === 'slots' ? root.getAttribute('data-ads') === 'on' : root.getAttribute('data-ph') !== 'off';
+    });
     const foot = document.getElementById('foot-ad-state');
-    if (foot) foot.textContent = ads.checked ? 'ON' : 'OFF';
-    say(ads.checked ? 'Ad slots ON — still zero requests in this prototype.' : 'Ad slots OFF — zero height, zero shift.');
+    if (foot) foot.textContent = root.getAttribute('data-ads') === 'on' ? 'ON' : 'OFF';
   };
-  ads.addEventListener('change', syncAds);
-  ph.addEventListener('change', syncAds);
+  paintAds();
+  document.addEventListener('change', e => {
+    const box = e.target instanceof Element && e.target.closest('.ad-toggle');
+    if (!box) return;
+    const on = box.checked;
+    if (box.dataset.role === 'slots') { root.setAttribute('data-ads', on ? 'on' : 'off'); store.set('as-ads', on ? 'on' : 'off'); }
+    else { root.setAttribute('data-ph', on ? 'on' : 'off'); store.set('as-ph', on ? 'on' : 'off'); }
+    paintAds();
+    say(box.dataset.role === 'slots'
+      ? (on ? 'Ad slots ON — still zero requests in this prototype.' : 'Ad slots OFF — zero height, zero shift.')
+      : (on ? 'Placeholders shown.' : 'Placeholders hidden — slots render empty.'));
+  });
 </script>
 
 <script type="application/json" id="search-index" set:html={JSON.stringify(POSTS.map(p => ({ title: p.title, url: p.url, excerpt: p.excerpt, cat: p.cat_name,

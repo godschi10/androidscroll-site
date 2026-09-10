@@ -72,57 +72,37 @@ html:not(.js) .batt[data-lvl="5"] i:nth-child(-n+5),
 html.js .batt.batt-on[data-lvl="5"] i:nth-child(-n+5){background:var(--deep)}
 html.js .batt i{transition:background-color .3s ease}
 
-/* ---------- header: status line + masthead + sticky compact ---------- */
-html,body{overflow-x:clip} /* layout-blowout guard (King report, v0.2.2): nothing may paint past the viewport */
-.site-header{max-width:100vw;overflow:hidden}
-.site-header{position:sticky;top:0;z-index:40;background:var(--canvas);border-bottom:1px solid var(--line-2)}
-.status-line{background:var(--band);border-bottom:1px solid var(--line)}
-.status-in{max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px);display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--muted);min-height:30px;white-space:nowrap;overflow:hidden}
-.status-in .host{color:var(--deep);font-weight:600}
-.status-in .host b{color:var(--ink);font-weight:600}
-.status-in .live{flex:none;display:inline-flex;align-items:center;gap:7px;color:var(--ink-2)}
-.status-in .live::before{content:"";width:7px;height:7px;background:var(--deep);flex:none}
-/* status line hides entirely on mobile — masthead carries identity, Browse carries categories (matches no-hamburger law) */
-@media (max-width:719px){.status-line{display:none}}
-.status-chips{display:flex;align-items:center;gap:14px;margin-left:auto;flex:none;min-width:0;overflow:hidden}
-.status-chips a{display:inline-flex;align-items:center;gap:7px;color:var(--muted);font-weight:500;letter-spacing:.04em;flex:none}
-.status-chips a:hover{color:var(--deep);text-decoration:none}
-.status-chips a em{font-style:normal;color:var(--ink-2);font-weight:600}
-.header-in{max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px);display:flex;flex-direction:column;transition:padding .16s ease-out}
-.masthead{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0 6px;transition:padding .16s ease-out}
-.nameplate{display:flex;align-items:center;gap:12px;color:var(--ink)}
-.nameplate:hover{text-decoration:none}
-.brand-mark{position:relative;flex:none;width:30px;height:30px;background:var(--deep);border-radius:2px;transition:width .16s ease-out,height .16s ease-out}
-.brand-mark::after{content:"";position:absolute;inset:7px 7px auto auto;width:7px;height:7px;background:var(--paper)}
-.brand-name{font-family:var(--display);font-weight:800;font-size:clamp(26px,3.4vw,34px);letter-spacing:-.035em;line-height:.92;white-space:nowrap}
-.brand-name em{font-style:normal;color:var(--deep)}
-.tagline{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--muted);white-space:nowrap}
-.header-row{display:flex;align-items:center;gap:10px;padding:6px 0 10px;min-height:50px}
-.h-spacer{flex:1}
-.h-btn{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:8px 14px;border:1px solid var(--line-2);border-radius:2px;color:var(--ink);font-weight:700;font-size:13.5px;background:transparent;transition:border-color .16s ease-out,color .16s ease-out}
-.h-btn:hover{border-color:var(--deep);color:var(--deep);text-decoration:none}
-.h-btn.icon{width:42px;padding:0;justify-content:center;font-size:17px}
-.h-btn svg{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8}
-.h-btn .browse-key{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--muted)}
-.ad-flag{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;color:var(--muted);border:1px dashed var(--line-2);border-radius:2px;padding:6px 9px;white-space:nowrap}
-.ad-flag label{display:inline-flex;gap:5px;align-items:center;cursor:pointer;font-weight:500}
-.ad-flag input{accent-color:var(--deep);width:13px;height:13px;margin:0}
-/* compact state (JS adds .is-compact on scroll): status line collapses, masthead shrinks */
-.site-header.is-compact .status-line{display:none}
-.site-header.is-compact .masthead{padding:6px 0 0}
-.site-header.is-compact .tagline{display:none}
-.site-header.is-compact .brand-mark{width:22px;height:22px}
-.site-header.is-compact .brand-name{font-size:19px}
-.site-header.is-compact .header-row{padding:4px 0 6px;min-height:40px}
-@media (max-width:719px){.status-chips{display:none}.tagline{display:none}
-/* mobile header compaction (King's blowout fix): hide ad-flag + Browse key, shrink gaps */
-.header-row{flex-wrap:wrap}
-.ad-flag{display:none}
-.h-btn .browse-key{display:none}
-.h-btn{min-height:38px;padding:6px 10px;font-size:12.5px}
-.h-btn.icon{width:38px}
-.masthead{gap:10px}
-.header-row{gap:8px}}
+/* ---------- header v0.3: ONE bar (header-patterns.md) ---------- */
+html,body{overflow-x:clip} /* layout-blowout guard: nothing may paint past the viewport */
+.site-header{position:sticky;top:0;z-index:40;background:var(--canvas);max-width:100vw}
+.header-in{max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px);display:flex;align-items:center;gap:16px;height:54px;transition:height .18s ease-out,box-shadow .18s ease-out}
+/* compact state (JS adds .is-compact on scroll >8px): hairline + 4px shadow, eases to 48px */
+.site-header.is-compact{border-bottom:1px solid var(--line-2);box-shadow:0 4px 10px -6px rgba(7,21,18,.28)}
+.site-header.is-compact .header-in{height:48px}
+/* wordmark = brand element, biggest thing in the bar */
+.wordmark{display:inline-flex;align-items:center;gap:10px;color:var(--ink);flex:none;min-width:0}
+.wordmark:hover{text-decoration:none}
+.wordmark .mark{width:20px;height:20px;flex:none;transition:width .18s ease-out,height .18s ease-out}
+.wordmark .word-text{font-family:var(--display);font-weight:800;font-size:24px;letter-spacing:-.03em;line-height:1;white-space:nowrap}
+.wordmark .word-text em{font-style:normal;color:var(--deep)}
+/* desktop ≥900px: up to 4 inline category links, mono 12px (Cloudflare labeled links) */
+.head-cats{display:none;align-items:center;gap:18px;margin-left:6px;min-width:0}
+.head-cats a{font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.03em;color:var(--muted);white-space:nowrap}
+.head-cats a:hover{color:var(--deep);text-decoration:none}
+/* right cluster: 3 stroke-SVG icons, 20px glyphs in 44px hotspots */
+.head-actions{display:flex;align-items:center;gap:2px;margin-left:auto;flex:none}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:2px;color:var(--ink);transition:color .16s ease-out,background-color .16s ease-out}
+.icon-btn:hover{color:var(--deep);background:var(--band)}
+.icon-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:square}
+.icon-btn .glyph-moon{display:none}
+.icon-btn.is-dark .glyph-sun{display:none}
+.icon-btn.is-dark .glyph-moon{display:block}
+@media (min-width:900px){
+  .header-in{height:60px}
+  .head-cats{display:inline-flex}
+  .wordmark .mark{width:24px;height:24px}
+  .wordmark .word-text{font-size:28px}
+}
 
 /* ---------- browse sheet + search overlay ---------- */
 .scrim{position:fixed;inset:0;z-index:50;background:rgba(7,21,18,.55);opacity:0;pointer-events:none;transition:opacity .16s ease-out}
@@ -144,6 +124,13 @@ html,body{overflow-x:clip} /* layout-blowout guard (King report, v0.2.2): nothin
 .b-kids a.is-empty{color:var(--muted);font-weight:400}
 .sheet-note{grid-column:1/-1;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.03em;padding-top:16px}
 .sheet-note a{color:var(--deep)}
+/* browse sheet footer: Law-8 ad toggles live here (out of the header bar) */
+.sheet-foot{grid-column:1/-1;margin-top:6px;padding:14px clamp(16px,4vw,28px);border-top:1px solid var(--line-2);background:var(--band);display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
+.sheet-foot .foot-kicker{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.ad-toggles{display:inline-flex;align-items:center;gap:16px}
+.ad-toggles label{display:inline-flex;gap:7px;align-items:center;cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--ink-2);font-weight:500}
+.ad-toggles input{accent-color:var(--deep);width:14px;height:14px;margin:0}
+.sheet-foot-note{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--muted);white-space:nowrap}
 .search-layer{position:fixed;inset:0;z-index:70;display:none;padding:clamp(48px,12vh,120px) 16px 16px}
 .search-layer.is-open{display:block}
 .search-box{max-width:640px;margin:0 auto;background:var(--paper);border:1px solid var(--line-2);border-top:4px solid var(--verdict);border-radius:2px;box-shadow:var(--float);overflow:hidden}
@@ -157,8 +144,9 @@ html,body{overflow-x:clip} /* layout-blowout guard (King report, v0.2.2): nothin
 .search-results .sr-x{font-size:13px;color:var(--muted);line-height:1.45}
 .search-results .sr-meta{font-family:var(--mono);font-size:10.5px;color:var(--deep);letter-spacing:.04em;margin-top:3px}
 .search-empty{padding:26px 20px;font-family:var(--mono);font-size:12.5px;color:var(--muted);line-height:1.7}
-.close-x{width:38px;height:38px;border:1px solid var(--line-2);border-radius:2px;font-size:18px;color:var(--muted);display:inline-flex;align-items:center;justify-content:center;line-height:1}
+.close-x{width:38px;height:38px;border:1px solid var(--line-2);border-radius:2px;color:var(--muted);display:inline-flex;align-items:center;justify-content:center;flex:none}
 .close-x:hover{border-color:var(--deep);color:var(--deep)}
+.close-x svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:square}
 
 /* ---------- ad slots (law 8: off = zero height, zero request, zero shift) ---------- */
 .ad-slot{margin:34px auto;max-width:960px;padding:0 clamp(16px,4vw,40px);height:auto}
@@ -376,7 +364,7 @@ html[data-theme=dark] .site-footer{background:#050F0D}
 .foot-col a:hover{color:#FFF;text-decoration:none}
 .foot-col .cnt{color:rgba(217,242,232,.65)}
 .foot-brand .brand-name{font-size:22px;color:#FFF}
-.foot-brand .brand-mark{background:var(--teal)}
+.foot-brand .brand-mark{width:24px;height:24px;flex:none}
 .foot-brand p{font-size:13px;color:rgba(217,242,232,.85);line-height:1.6;margin-top:12px;max-width:34ch}
 .foot-notify input{background:transparent;border:1px solid rgba(217,242,232,.4);border-bottom-width:2px;color:#FFF;padding:10px 12px;border-radius:2px;font-size:13.5px;width:100%;max-width:230px}
 .foot-notify input::placeholder{color:rgba(217,242,232,.6);font-family:var(--mono);font-size:11px;letter-spacing:.04em}
