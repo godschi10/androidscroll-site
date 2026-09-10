@@ -1,12 +1,30 @@
 ---
-/* Header — nameplate masthead band + sticky compact state, Browse sheet (real tree,
-   honest counts), search overlay trigger, theme toggle, ad-toggle control (law 8).
-   No hamburger: Browse owns navigation. */
+/* Header v0.2 — TERMINAL EDITORIAL (design-plan-v3.md):
+   STATUS-LINE top bar (mono: AS://androidscroll.com — 13 fixes live —
+   battery-glyph category chips) above the real masthead row (wordmark,
+   Browse sheet, search, theme, ad-toggle). Sticky compact state hides
+   the status line. No hamburger: Browse owns navigation. Law 8: ad
+   slots + placeholders independently switchable, persisted on-device. */
 import { SITE, CATS, PILLARS, TOTALS, childrenOf, postsIn, POSTS } from '../data/site';
 const roots = CATS.filter(c => !c.parent);
 const pillarsWithPosts = PILLARS.map(p => ({ ...p, real: postsIn(p).length }));
+const chip = (name: string) => name.split(/[ &]/)[0].toLowerCase();
 ---
 <header class="site-header" id="site-header">
+  <div class="status-line" aria-hidden={undefined}>
+    <div class="status-in">
+      <span class="host">AS://<b>androidscroll</b>.com</span>
+      <span class="live mono">{TOTALS.posts} fixes live</span>
+      <nav class="status-chips" aria-label="Category quick chips">
+        {pillarsWithPosts.map(p => (
+          <a href={p.path} title={`${p.name} — ${p.real} live ${p.real === 1 ? 'guide' : 'guides'}`}>
+            <span class="batt" data-lvl={Math.min(5, p.real)} aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+            {chip(p.name)}<em>{p.real}</em>
+          </a>
+        ))}
+      </nav>
+    </div>
+  </div>
   <div class="header-in">
     <div class="masthead">
       <a class="nameplate" href="/" aria-label="AndroidScroll — home">
@@ -14,10 +32,8 @@ const pillarsWithPosts = PILLARS.map(p => ({ ...p, real: postsIn(p).length }));
         <span class="brand-name">Android<em>Scroll</em></span>
       </a>
       <span class="tagline">{SITE.tagline}</span>
-      <span class="dateline mono"><b>{SITE.dateline}</b> · {SITE.benchline}</span>
     </div>
     <div class="header-row">
-      <span class="compact-date">{SITE.dateline}</span>
       <button class="h-btn" id="browse-trigger" aria-expanded="false" aria-controls="browse-sheet">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h12" stroke-linecap="square"/></svg>
         Browse <span class="browse-key">{TOTALS.categories} shelves</span>
@@ -86,7 +102,7 @@ const pillarsWithPosts = PILLARS.map(p => ({ ...p, real: postsIn(p).length }));
 
 <script type="module">
   /* One progressive-enhancement script: theme, compact header, browse sheet,
-     search overlay (client index), ad-toggle law 8. Persisted on-device. */
+     search overlay (client index), ad-toggle law 8, battery fill, rail stagger. */
   const root = document.documentElement;
   const header = document.getElementById('site-header');
   const scrim = document.getElementById('scrim');
@@ -115,7 +131,27 @@ const pillarsWithPosts = PILLARS.map(p => ({ ...p, real: postsIn(p).length }));
     root.setAttribute('data-theme', next); store.set('as-theme', next); paintTheme();
   });
 
-  /* compact sticky state */
+  /* battery glyphs fill on first paint (one-time, 300ms) */
+  const fillBatteries = () => document.querySelectorAll('.batt').forEach(b => b.classList.add('batt-on'));
+  requestAnimationFrame(() => requestAnimationFrame(fillBatteries));
+
+  /* rails stagger-in on scroll (IntersectionObserver, 40ms steps, translateY 8px) */
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const stag = document.querySelectorAll('.stag');
+  if (!reduce && 'IntersectionObserver' in window && stag.length) {
+    const io = new IntersectionObserver(es => es.forEach((e, i) => {
+      if (e.isIntersecting) {
+        e.target.style.transitionDelay = Math.min(i * 40, 200) + 'ms';
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    }), { rootMargin: '0px 0px -8% 0px' });
+    stag.forEach(el => io.observe(el));
+  } else {
+    stag.forEach(el => el.classList.add('in'));
+  }
+
+  /* compact sticky state (160ms ease-out) */
   let compact = false;
   const onScroll = () => {
     const want = window.scrollY > 64;
@@ -158,6 +194,8 @@ const pillarsWithPosts = PILLARS.map(p => ({ ...p, real: postsIn(p).length }));
     root.setAttribute('data-ph', ph.checked ? 'on' : 'off');
     store.set('as-ads', ads.checked ? 'on' : 'off');
     store.set('as-ph', ph.checked ? 'on' : 'off');
+    const foot = document.getElementById('foot-ad-state');
+    if (foot) foot.textContent = ads.checked ? 'ON' : 'OFF';
     say(ads.checked ? 'Ad slots ON — still zero requests in this prototype.' : 'Ad slots OFF — zero height, zero shift.');
   };
   ads.addEventListener('change', syncAds);

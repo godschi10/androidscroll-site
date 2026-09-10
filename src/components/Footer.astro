@@ -4,6 +4,7 @@
 import { SITE, PILLARS, POSTS, TOTALS } from '../data/site';
 const latest3 = POSTS.slice(0, 3);
 const year = 2026;
+const started = POSTS.reduce((min, p) => p.date < min ? p.date : min, POSTS[0].date).slice(0, 4);
 ---
 <footer class="site-footer" id="colophon">
   <div class="foot-in">
@@ -61,13 +62,14 @@ const year = 2026;
     </div>
 
     <div class="foot-bar">
-      <span>© 2019–{year} AndroidScroll.com</span>
+      <span>© {started}–{year} AndroidScroll.com</span>
       <span class="sep">·</span>
       <span class="matomo-note">Analytics: self-hosted Matomo, cookie-free, loaded only after you consent. No third-party trackers, no ad pixels while slots are off.</span>
       <span class="sep">·</span>
       <span class="foot-ad">
         <label><input type="checkbox" id="foot-ads-toggle" /> Site-wide ad slots: <b id="foot-ad-state">OFF</b></label>
       </span>
+      <span class="foot-ad-off" id="foot-ad-law">off = zero height · zero requests · zero shift</span>
       <span class="sep">·</span>
       <a href="/contact/">Report a broken link</a>
     </div>
