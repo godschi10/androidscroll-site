@@ -1,0 +1,18 @@
+---
+/* One shell for all thin stub pages (ruling: designed, not filler). */
+import Base from './Base.astro';
+const { title, desc, kicker } = Astro.props;
+---
+<Base title={title} desc={desc}>
+  <div class="col" style="padding-bottom:64px">
+    <nav class="crumb" aria-label="Breadcrumb" style="padding-top:26px"><a href="/">Home</a> <span>›</span> <span>{title}</span></nav>
+    <header class="art-head">
+      <div class="hero-kicker">{kicker || 'The paper'}</div>
+      <h1 class="art-h1" style="max-width:18ch">{title}</h1>
+    </header>
+    <div class="art-body">
+      <div class="stub-note"><b>Prototype stub</b> This page exists so every header and footer link resolves. Full copy ports from androidscroll.com next — the chrome around it is final.</div>
+      <slot />
+    </div>
+  </div>
+</Base>

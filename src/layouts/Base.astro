@@ -1,0 +1,22 @@
+---
+import '../styles/global.css';
+import Head from '../components/Head.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+const props = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <Head title={props.title} desc={props.desc} robots={props.robots} ogType={props.ogType} />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <Header />
+  <main id="main">
+    <slot />
+  </main>
+  <Footer />
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

@@ -1,0 +1,102 @@
+---
+/* Category template — State A populated (intro + list + sub-shelves),
+   State B empty (designed noindex page: honest zero, what's coming,
+   bridge guides, notify capture, exit to parent). */
+import Base from '../../layouts/Base.astro';
+import { CATS, bySlug, postsIn, childrenOf, rootOf, PILLARS, fmtDate, TOTALS } from '../../data/site';
+
+export function getStaticPaths() {
+  return CATS.map(c => ({ params: { path: c.path.replace(/^\/category\//, '').replace(/\/$/, '') }, props: { c } }));
+}
+const c = Astro.props.c;
+const live = postsIn(c);
+const kids = childrenOf(c);
+const empty = live.length === 0;
+const root = rootOf(c);
+const bridges = empty ? PILLARS.filter(p => p.slug !== root.slug).flatMap(p => postsIn(p).slice(0, 1)) : [];
+const planned = {
+  'buying-guides': 'Best apps, games, accessories, comparisons, reviews and phones — bought at retail, daily-driven two weeks, scored on a public rubric.',
+  'best-apps': 'Hands-on app picks with receipts — no listicles rented from press releases.',
+  'best-games': 'Games that run well on mid-range silicon, tested on mid-range silicon.',
+  'best-accessories': 'Cases, chargers, earbuds — the drop-then-survive kind.',
+  'comparisons': 'Versus pages that answer “which one should I actually buy,” with a verdict, not a coin flip.',
+  'reviews': 'Long-term reviews: two weeks daily-driving before a score moves.',
+  'best-phones': 'Budget first — the phones a mid-range buyer can afford, ranked honestly.',
+  'customization': 'Launchers, icon packs, widgets and the settings Google hides — one guide per rabbit hole.',
+  'data-transfer-backup': 'Move, back up, restore. The guides you need exactly once, so they must be right.',
+  'camera-tricks': 'What the camera can do that the default UI never shows you.',
+  'shortcuts-settings': 'Gestures, Bubbles-off, per-app permissions — the control-panel shelf.',
+  'manufacturer-tips': 'One brand per guide: Samsung, Pixel, Xiaomi, Nothing — where the menus actually are.',
+};
+---
+<Base title={c.name} desc={`${c.name} on AndroidScroll — ${empty ? 'opens as the library grows' : live.length + ' tested guide' + (live.length === 1 ? '' : 's')}.`}
+      robots={empty ? 'noindex,follow' : undefined}>
+  <div class="wrap" style="padding-bottom:56px">
+    <nav class="crumb" aria-label="Breadcrumb" style="padding-top:26px">
+      <a href="/">Home</a> <span>›</span>
+      {c.parent && <><a href={bySlug[c.parent_slug].path}>{c.parent_name}</a> <span>›</span></>}
+      <span>{c.name}</span>
+    </nav>
+
+    <header class="cat-hero" class:list={{ 'empty-hero': empty }}>
+      <h1>{c.name}</h1>
+      {!empty && <p class="intro">{live.length} tested guide{live.length === 1 ? '' : 's'} in this shelf — every one written for the phone in your hand and dated honestly. {kids.length > 0 ? `Below: guides first, sub-shelves as they stock up.` : ''}</p>}
+      {empty && <p class="intro">{planned[c.slug] || 'Being stocked as the 200-post library lands.'}</p>}
+      {empty && <div class="zero" aria-label="Zero guides published today">0</div>}
+      {empty && <div class="launch mono">Opens Q1 2027 · {TOTALS.posts} live site-wide</div>}
+    </header>
+
+    {empty ? (
+      <section class="cat-empty" aria-labelledby="e-h">
+        <div class="rule-s" style="margin-top:34px"><span class="s-no">§</span><h2 id="e-h">What’s coming here</h2><span class="s-side">designed empty, never a dead end</span></div>
+        <ul class="b-kids" style="max-width:640px;border-top:1px solid var(--line)">
+          {(planned[c.slug] || '').split('. ').map(line => line && <li style="padding:10px 0;border-bottom:1px solid var(--line)"><span style="font-size:15px;color:var(--ink-2)">{line.trim()}.</span></li>)}
+        </ul>
+        <div class="kicker-h" style="margin-top:38px">Leave with something real · bridge guides</div>
+        <div class="rel-grid" style="border-top:2px solid var(--ink)">
+          {bridges.map(b => (
+            <article style="padding:16px 0;border-bottom:1px solid var(--line)">
+              <h3 style="font-family:var(--display);font-size:18px;letter-spacing:-.025em;font-weight:800;line-height:1.15"><a href={b.url}>{b.title}</a></h3>
+              <div class="byline" style="margin-top:6px"><span>{b.root_name}</span><span><b>{b.read_min} min</b></span></div>
+            </article>
+          ))}
+        </div>
+        <form data-stub style="display:flex;gap:10px;flex-wrap:wrap;margin-top:34px;max-width:560px">
+          <input type="email" placeholder="Notify me when this shelf opens" aria-label="Email for launch alerts" required style="flex:1;min-width:220px;border:1px solid var(--line-2);border-bottom-width:2px;background:var(--paper);padding:12px 14px;border-radius:2px;font-size:15px" />
+          <button class="btn-deep">Notify me</button>
+        </form>
+        <p class="p-foot mono" style="margin-top:22px;font-size:11px;color:var(--muted)">
+          This page is <b>noindex</b> until the shelf holds 3+ real guides — the parent keeps the link equity. <a href={c.parent ? bySlug[c.parent_slug].path : (root.slug === c.slug ? '/' : root.path)}>← Back to {c.parent ? c.parent_name : 'the hub'}</a>
+        </p>
+      </section>
+    ) : (
+      <section aria-labelledby="l-h" style="margin-top:26px">
+        <div class="rule-s"><span class="s-no">§</span><h2 id="l-h">{live.length} guide{live.length === 1 ? '' : 's'} · newest first</h2><span class="s-side">{c.path}</span></div>
+        <div class="cat-list">
+          {live.map(p => (
+            <article>
+              <div>
+                <h3><a href={p.url}>{p.title}</a></h3>
+                <p class="x">{p.excerpt}</p>
+                <div class="byline" style="margin-top:8px"><span>{fmtDate(p.date)}</span>{p.read_min && <span><b>{p.read_min} min</b></span>}<span>{p.comments} comments</span></div>
+              </div>
+            </article>
+          ))}
+        </div>
+        {kids.length > 0 && (
+          <>
+            <div class="kicker-h" style="margin-top:36px">Nearby sub-shelves</div>
+            <div class="empty-row">
+              {kids.map(k => (
+                <a class="empty-tile" href={k.path} style="text-decoration:none">
+                  <b>{k.name}</b>
+                  <span>{postsIn(k).length === 0 ? '0 guides · opens Q1 2027' : postsIn(k).length + ' guides'}</span>
+                </a>
+              ))}
+            </div>
+          </>
+        )}
+      </section>
+    )}
+  </div>
+</Base>

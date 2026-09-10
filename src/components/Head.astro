@@ -1,0 +1,37 @@
+---
+// Head — meta/OG per page, inline design tokens for flash-free theme.
+import { SITE } from '../data/site';
+const props = Astro.props;
+const canonical = SITE.url + Astro.url.pathname;
+const title = props.title ? `${props.title} — ${SITE.name}` : `${SITE.name} — ${props.desc || SITE.tagline}`;
+---
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{title}</title>
+<meta name="description" content={props.desc || SITE.tagline} />
+<link rel="canonical" href={canonical} />
+<meta property="og:site_name" content={SITE.name} />
+<meta property="og:title" content={props.title || SITE.name} />
+<meta property="og:description" content={props.desc || SITE.tagline} />
+<meta property="og:type" content={props.ogType || 'website'} />
+<meta property="og:url" content={canonical} />
+<meta name="twitter:card" content="summary" />
+<meta name="theme-color" content="#F7FAF9" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#071512" media="(prefers-color-scheme: dark)" />
+{props.robots && <meta name="robots" content={props.robots} />}
+<link rel="alternate" type="application/rss+xml" title={SITE.name} href={new URL('rss.xml', canonical).href} />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='3' fill='%23006E5E'/%3E%3Crect x='19' y='6' width='7' height='7' fill='%23fff'/%3E%3C/svg%3E" />
+<script is:inline>
+  (function () {
+    try {
+      var t = localStorage.getItem('as-theme');
+      if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', t);
+      var a = localStorage.getItem('as-ads') || 'off';
+      var p = localStorage.getItem('as-ph') || 'on';
+      document.documentElement.setAttribute('data-ads', a);
+      document.documentElement.setAttribute('data-ph', p);
+      document.documentElement.classList.add('js');
+    } catch (e) {}
+  })();
+</script>

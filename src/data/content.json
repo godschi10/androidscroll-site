@@ -1,0 +1,634 @@
+{
+ "generated": "2026-09-10",
+ "source": "https://androidscroll.com/wp-json/wp/v2 (13 posts, 20 cats, 52 comments \u2014 real counts)",
+ "posts": [
+  {
+   "id": 12351,
+   "slug": "android-storage-full-after-deleting-files",
+   "url": "/android-storage-full-after-deleting-files/",
+   "title": "Android Storage Full After Deleting Files? Here\u2019s What\u2019s Actually Hiding",
+   "excerpt": "Deleted files but storage is still full? App cache, WhatsApp media, and ghost files are hiding 5 to 15GB. Here is how to find and clear all of it.",
+   "date": "2026-04-27",
+   "modified": "2026-05-05",
+   "cats": [
+    "troubleshooting-fixes"
+   ],
+   "cat_id": 180,
+   "cat_name": "Troubleshooting & Fixes",
+   "cat_path": "/category/troubleshooting-fixes/",
+   "root_name": "Troubleshooting & Fixes",
+   "root_slug": "troubleshooting-fixes",
+   "root_id": 180,
+   "words": 2136,
+   "read_min": 11,
+   "comments": 0
+  },
+  {
+   "id": 12251,
+   "slug": "android-problems-fix",
+   "url": "/android-problems-fix/",
+   "title": "Android Problems: The Complete Fix Guide (2026)",
+   "excerpt": "Your Android phone acting up? This guide covers every common Android problem including overheating, battery drain, storage full, apps crashing, and Wi-Fi dropping, with direct links to full step-by-step fixes.",
+   "date": "2026-04-13",
+   "modified": "2026-09-10",
+   "cats": [
+    "troubleshooting-fixes"
+   ],
+   "cat_id": 180,
+   "cat_name": "Troubleshooting & Fixes",
+   "cat_path": "/category/troubleshooting-fixes/",
+   "root_name": "Troubleshooting & Fixes",
+   "root_slug": "troubleshooting-fixes",
+   "root_id": 180,
+   "words": 4792,
+   "read_min": 24,
+   "comments": 3
+  },
+  {
+   "id": 11978,
+   "slug": "android-phone-overheating",
+   "url": "/android-phone-overheating/",
+   "title": "Android Phone Overheating? Causes and Fixes (2026)",
+   "excerpt": "Android phone overheating? A background app is the most common cause. Check Settings \u2192 Battery \u2192 Battery Usage, then work through these ranked software and hardware fixes.",
+   "date": "2026-04-04",
+   "modified": "2026-09-10",
+   "cats": [
+    "troubleshooting-fixes"
+   ],
+   "cat_id": 180,
+   "cat_name": "Troubleshooting & Fixes",
+   "cat_path": "/category/troubleshooting-fixes/",
+   "root_name": "Troubleshooting & Fixes",
+   "root_slug": "troubleshooting-fixes",
+   "root_id": 180,
+   "words": 2249,
+   "read_min": 11,
+   "comments": 0
+  },
+  {
+   "id": 10630,
+   "slug": "android-battery-draining-fast",
+   "url": "/android-battery-draining-fast/",
+   "title": "Android Battery Draining Fast: Real Solutions That Actually Work (2026)",
+   "excerpt": "Android battery draining fast? This guide explains the real causes and proven fixes to stop Android battery drain and improve battery life in 2026.",
+   "date": "2026-02-10",
+   "modified": "2026-05-31",
+   "cats": [
+    "troubleshooting-fixes"
+   ],
+   "cat_id": 180,
+   "cat_name": "Troubleshooting & Fixes",
+   "cat_path": "/category/troubleshooting-fixes/",
+   "root_name": "Troubleshooting & Fixes",
+   "root_slug": "troubleshooting-fixes",
+   "root_id": 180,
+   "words": 2226,
+   "read_min": 11,
+   "comments": 4
+  },
+  {
+   "id": 9874,
+   "slug": "gemini-commands-to-make-your-mornings-easier",
+   "url": "/gemini-commands-to-make-your-mornings-easier/",
+   "title": "19 Gemini commands to make your mornings easier (2026)",
+   "excerpt": "19 tested Gemini voice commands for Android mornings: alarms, calendar, day briefs, smart home. Replaces the old Assistant list, updated for 2026.",
+   "date": "2023-10-30",
+   "modified": "2026-09-10",
+   "cats": [
+    "productivity",
+    "tips-hidden-features"
+   ],
+   "cat_id": 183,
+   "cat_name": "Productivity",
+   "cat_path": "/category/tips-hidden-features/productivity/",
+   "root_name": "Tips & Hidden Features",
+   "root_slug": "tips-hidden-features",
+   "root_id": 156,
+   "words": 1979,
+   "read_min": 10,
+   "comments": 0
+  },
+  {
+   "id": 9838,
+   "slug": "increase-storage-space-on-android",
+   "url": "/increase-storage-space-on-android/",
+   "title": "How to Increase Storage Space on Android (9 Easy Ways to Free Up Memory)",
+   "excerpt": "The good news is that you don\u2019t need to buy a new phone to fix this. With a few simple steps, you can free up space on Android, clear unnecessary files, and get rid of the \u201cAndroid storage full\u201d problem in minutes.",
+   "date": "2023-10-20",
+   "modified": "2026-09-10",
+   "cats": [
+    "basics-setup",
+    "guides-how-tos"
+   ],
+   "cat_id": 175,
+   "cat_name": "Basics & Setup",
+   "cat_path": "/category/guides-how-tos/basics-setup/",
+   "root_name": "Guides & How-tos",
+   "root_slug": "guides-how-tos",
+   "root_id": 6,
+   "words": 2727,
+   "read_min": 14,
+   "comments": 0
+  },
+  {
+   "id": 8994,
+   "slug": "how-to-stop-malware-from-destroying-your-phone",
+   "url": "/how-to-stop-malware-from-destroying-your-phone/",
+   "title": "Android Malware: 5 Warning Signs and a Safe Step-by-Step Removal Guide",
+   "excerpt": "In this guide, you\u2019ll learn how to tell if your phone has malware, what to do right away, and how to clean it safely, step by step.",
+   "date": "2023-10-18",
+   "modified": "2026-04-13",
+   "cats": [
+    "privacy-security",
+    "guides-how-tos"
+   ],
+   "cat_id": 177,
+   "cat_name": "Privacy & Security",
+   "cat_path": "/category/guides-how-tos/privacy-security/",
+   "root_name": "Guides & How-tos",
+   "root_slug": "guides-how-tos",
+   "root_id": 6,
+   "words": 1664,
+   "read_min": 8,
+   "comments": 4
+  },
+  {
+   "id": 208,
+   "slug": "how-to-test-android",
+   "url": "/how-to-test-android/",
+   "title": "How to Test a New Android Phone: The Complete Step-by-Step Checklist",
+   "excerpt": "Just got a new Android phone? Use this checklist to test the screen, cameras, SIM, speakers, and battery before your return window closes.",
+   "date": "2023-08-17",
+   "modified": "2026-09-10",
+   "cats": [
+    "basics-setup",
+    "guides-how-tos"
+   ],
+   "cat_id": 175,
+   "cat_name": "Basics & Setup",
+   "cat_path": "/category/guides-how-tos/basics-setup/",
+   "root_name": "Guides & How-tos",
+   "root_slug": "guides-how-tos",
+   "root_id": 6,
+   "words": 4596,
+   "read_min": 23,
+   "comments": 4
+  },
+  {
+   "id": 8945,
+   "slug": "what-damages-phone-battery",
+   "url": "/what-damages-phone-battery/",
+   "title": "What damages phone battery? Top 5 reasons and how to avoid them",
+   "excerpt": "What damages phone battery? Here are the top 5 things that damage your phone battery and how to avoid them.",
+   "date": "2023-07-15",
+   "modified": "2026-04-13",
+   "cats": [
+    "troubleshooting-fixes"
+   ],
+   "cat_id": 180,
+   "cat_name": "Troubleshooting & Fixes",
+   "cat_path": "/category/troubleshooting-fixes/",
+   "root_name": "Troubleshooting & Fixes",
+   "root_slug": "troubleshooting-fixes",
+   "root_id": 180,
+   "words": 2545,
+   "read_min": 13,
+   "comments": 2
+  },
+  {
+   "id": 8720,
+   "slug": "how-to-improve-battery-life-on-android-devices",
+   "url": "/how-to-improve-battery-life-on-android-devices/",
+   "title": "15 Unexpected Ways to Improve Battery Life on Android Devices",
+   "excerpt": "Tired of your Android phone running out of battery life too quickly? Here are 15 unexpected tips to help you extend your battery life.",
+   "date": "2023-04-13",
+   "modified": "2026-09-10",
+   "cats": [
+    "battery-life-hacks",
+    "tips-hidden-features"
+   ],
+   "cat_id": 181,
+   "cat_name": "Battery Life Hacks",
+   "cat_path": "/category/tips-hidden-features/battery-life-hacks/",
+   "root_name": "Tips & Hidden Features",
+   "root_slug": "tips-hidden-features",
+   "root_id": 156,
+   "words": 4019,
+   "read_min": 20,
+   "comments": 0
+  },
+  {
+   "id": 56,
+   "slug": "6-charging-mistakes-that-damage-your-phone-battery",
+   "url": "/6-charging-mistakes-that-damage-your-phone-battery/",
+   "title": "7 Charging mistakes that are damaging your phone battery",
+   "excerpt": "Are you unknowingly damaging your phone battery? Read on to learn about the 7 charging mistakes that may be hurting your phone\u2019s performance and longevity.",
+   "date": "2022-03-14",
+   "modified": "2026-04-13",
+   "cats": [
+    "battery-life-hacks",
+    "tips-hidden-features"
+   ],
+   "cat_id": 181,
+   "cat_name": "Battery Life Hacks",
+   "cat_path": "/category/tips-hidden-features/battery-life-hacks/",
+   "root_name": "Tips & Hidden Features",
+   "root_slug": "tips-hidden-features",
+   "root_id": 156,
+   "words": 1127,
+   "read_min": 6,
+   "comments": 18
+  },
+  {
+   "id": 578,
+   "slug": "read-deleted-whatsapp-messages",
+   "url": "/read-deleted-whatsapp-messages/",
+   "title": "How to Read Deleted WhatsApp Messages (Even After They\u2019re Gone)",
+   "excerpt": "Deleted WhatsApp message? Three methods still work in 2026: notification history, quoted replies, and chat backup restore. Tested steps, honest limits.",
+   "date": "2019-07-12",
+   "modified": "2026-09-10",
+   "cats": [
+    "productivity",
+    "tips-hidden-features"
+   ],
+   "cat_id": 183,
+   "cat_name": "Productivity",
+   "cat_path": "/category/tips-hidden-features/productivity/",
+   "root_name": "Tips & Hidden Features",
+   "root_slug": "tips-hidden-features",
+   "root_id": 156,
+   "words": 1841,
+   "read_min": 9,
+   "comments": 16
+  },
+  {
+   "id": 184,
+   "slug": "how-to-save-your-phone-from-water-damage",
+   "url": "/how-to-save-your-phone-from-water-damage/",
+   "title": "Dropped Your Phone in Water? Do This Immediately to Save It",
+   "excerpt": "In this post, I\u2019ll tell you why your phones get affected by water, what you shouldn\u2019t do to worsen the case, and how you can save your phone from \u201cdeath by water\u201d.",
+   "date": "2019-05-19",
+   "modified": "2026-09-10",
+   "cats": [
+    "troubleshooting-fixes"
+   ],
+   "cat_id": 180,
+   "cat_name": "Troubleshooting & Fixes",
+   "cat_path": "/category/troubleshooting-fixes/",
+   "root_name": "Troubleshooting & Fixes",
+   "root_slug": "troubleshooting-fixes",
+   "root_id": 180,
+   "words": 732,
+   "read_min": 4,
+   "comments": 1
+  }
+ ],
+ "categories": [
+  {
+   "id": 179,
+   "name": "Buying Guides & Recommendations",
+   "slug": "buying-guides",
+   "count": 0,
+   "parent": 0,
+   "parent_name": null,
+   "parent_slug": null,
+   "root_slug": "buying-guides",
+   "root_name": "Buying Guides & Recommendations",
+   "path": "/category/buying-guides/",
+   "children": [
+    {
+     "name": "Best Apps",
+     "slug": "best-apps",
+     "count": 0,
+     "path": "/category/buying-guides/best-apps/"
+    },
+    {
+     "name": "Best Games",
+     "slug": "best-games",
+     "count": 0,
+     "path": "/category/buying-guides/best-games/"
+    },
+    {
+     "name": "Best Accessories",
+     "slug": "best-accessories",
+     "count": 0,
+     "path": "/category/buying-guides/best-accessories/"
+    },
+    {
+     "name": "Comparisons",
+     "slug": "comparisons",
+     "count": 0,
+     "path": "/category/buying-guides/comparisons/"
+    },
+    {
+     "name": "Reviews",
+     "slug": "reviews",
+     "count": 0,
+     "path": "/category/buying-guides/reviews/"
+    },
+    {
+     "name": "Best Phones",
+     "slug": "best-phones",
+     "count": 0,
+     "path": "/category/buying-guides/best-phones/"
+    }
+   ]
+  },
+  {
+   "id": 186,
+   "name": "Best Accessories",
+   "slug": "best-accessories",
+   "count": 0,
+   "parent": 179,
+   "parent_name": "Buying Guides & Recommendations",
+   "parent_slug": "buying-guides",
+   "root_slug": "buying-guides",
+   "root_name": "Buying Guides & Recommendations",
+   "path": "/category/buying-guides/best-accessories/",
+   "children": []
+  },
+  {
+   "id": 184,
+   "name": "Best Apps",
+   "slug": "best-apps",
+   "count": 0,
+   "parent": 179,
+   "parent_name": "Buying Guides & Recommendations",
+   "parent_slug": "buying-guides",
+   "root_slug": "buying-guides",
+   "root_name": "Buying Guides & Recommendations",
+   "path": "/category/buying-guides/best-apps/",
+   "children": []
+  },
+  {
+   "id": 185,
+   "name": "Best Games",
+   "slug": "best-games",
+   "count": 0,
+   "parent": 179,
+   "parent_name": "Buying Guides & Recommendations",
+   "parent_slug": "buying-guides",
+   "root_slug": "buying-guides",
+   "root_name": "Buying Guides & Recommendations",
+   "path": "/category/buying-guides/best-games/",
+   "children": []
+  },
+  {
+   "id": 197,
+   "name": "Best Phones",
+   "slug": "best-phones",
+   "count": 0,
+   "parent": 179,
+   "parent_name": "Buying Guides & Recommendations",
+   "parent_slug": "buying-guides",
+   "root_slug": "buying-guides",
+   "root_name": "Buying Guides & Recommendations",
+   "path": "/category/buying-guides/best-phones/",
+   "children": []
+  },
+  {
+   "id": 187,
+   "name": "Comparisons",
+   "slug": "comparisons",
+   "count": 0,
+   "parent": 179,
+   "parent_name": "Buying Guides & Recommendations",
+   "parent_slug": "buying-guides",
+   "root_slug": "buying-guides",
+   "root_name": "Buying Guides & Recommendations",
+   "path": "/category/buying-guides/comparisons/",
+   "children": []
+  },
+  {
+   "id": 196,
+   "name": "Reviews",
+   "slug": "reviews",
+   "count": 0,
+   "parent": 179,
+   "parent_name": "Buying Guides & Recommendations",
+   "parent_slug": "buying-guides",
+   "root_slug": "buying-guides",
+   "root_name": "Buying Guides & Recommendations",
+   "path": "/category/buying-guides/reviews/",
+   "children": []
+  },
+  {
+   "id": 6,
+   "name": "Guides & How-tos",
+   "slug": "guides-how-tos",
+   "count": 3,
+   "parent": 0,
+   "parent_name": null,
+   "parent_slug": null,
+   "root_slug": "guides-how-tos",
+   "root_name": "Guides & How-tos",
+   "path": "/category/guides-how-tos/",
+   "children": [
+    {
+     "name": "Basics & Setup",
+     "slug": "basics-setup",
+     "count": 2,
+     "path": "/category/guides-how-tos/basics-setup/"
+    },
+    {
+     "name": "Customization",
+     "slug": "customization",
+     "count": 0,
+     "path": "/category/guides-how-tos/customization/"
+    },
+    {
+     "name": "Privacy & Security",
+     "slug": "privacy-security",
+     "count": 1,
+     "path": "/category/guides-how-tos/privacy-security/"
+    },
+    {
+     "name": "Data Transfer & Backup",
+     "slug": "data-transfer-backup",
+     "count": 0,
+     "path": "/category/guides-how-tos/data-transfer-backup/"
+    }
+   ]
+  },
+  {
+   "id": 175,
+   "name": "Basics & Setup",
+   "slug": "basics-setup",
+   "count": 2,
+   "parent": 6,
+   "parent_name": "Guides & How-tos",
+   "parent_slug": "guides-how-tos",
+   "root_slug": "guides-how-tos",
+   "root_name": "Guides & How-tos",
+   "path": "/category/guides-how-tos/basics-setup/",
+   "children": []
+  },
+  {
+   "id": 176,
+   "name": "Customization",
+   "slug": "customization",
+   "count": 0,
+   "parent": 6,
+   "parent_name": "Guides & How-tos",
+   "parent_slug": "guides-how-tos",
+   "root_slug": "guides-how-tos",
+   "root_name": "Guides & How-tos",
+   "path": "/category/guides-how-tos/customization/",
+   "children": []
+  },
+  {
+   "id": 178,
+   "name": "Data Transfer & Backup",
+   "slug": "data-transfer-backup",
+   "count": 0,
+   "parent": 6,
+   "parent_name": "Guides & How-tos",
+   "parent_slug": "guides-how-tos",
+   "root_slug": "guides-how-tos",
+   "root_name": "Guides & How-tos",
+   "path": "/category/guides-how-tos/data-transfer-backup/",
+   "children": []
+  },
+  {
+   "id": 177,
+   "name": "Privacy & Security",
+   "slug": "privacy-security",
+   "count": 1,
+   "parent": 6,
+   "parent_name": "Guides & How-tos",
+   "parent_slug": "guides-how-tos",
+   "root_slug": "guides-how-tos",
+   "root_name": "Guides & How-tos",
+   "path": "/category/guides-how-tos/privacy-security/",
+   "children": []
+  },
+  {
+   "id": 156,
+   "name": "Tips & Hidden Features",
+   "slug": "tips-hidden-features",
+   "count": 4,
+   "parent": 0,
+   "parent_name": null,
+   "parent_slug": null,
+   "root_slug": "tips-hidden-features",
+   "root_name": "Tips & Hidden Features",
+   "path": "/category/tips-hidden-features/",
+   "children": [
+    {
+     "name": "Battery Life Hacks",
+     "slug": "battery-life-hacks",
+     "count": 2,
+     "path": "/category/tips-hidden-features/battery-life-hacks/"
+    },
+    {
+     "name": "Camera Tricks",
+     "slug": "camera-tricks",
+     "count": 0,
+     "path": "/category/tips-hidden-features/camera-tricks/"
+    },
+    {
+     "name": "Productivity",
+     "slug": "productivity",
+     "count": 2,
+     "path": "/category/tips-hidden-features/productivity/"
+    },
+    {
+     "name": "Shortcuts & Settings",
+     "slug": "shortcuts-settings",
+     "count": 0,
+     "path": "/category/tips-hidden-features/shortcuts-settings/"
+    },
+    {
+     "name": "Manufacturer Tips",
+     "slug": "manufacturer-tips",
+     "count": 0,
+     "path": "/category/tips-hidden-features/manufacturer-tips/"
+    }
+   ]
+  },
+  {
+   "id": 181,
+   "name": "Battery Life Hacks",
+   "slug": "battery-life-hacks",
+   "count": 2,
+   "parent": 156,
+   "parent_name": "Tips & Hidden Features",
+   "parent_slug": "tips-hidden-features",
+   "root_slug": "tips-hidden-features",
+   "root_name": "Tips & Hidden Features",
+   "path": "/category/tips-hidden-features/battery-life-hacks/",
+   "children": []
+  },
+  {
+   "id": 182,
+   "name": "Camera Tricks",
+   "slug": "camera-tricks",
+   "count": 0,
+   "parent": 156,
+   "parent_name": "Tips & Hidden Features",
+   "parent_slug": "tips-hidden-features",
+   "root_slug": "tips-hidden-features",
+   "root_name": "Tips & Hidden Features",
+   "path": "/category/tips-hidden-features/camera-tricks/",
+   "children": []
+  },
+  {
+   "id": 195,
+   "name": "Manufacturer Tips",
+   "slug": "manufacturer-tips",
+   "count": 0,
+   "parent": 156,
+   "parent_name": "Tips & Hidden Features",
+   "parent_slug": "tips-hidden-features",
+   "root_slug": "tips-hidden-features",
+   "root_name": "Tips & Hidden Features",
+   "path": "/category/tips-hidden-features/manufacturer-tips/",
+   "children": []
+  },
+  {
+   "id": 183,
+   "name": "Productivity",
+   "slug": "productivity",
+   "count": 2,
+   "parent": 156,
+   "parent_name": "Tips & Hidden Features",
+   "parent_slug": "tips-hidden-features",
+   "root_slug": "tips-hidden-features",
+   "root_name": "Tips & Hidden Features",
+   "path": "/category/tips-hidden-features/productivity/",
+   "children": []
+  },
+  {
+   "id": 188,
+   "name": "Shortcuts & Settings",
+   "slug": "shortcuts-settings",
+   "count": 0,
+   "parent": 156,
+   "parent_name": "Tips & Hidden Features",
+   "parent_slug": "tips-hidden-features",
+   "root_slug": "tips-hidden-features",
+   "root_name": "Tips & Hidden Features",
+   "path": "/category/tips-hidden-features/shortcuts-settings/",
+   "children": []
+  },
+  {
+   "id": 180,
+   "name": "Troubleshooting & Fixes",
+   "slug": "troubleshooting-fixes",
+   "count": 6,
+   "parent": 0,
+   "parent_name": null,
+   "parent_slug": null,
+   "root_slug": "troubleshooting-fixes",
+   "root_name": "Troubleshooting & Fixes",
+   "path": "/category/troubleshooting-fixes/",
+   "children": []
+  }
+ ],
+ "totals": {
+  "posts": 13,
+  "categories": 19,
+  "comments": 52,
+  "empty_categories": 12
+ }
+}

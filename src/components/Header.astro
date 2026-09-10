@@ -1,0 +1,168 @@
+---
+/* Header — nameplate masthead band + sticky compact state, Browse sheet (real tree,
+   honest counts), search overlay trigger, theme toggle, ad-toggle control (law 8).
+   No hamburger: Browse owns navigation. */
+import { SITE, CATS, PILLARS, TOTALS, childrenOf, postsIn, POSTS } from '../data/site';
+const roots = CATS.filter(c => !c.parent);
+const pillarsWithPosts = PILLARS.map(p => ({ ...p, real: postsIn(p).length }));
+---
+<header class="site-header" id="site-header">
+  <div class="header-in">
+    <div class="masthead">
+      <a class="nameplate" href="/" aria-label="AndroidScroll — home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">Android<em>Scroll</em></span>
+      </a>
+      <span class="tagline">{SITE.tagline}</span>
+      <span class="dateline mono"><b>{SITE.dateline}</b> · {SITE.benchline}</span>
+    </div>
+    <div class="header-row">
+      <span class="compact-date">{SITE.dateline}</span>
+      <button class="h-btn" id="browse-trigger" aria-expanded="false" aria-controls="browse-sheet">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h12" stroke-linecap="square"/></svg>
+        Browse <span class="browse-key">{TOTALS.categories} shelves</span>
+      </button>
+      <span class="h-spacer"></span>
+      <span class="ad-flag" title="Ad slots and their placeholders are independently switchable. OFF = zero height, zero request, zero layout shift (Law 8).">
+        <label><input type="checkbox" id="ads-toggle" /> Slots</label>
+        <label><input type="checkbox" id="ph-toggle" checked /> Placeholders</label>
+      </span>
+      <button class="h-btn icon" id="search-trigger" aria-label="Search guides" title="Search (/ key)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21" stroke-linecap="square"/></svg>
+      </button>
+      <button class="h-btn icon" id="theme-toggle" aria-label="Switch to dark mode" title="Light / dark">
+        <span aria-hidden="true" id="theme-glyph">☾</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="scrim" id="scrim" hidden></div>
+
+<aside class="sheet" id="browse-sheet" role="dialog" aria-modal="true" aria-label="Browse all shelves" hidden>
+  <div class="sheet-head">
+    <h2>The shelves</h2>
+    <button class="close-x" id="browse-close" aria-label="Close browse">✕</button>
+  </div>
+  <nav class="sheet-body" aria-label="Categories">
+    {pillarsWithPosts.map(p => (
+      <div class="b-pillar">
+        <a class="p-name" href={p.path}>{p.name}
+          <span class:list={['cnt', { zero: p.real === 0 }]}>{p.real} {p.real === 1 ? 'guide' : 'guides'}</span>
+        </a>
+        {childrenOf(p).length > 0 && (
+          <ul class="b-kids">
+            {childrenOf(p).map(k => {
+              const n = postsIn(k).length;
+              return <li><a href={k.path} class:list={{ 'is-empty': n === 0 }}>
+                <span>{k.name}</span>
+                <span class:list={['cnt', { zero: n === 0 }]}>{n === 0 ? 'opens soon' : n + (n === 1 ? ' guide' : ' guides')}</span>
+              </a></li>;
+            })}
+          </ul>
+        )}
+      </div>
+    ))}
+    <div class="sheet-note">
+      Counts are honest: {TOTALS.posts} guides live today across {roots.length} shelves — the rest open as the
+      200-post library lands. <a href="/about/">How we work →</a>
+    </div>
+  </nav>
+</aside>
+
+<div class="search-layer" id="search-layer" role="dialog" aria-modal="true" aria-label="Search" hidden>
+  <div class="scrim is-open" id="search-scrim" style="position:absolute"></div>
+  <div class="search-box">
+    <div class="search-meta"><span>Search {TOTALS.posts} guides</span><span>Esc to close</span></div>
+    <label class="sr-only" for="search-input" style="position:absolute;left:-9999px">Search query</label>
+    <input id="search-input" type="search" placeholder="battery, overheating, whatsapp, malware…" autocomplete="off" />
+    <ul class="search-results" id="search-results" aria-live="polite"></ul>
+    <div class="search-empty no-js-hide" id="search-empty" hidden>
+      No guide matches that yet — and that's the backlog, not a dead end.<br />
+      <a href="/contact/">Tell us what to write →</a>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  /* One progressive-enhancement script: theme, compact header, browse sheet,
+     search overlay (client index), ad-toggle law 8. Persisted on-device. */
+  const root = document.documentElement;
+  const header = document.getElementById('site-header');
+  const scrim = document.getElementById('scrim');
+  const sheet = document.getElementById('browse-sheet');
+  const searchLayer = document.getElementById('search-layer');
+  const searchInput = document.getElementById('search-input');
+  const results = document.getElementById('search-results');
+  const empty = document.getElementById('search-empty');
+  const toast = document.getElementById('toast');
+  const store = { get: k => { try { return localStorage.getItem(k); } catch { return null; } },
+                  set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
+  let toastTimer;
+  const say = m => { toast.textContent = m; toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 2600); };
+
+  /* theme */
+  const themeBtn = document.getElementById('theme-toggle');
+  const glyph = document.getElementById('theme-glyph');
+  const paintTheme = () => {
+    const dark = root.getAttribute('data-theme') === 'dark';
+    glyph.textContent = dark ? '☀' : '☾';
+    themeBtn.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
+  };
+  paintTheme();
+  themeBtn.addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next); store.set('as-theme', next); paintTheme();
+  });
+
+  /* compact sticky state */
+  let compact = false;
+  const onScroll = () => {
+    const want = window.scrollY > 64;
+    if (want !== compact) { compact = want; header.classList.toggle('is-compact', want); }
+  };
+  addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+  /* sheets */
+  const openSheet = () => { scrim.hidden = false; sheet.hidden = false; requestAnimationFrame(() => { scrim.classList.add('is-open'); sheet.classList.add('is-open'); }); document.getElementById('browse-trigger').setAttribute('aria-expanded', 'true'); };
+  const closeSheet = () => { scrim.classList.remove('is-open'); sheet.classList.remove('is-open'); document.getElementById('browse-trigger').setAttribute('aria-expanded', 'false'); setTimeout(() => { sheet.hidden = true; scrim.hidden = true; }, 200); };
+  document.getElementById('browse-trigger').addEventListener('click', openSheet);
+  document.getElementById('browse-close').addEventListener('click', closeSheet);
+
+  /* search overlay */
+  const INDEX = JSON.parse(document.getElementById('search-index').textContent);
+  const openSearch = () => { searchLayer.hidden = false; searchLayer.classList.add('is-open'); setTimeout(() => searchInput.focus(), 30); render(''); };
+  const closeSearch = () => { searchLayer.classList.remove('is-open'); searchLayer.hidden = true; };
+  document.getElementById('search-trigger').addEventListener('click', openSearch);
+  document.getElementById('search-scrim').addEventListener('click', closeSearch);
+  addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeSheet(); closeSearch(); }
+    if (e.key === '/' && !/input|textarea/i.test(document.activeElement.tagName)) { e.preventDefault(); openSearch(); }
+  });
+  const esc = s => s.replace(/[&<"]/g, c => ({ '&': '&amp;', '<': '&lt;', '"': '&quot;' }[c]));
+  function render(q) {
+    const terms = q.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    const hits = (terms.length ? INDEX.filter(p => terms.every(t => (p.title + ' ' + p.excerpt + ' ' + p.cat).toLowerCase().includes(t))) : INDEX).slice(0, 8);
+    results.innerHTML = hits.map(p => `<li><a href="${p.url}"><h3>${esc(p.title)}</h3><div class="sr-x">${esc(p.excerpt)}</div><div class="sr-meta">${p.meta}</div></a></li>`).join('');
+    empty.hidden = !(terms.length && hits.length === 0);
+  }
+  searchInput.addEventListener('input', () => render(searchInput.value));
+
+  /* ad-toggle law 8 — slots + placeholders independently; persisted; zero request */
+  const ads = document.getElementById('ads-toggle'), ph = document.getElementById('ph-toggle');
+  ads.checked = store.get('as-ads') === 'on'; ph.checked = store.get('as-ph') !== 'off';
+  root.setAttribute('data-ads', ads.checked ? 'on' : 'off');
+  root.setAttribute('data-ph', ph.checked ? 'on' : 'off');
+  const syncAds = () => {
+    root.setAttribute('data-ads', ads.checked ? 'on' : 'off');
+    root.setAttribute('data-ph', ph.checked ? 'on' : 'off');
+    store.set('as-ads', ads.checked ? 'on' : 'off');
+    store.set('as-ph', ph.checked ? 'on' : 'off');
+    say(ads.checked ? 'Ad slots ON — still zero requests in this prototype.' : 'Ad slots OFF — zero height, zero shift.');
+  };
+  ads.addEventListener('change', syncAds);
+  ph.addEventListener('change', syncAds);
+</script>
+
+<script type="application/json" id="search-index" set:html={JSON.stringify(POSTS.map(p => ({ title: p.title, url: p.url, excerpt: p.excerpt, cat: p.cat_name,
+    meta: `${p.date} · ${p.read_min} min · ${p.cat_name}` })))} />

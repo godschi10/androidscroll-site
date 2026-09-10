@@ -1,0 +1,109 @@
+---
+/* Footer — sitemap columns, notify-me stub, legal, Matomo consent note,
+   ad-slot toggle OFF state echo. Deep-verdict band, mint type. */
+import { SITE, PILLARS, POSTS, TOTALS } from '../data/site';
+const latest3 = POSTS.slice(0, 3);
+const year = 2026;
+---
+<footer class="site-footer" id="colophon">
+  <div class="foot-in">
+    <div class="foot-grid">
+      <div class="foot-col foot-brand">
+        <a class="nameplate" href="/" aria-label="AndroidScroll — home">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-name">Android<em style="color:var(--teal)">Scroll</em></span>
+        </a>
+        <p>{SITE.tagline} Built as a static publication: Astro on the edge, no trackers without your consent.</p>
+        <div class="foot-notify" style="margin-top:16px">
+          <form data-stub id="foot-notify-form">
+            <input type="email" placeholder="Email for launch alerts" aria-label="Email address" required />
+            <button type="submit">Notify me</button>
+          </form>
+          <p class="n-note mono" style="font-size:10px;margin-top:8px;opacity:.7">Prototype stub — no network call fires.</p>
+        </div>
+      </div>
+
+      {PILLARS.map(p => (
+        <nav class="foot-col" aria-label={p.name}>
+          <h4>{p.name}</h4>
+          <ul>
+            <li><a href={p.path}><span>All {p.name.toLowerCase()}</span></a></li>
+            {p.children.map(k => (
+              <li><a href={k.path}><span>{k.name}</span><span class="cnt">{k.count}</span></a></li>
+            ))}
+            {p.children.length === 0 && latest3.filter(x => x.root_slug === p.slug).map(x => (
+              <li><a href={x.url}><span>{x.title.length > 34 ? x.title.slice(0, 34) + '…' : x.title}</span></a></li>
+            ))}
+          </ul>
+        </nav>
+      ))}
+
+      <nav class="foot-col" aria-label="The paper">
+        <h4>The paper</h4>
+        <ul>
+          <li><a href="/start-here/"><span>Start here</span></a></li>
+          <li><a href="/about/"><span>About AndroidScroll</span></a></li>
+          <li><a href="/how-we-test/"><span>How we test</span></a></li>
+          <li><a href="/contact/"><span>Contact the desk</span></a></li>
+          <li><a href="/latest/"><span>Latest {TOTALS.posts} guides</span></a></li>
+        </ul>
+      </nav>
+
+      <nav class="foot-col" aria-label="Legal">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="/privacy-policy/"><span>Privacy policy</span></a></li>
+          <li><a href="/cookie-policy/"><span>Cookie policy</span></a></li>
+          <li><a href="/disclaimer/"><span>Disclaimer</span></a></li>
+          <li><a href="/comments-policy/"><span>Comments policy</span></a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="foot-bar">
+      <span>© 2019–{year} AndroidScroll.com</span>
+      <span class="sep">·</span>
+      <span class="matomo-note">Analytics: self-hosted Matomo, cookie-free, loaded only after you consent. No third-party trackers, no ad pixels while slots are off.</span>
+      <span class="sep">·</span>
+      <span class="foot-ad">
+        <label><input type="checkbox" id="foot-ads-toggle" /> Site-wide ad slots: <b id="foot-ad-state">OFF</b></label>
+      </span>
+      <span class="sep">·</span>
+      <a href="/contact/">Report a broken link</a>
+    </div>
+  </div>
+</footer>
+
+<script type="module">
+  /* footer ad toggle mirrors the header control (same localStorage keys, law 8);
+     notify form is an honest stub: no network, confirmation in-page. */
+  const root = document.documentElement;
+  const box = document.getElementById('foot-ads-toggle');
+  const state = document.getElementById('foot-ad-state');
+  const toast = document.getElementById('toast');
+  const sync = on => {
+    root.setAttribute('data-ads', on ? 'on' : 'off');
+    state.textContent = on ? 'ON' : 'OFF';
+    try { localStorage.setItem('as-ads', on ? 'on' : 'off'); } catch {}
+    const head = document.getElementById('ads-toggle');
+    if (head) { head.checked = on; }
+    toast.textContent = on ? 'Site-wide ad slots ON (zero requests in this prototype).' : 'Site-wide ad slots OFF — zero height, zero shift.';
+    toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2600);
+  };
+  const cur = root.getAttribute('data-ads') === 'on';
+  box.checked = cur; state.textContent = cur ? 'ON' : 'OFF';
+  box.addEventListener('change', () => sync(box.checked));
+  document.querySelectorAll('form[data-stub]').forEach(f => {
+    f.addEventListener('submit', e => {
+      e.preventDefault();
+      const inp = f.querySelector('input');
+      if (inp.value && inp.checkValidity()) {
+        toast.textContent = 'Noted — launch alerts stub registered on this device. (Prototype: no data leaves the page.)';
+        inp.value = '';
+      } else {
+        toast.textContent = 'Enter a valid email to be notified.';
+      }
+      toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2800);
+    });
+  });
+</script>

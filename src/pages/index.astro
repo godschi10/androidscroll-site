@@ -1,0 +1,232 @@
+---
+/* Homepage — wireframe §01 spine: dateline masthead → promise hero →
+   flagship featured guide → pillar map (the spine) → quick answers →
+   money tree (verdict band) → latest + most-read rail → trust/EEAT → notify.
+   Real content only: 13 posts, honest counts, empty shelves say so. */
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Head from '../components/Head.astro';
+import AdSlot from '../components/AdSlot.astro';
+import '../styles/global.css';
+import { SITE, POSTS, PILLARS, TOTALS, mostRead, postsIn, fmtDate, fmtLong } from '../data/site';
+
+const flagship = POSTS.find(p => p.slug === 'android-problems-fix');
+const lead = POSTS[0];
+const rows = POSTS.slice(1, 4);
+const read = mostRead();
+const buying = PILLARS.find(p => p.slug === 'buying-guides');
+const emptyShelves = buying.children.map(c => ({ ...c, real: postsIn(c).length })).filter(c => !c.real);
+const fixSteps = [
+  'Restart first — it clears more than you think',
+  'Safe mode to rule out a bad app',
+  'Check for a rogue update',
+  'Storage & cache that quietly throttle you',
+  'Battery drain suspects, in order',
+  'Factory reset as the last door, not the first',
+];
+---
+<Base>
+  <!-- § 01 · promise hero -->
+  <section class="hero wrap" aria-labelledby="hero-h1">
+    <div class="hero-kicker">A field manual for Android · {SITE.benchline}</div>
+    <h1 class="hero-h1" id="hero-h1">Master your Android<span class="dot">.</span></h1>
+    <p class="hero-stand">No hype, no filler, no “10 tips you already know.” {TOTALS.posts} long guides, tested on the same mid-range phones you hold — and an honest map of the {TOTALS.categories - TOTALS.empty_categories} shelves that are already open and the {TOTALS.empty_categories} still being stocked.</p>
+    <div class="hero-meta">
+      <span>Est. <b>2019</b></span>
+      <span>{TOTALS.posts} guides · {TOTALS.comments} reader comments</span>
+      <span>{SITE.dateline}</span>
+      <span>Updated the week it changes on your phone</span>
+    </div>
+  </section>
+
+  <!-- § 02 · flagship -->
+  <section class="sec wrap" aria-labelledby="s-flagship">
+    <div class="rule-s"><span class="s-no">§</span><h2 id="s-flagship">The flagship</h2><span class="s-side">the guide the site is known for</span></div>
+    <article class="flagship">
+      <div class="f-main">
+        <div class="f-kicker">Fixed 16 problems · re-tested April 2026</div>
+        <h3><a href={flagship.url}>{flagship.title}</a></h3>
+        <p class="f-stand">{flagship.excerpt}</p>
+        <div class="f-byline">
+          <span>By <b><a href="/about/#author">G-will Chijioke</a></b></span>
+          <span>Updated {fmtDate(flagship.modified)}</span>
+          <span>{flagship.words.toLocaleString('en-US')} words · {flagship.read_min} min read</span>
+          <span>{flagship.comments} comments</span>
+        </div>
+      </div>
+      <div class="f-railbox">
+        <div class="fix-idx"><span class="sq">FIX</span> what the guide walks you through</div>
+        <ol class="fix-list">
+          {fixSteps.map(s => <li>{s}</li>)}
+        </ol>
+        <a class="fix-more" href={flagship.url}>Full guide →</a>
+      </div>
+    </article>
+  </section>
+
+  <!-- § 03 · pillar map -->
+  <section class="sec wrap" aria-labelledby="s-map">
+    <div class="rule-s"><span class="s-no">§</span><h2 id="s-map">The shelf map</h2><span class="s-side">four districts · honest stock</span></div>
+    <div class="pillars">
+      {PILLARS.map(p => {
+        const live = postsIn(p);
+        return (
+          <div class="pillar">
+            <div class="pillar-name"><a href={p.path}>{p.name}</a>
+              <span class:list={['cnt', { zero: live.length === 0 }]}>{live.length === 0 ? '0 today' : live.length + ' live'}</span>
+            </div>
+            <p class="pillar-blurb">{p.slug === 'troubleshooting-fixes' && 'Phones break in patterns. These guides follow the symptom to the root cause.'}
+              {p.slug === 'tips-hidden-features' && 'The Android you paid for and never saw. Battery, shortcuts, tricks with receipts.'}
+              {p.slug === 'guides-how-tos' && 'Setup, security, and the boring foundations done properly, once.'}
+              {p.slug === 'buying-guides' && 'Cases, chargers, earbuds, comparisons. Being stocked — every pick will earn its place.'}</p>
+            <ul>
+              {p.children.map(k => {
+                const n = postsIn(k).length;
+                return <li><a href={k.path} class:list={{ 'is-empty': n === 0 }}>
+                  <span>{k.name}</span><span class:list={['cnt', { zero: n === 0 }]}>{n === 0 ? 'opens Q1 2027' : n + (n === 1 ? ' guide' : ' guides')}</span>
+                </a></li>;
+              })}
+            </ul>
+            <div class="p-foot">
+              {live.length > 0
+                ? <><a href={p.path}>Enter →</a> · best pick: <a href={live[0].url}>{live[0].title.split(/[?:]/)[0].trim()}</a></>
+                : <>Launching — <a href={p.path}>see what’s coming</a></>}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </section>
+
+  <AdSlot id="home-mid" />
+
+  <!-- § 04 · quick answers -->
+  <section class="sec wrap" aria-labelledby="s-quick">
+    <div class="rule-s"><span class="s-no">§</span><h2 id="s-quick">Straight answers, two taps deep</h2><span class="s-side">the four questions we get asked most</span></div>
+    <div class="qa">
+      <div class="qa-in">
+        <div class="qa-l">
+          <span class="qa-k">Quick answers</span>
+          <p>Short version first, proof underneath. Every answer below is the opening move of a full tested guide.</p>
+        </div>
+        <div class="qa-rows">
+          <a class="qa-row" href="/android-battery-draining-fast/"><span class="t">DRAIN</span> What kills my battery overnight? <span class="arr">→</span></a>
+          <a class="qa-row" href="/6-charging-mistakes-that-damage-your-phone-battery/"><span class="t">HEALTH</span> Is charging overnight damaging? <span class="arr">→</span></a>
+          <a class="qa-row" href="/android-storage-full-after-deleting-files/"><span class="t">STORAGE</span> Storage full after I deleted files? <span class="arr">→</span></a>
+          <a class="qa-row" href="/how-to-stop-malware-from-destroying-your-phone/"><span class="t">SAFETY</span> How do I know I have malware? <span class="arr">→</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- § 05 · money tree (verdict band) -->
+  <section class="verdict-band" aria-labelledby="s-money">
+    <div class="wrap"><div class="vb-in">
+      <div>
+        <div class="vb-score">
+          <span class="n">0</span>
+          <span class="of">buyer’s guides<br />published — today</span>
+        </div>
+      </div>
+      <div>
+        <div class="f-kicker" style="color:var(--mint)">§ Money tree · the honest state</div>
+        <h2 class="vb-title" id="s-money">We won’t tell you what to buy until we’ve broken one first.</h2>
+        <p class="vb-copy">Buying Guides is the emptiest shelf on the site and the most expensive mistake we could make filling it with filler. {emptyShelves.length} sub-shelves are planned; first drops January 2027; every pick bought at retail and daily-driven two weeks before a verdict ships. Where the library is already deep, the guides above are the receipts.</p>
+        <div class="vb-shelves">
+          {emptyShelves.map(s => <a class="shelf" href={s.path}><b>{s.name}</b> 0 · Q1 2027</a>)}
+        </div>
+        <div class="vb-cta">
+          <a class="btn-deep" href="/category/buying-guides/">Watch the shelf →</a>
+          <span class="vb-fine">Notify-me list builds per shelf — no spam, one email at launch.</span>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- § 06 · latest + most read -->
+  <section class="sec wrap" aria-labelledby="s-latest">
+    <div class="rule-s"><span class="s-no">§</span><h2 id="s-latest">Fresh off the bench</h2><span class="s-side">{TOTALS.posts} guides since 2019 · newest first</span></div>
+    <div class="latest">
+      <article class="l-lead">
+        <div class="f-kicker">{lead.cat_name} · {fmtDate(lead.date)}</div>
+        <h3><a href={lead.url}>{lead.title}</a></h3>
+        <p class="x">{lead.excerpt}</p>
+        <div class="f-byline"><span>{lead.words.toLocaleString('en-US')} words · {lead.read_min} min</span><span>{lead.comments} comments</span></div>
+      </article>
+      <div class="l-rows">
+        {rows.map(r => (
+          <article>
+            <h3><a href={r.url}>{r.title}</a></h3>
+            <p class="x">{r.excerpt}</p>
+            <div class="byline"><span>{fmtDate(r.date)}</span><span><b>{r.read_min} min</b></span></div>
+          </article>
+        ))}
+        <div style="padding:10px 0 0"><a class="fix-more" href="/latest/" style="border-top:0;padding-top:0">All {TOTALS.posts} guides →</a></div>
+      </div>
+    </div>
+
+    <div style="margin-top:clamp(28px,5vh,44px)">
+      <div class="kicker-h">Most read · by comments the reader left</div>
+      <div class="read-rail">
+        {read.map(m => (
+          <article>
+            <div class="hot">{m.comments} comments</div>
+            <h3><a href={m.url}>{m.title}</a></h3>
+            <div class="byline"><span>{fmtDate(m.date)}</span></div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- § 07 · trust / EEAT -->
+  <section class="sec wrap" aria-labelledby="s-trust">
+    <div class="rule-s"><span class="s-no">§</span><h2 id="s-trust">Who’s behind this</h2><span class="s-side">EEAT, stated plainly</span></div>
+    <div class="trust">
+      <div class="trust-in">
+        <div class="t-cell">
+          <span class="t-k">The desk</span>
+          <h3>One writer, accountable by name</h3>
+          <div class="t-person">
+            <span class="t-mono-av" aria-hidden="true">G</span>
+            <div><b>G-will Chijioke</b><span>Founder · Android &amp; security writing since 2019</span></div>
+          </div>
+          <p>Every guide on this site carries a real byline and a correction email. When we’re wrong, the page says so — see our <a href="/comments-policy/">comments policy</a> and <a href="/contact/">contact the desk</a>.</p>
+        </div>
+        <div class="t-cell">
+          <span class="t-k">The bench</span>
+          <h3>Mid-range first — your phone, not ours</h3>
+          <p>Guides are tested on Galaxy-A / Pixel-a / Redmi-Note class devices — the same class you hold. No flagship-only advice; steps are checked on the stock Android you actually run.</p>
+          <p style="margin-top:10px"><a href="/how-we-test/">How we test →</a></p>
+        </div>
+        <div class="t-cell">
+          <span class="t-k">The numbers</span>
+          <h3>Counted honestly</h3>
+          <div class="stat-grid">
+            <div class="stat"><div class="n">{TOTALS.posts}</div><div class="l">guides live</div></div>
+            <div class="stat"><div class="n">{TOTALS.comments}</div><div class="l">comments</div></div>
+            <div class="stat"><div class="n">{TOTALS.empty_categories}</div><div class="l">shelves to stock</div></div>
+            <div class="stat"><div class="n">200</div><div class="l">by Dec 2026</div></div>
+          </div>
+          <p>No inflated archive. The roadmap is public because the library is small — that’s the point.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- newsletter / notify -->
+  <section class="wrap notify" aria-labelledby="s-notify">
+    <div class="notify-in">
+      <div>
+        <h2 id="s-notify">Get the launch alerts</h2>
+        <p>One email when a shelf opens or a flagship guide is re-tested. No digest, no “top 10 of the week.”</p>
+      </div>
+      <form data-stub>
+        <input type="email" placeholder="you@example.com" aria-label="Email address" required />
+        <button class="btn-deep" type="submit">Notify me</button>
+        <span class="n-note">Prototype stub — this form confirms on-device, nothing is sent.</span>
+      </form>
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+import { POSTS, TOTALS, fmtDate } from '../data/site';
+---
+<Base title={`Latest — all ${TOTALS.posts} guides`} desc="Every AndroidScroll guide, newest first.">
+  <div class="wrap" style="padding-bottom:56px">
+    <nav class="crumb" aria-label="Breadcrumb" style="padding-top:26px"><a href="/">Home</a> <span>›</span> <span>Latest</span></nav>
+    <header class="cat-hero"><h1>Latest</h1><p class="intro">All {TOTALS.posts} guides, newest first — the whole library fits on one page today. That's the honest state of the shelf.</p></header>
+    <div class="cat-list">
+      {POSTS.map(p => (
+        <article>
+          <div>
+            <h3><a href={p.url}>{p.title}</a></h3>
+            <p class="x">{p.excerpt}</p>
+            <div class="byline" style="margin-top:8px"><span>{fmtDate(p.date)}</span><span>{p.root_name}</span>{p.read_min && <span><b>{p.read_min} min</b></span>}<span>{p.comments} comments</span></div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</Base>

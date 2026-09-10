@@ -1,0 +1,75 @@
+---
+/* Article stub template — A2 reading rhythm adapted with real fonts.
+   Real titles/excerpts/dates from WP REST; body copy marked as the port target. */
+import Base from '../layouts/Base.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { POSTS, byPath, postsIn, PILLARS, fmtDate, fmtLong, childrenOf } from '../data/site';
+
+export function getStaticPaths() {
+  return POSTS.map(p => ({ params: { slug: p.slug }, props: { p } }));
+}
+const p = Astro.props.p;
+const cat = byPath[p.cat_path] || null;
+const siblings = cat ? postsIn(cat).filter(x => x.slug !== p.slug).slice(0, 3)
+  : POSTS.filter(x => x.slug !== p.slug).slice(0, 3);
+---
+<Base title={p.title} desc={p.excerpt} ogType="article">
+  <article>
+    <header class="art-head col">
+      <nav class="crumb" aria-label="Breadcrumb">
+        <a href="/">Home</a> <span>›</span>
+        <a href={p.cat_path}>{p.root_name}</a> <span>›</span>
+        <span>{p.cat_name}</span>
+      </nav>
+      <h1 class="art-h1">{p.title}</h1>
+      <p class="art-stand">{p.excerpt}</p>
+      <div class="meta-bar">
+        <span>By <a href="/about/#author">G-will Chijioke</a></span>
+        <span>Published {fmtDate(p.date)}</span>
+        {p.modified !== p.date && <span class="upd">Updated {fmtDate(p.modified)}</span>}
+        {p.read_min && <span>{p.read_min} min · {p.words.toLocaleString('en-US')} words</span>}
+        <span>{p.comments} comments</span>
+      </div>
+    </header>
+
+    <div class="art-body col">
+      <div class="stub-note">
+        <b>Prototype — body port pending</b>
+        The full {p.words ? p.words.toLocaleString('en-US') : ''}-word body from androidscroll.com ports into this A2 reading template next (H2 every 300–400 words, numbered steps, FAQ accordion, verdict box). Everything around it — header, furniture, meta, related — is live and final.
+      </div>
+
+      <div class="kicker-h">The short answer</div>
+      <div class="qa"><div class="qa-in">
+        <div class="qa-l"><span class="qa-k">Quick answer</span><p>{p.excerpt}</p></div>
+        <ul class="art-facts" style="padding:6px 18px 12px">
+          <li><span class="fk">Category</span><span><a href={p.cat_path}>{p.cat_name}</a></span></li>
+          <li><span class="fk">First published</span><span>{fmtLong(p.date)}</span></li>
+          <li><span class="fk">Last updated</span><span>{fmtLong(p.modified)}</span></li>
+          <li><span class="fk">Read time</span><span>{p.read_min} minutes</span></li>
+        </ul>
+      </div></div>
+
+      <AdSlot id="art-seam-1" note="In-article slot sits at section seams only — fixed container, zero CLS (Law 8)." />
+
+      <div class="author-box">
+        <span class="t-mono-av" aria-hidden="true">G</span>
+        <div>
+          <h4>G-will Chijioke</h4>
+          <p>Founder of AndroidScroll. Android &amp; security writing since 2019, tested on mid-range hardware. Corrections and tips: <a href="mailto:desk@androidscroll.com">desk@androidscroll.com</a> · <a href="/how-we-test/">How we test</a></p>
+        </div>
+      </div>
+    </div>
+
+    <section class="col" aria-label="Related" style="margin-bottom:40px">
+      <div class="kicker-h">Keep reading · {p.root_name}</div>
+      <div class="rel-grid">
+        {siblings.map(s => (
+          <article>
+            <h3><a href={s.url}>{s.title}</a></h3>
+            <div class="byline"><span>{fmtDate(s.date)}</span><span><b>{s.read_min} min</b></span></div>
+          </article>
+        ))}
+      </div>
+    </section>
+  </article>
+</Base>

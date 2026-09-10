@@ -1,0 +1,19 @@
+---
+/* Start here — the 3 numbered doors (curated path rule). */
+import StaticPage from '../layouts/StaticPage.astro';
+import { POSTS, PILLARS, postsIn } from '../data/site';
+const three = ['android-problems-fix', 'android-battery-draining-fast', 'how-to-test-android']
+  .map(s => POSTS.find(p => p.slug === s));
+---
+<StaticPage title="Start here" desc="Three guides fix 80% of the things people search for. Honesty included." kicker="The on-ramp">
+  <div class="kicker-h">The three doors · read in order</div>
+  <ol class="fix-list" style="max-width:64ch">
+    {three.map(t => <li><a href={t.url} style="color:var(--ink);font-weight:700">{t.title}</a> — {t.excerpt.match(/[^.]+\./)?.[0]}</li>)}
+  </ol>
+  <p style="margin-top:18px;color:var(--muted);font-size:14px">Honest note: three guides cover most of what lands on this desk. The <a href="/">shelf map</a> shows everything else.</p>
+  <div class="kicker-h" style="margin-top:30px">Pillars</div>
+  <ul class="b-kids" style="border-top:1px solid var(--line);max-width:520px">
+    {PILLARS.map(p => { const n = postsIn(p).length; return (
+      <li><a href={p.path}><span>{p.name}</span><span class="cnt">{n} live</span></a></li>); })}
+  </ul>
+</StaticPage>
