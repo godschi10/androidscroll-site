@@ -73,6 +73,8 @@ html.js .batt.batt-on[data-lvl="5"] i:nth-child(-n+5){background:var(--deep)}
 html.js .batt i{transition:background-color .3s ease}
 
 /* ---------- header: status line + masthead + sticky compact ---------- */
+html,body{overflow-x:clip} /* layout-blowout guard (King report, v0.2.2): nothing may paint past the viewport */
+.site-header{max-width:100vw;overflow:hidden}
 .site-header{position:sticky;top:0;z-index:40;background:var(--canvas);border-bottom:1px solid var(--line-2)}
 .status-line{background:var(--band);border-bottom:1px solid var(--line)}
 .status-in{max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px);display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--muted);min-height:30px;white-space:nowrap;overflow:hidden}
@@ -80,8 +82,10 @@ html.js .batt i{transition:background-color .3s ease}
 .status-in .host b{color:var(--ink);font-weight:600}
 .status-in .live{flex:none;display:inline-flex;align-items:center;gap:7px;color:var(--ink-2)}
 .status-in .live::before{content:"";width:7px;height:7px;background:var(--deep);flex:none}
-.status-chips{display:flex;align-items:center;gap:14px;margin-left:auto;flex:none}
-.status-chips a{display:inline-flex;align-items:center;gap:7px;color:var(--muted);font-weight:500;letter-spacing:.04em}
+/* status line hides entirely on mobile — masthead carries identity, Browse carries categories (matches no-hamburger law) */
+@media (max-width:719px){.status-line{display:none}}
+.status-chips{display:flex;align-items:center;gap:14px;margin-left:auto;flex:none;min-width:0;overflow:hidden}
+.status-chips a{display:inline-flex;align-items:center;gap:7px;color:var(--muted);font-weight:500;letter-spacing:.04em;flex:none}
 .status-chips a:hover{color:var(--deep);text-decoration:none}
 .status-chips a em{font-style:normal;color:var(--ink-2);font-weight:600}
 .header-in{max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px);display:flex;flex-direction:column;transition:padding .16s ease-out}
@@ -110,7 +114,15 @@ html.js .batt i{transition:background-color .3s ease}
 .site-header.is-compact .brand-mark{width:22px;height:22px}
 .site-header.is-compact .brand-name{font-size:19px}
 .site-header.is-compact .header-row{padding:4px 0 6px;min-height:40px}
-@media (max-width:719px){.status-chips{display:none}.tagline{display:none}}
+@media (max-width:719px){.status-chips{display:none}.tagline{display:none}
+/* mobile header compaction (King's blowout fix): hide ad-flag + Browse key, shrink gaps */
+.header-row{flex-wrap:wrap}
+.ad-flag{display:none}
+.h-btn .browse-key{display:none}
+.h-btn{min-height:38px;padding:6px 10px;font-size:12.5px}
+.h-btn.icon{width:38px}
+.masthead{gap:10px}
+.header-row{gap:8px}}
 
 /* ---------- browse sheet + search overlay ---------- */
 .scrim{position:fixed;inset:0;z-index:50;background:rgba(7,21,18,.55);opacity:0;pointer-events:none;transition:opacity .16s ease-out}
