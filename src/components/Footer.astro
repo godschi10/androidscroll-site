@@ -25,17 +25,20 @@ const footPillars = PILLARS
         </a>
         <p>{SITE.tagline} Built as a static publication: Astro on the edge, no trackers without your consent.</p>
         <p class="foot-alerts"><a href="/contact/">Get launch alerts — tell us where to reach you →</a></p>
-        <nav class="foot-col foot-paper" aria-label="The paper">
-          <h4>The paper</h4>
-          <ul>
-            <li><a href="/start-here/"><span>Start here</span></a></li>
-            <li><a href="/about/"><span>About AndroidScroll</span></a></li>
-            <li><a href="/how-we-test/"><span>How we test</span></a></li>
-            <li><a href="/contact/"><span>Contact the desk</span></a></li>
-            <li><a href="/latest/"><span>Latest {TOTALS.posts} guides</span></a></li>
-          </ul>
-        </nav>
       </div>
+
+      <!-- v2.7: The paper lifted OUT of the brand block — it's a grid sibling now,
+           so mobile gets a true 2x2 (paper + pillars beside each other). King's call. -->
+      <nav class="foot-col foot-paper" aria-label="The paper">
+        <h4>The paper</h4>
+        <ul>
+          <li><a href="/start-here/"><span>Start here</span></a></li>
+          <li><a href="/about/"><span>About AndroidScroll</span></a></li>
+          <li><a href="/how-we-test/"><span>How we test</span></a></li>
+          <li><a href="/contact/"><span>Contact the desk</span></a></li>
+          <li><a href="/latest/"><span>Latest {TOTALS.posts} guides</span></a></li>
+        </ul>
+      </nav>
 
       {footPillars.map(p => (
         <nav class="foot-col" aria-label={p.name}>

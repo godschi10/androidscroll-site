@@ -448,7 +448,7 @@ html[data-theme=dark] .site-footer{background:#050F0D;--foot-band:#050F0D}
 /* v2.4 D3: brand block + 3 sitemap columns on one grid row at 1280;
    mobile: brand full width, pillars 2-col (digest trait 7) */
 .foot-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:clamp(20px,3vw,36px)}
-@media (min-width:1024px){.foot-grid{grid-template-columns:1.3fr 1fr 1fr 1fr}}
+@media (min-width:1024px){.foot-grid{grid-template-columns:1.2fr repeat(4,1fr)}}
 /* Wordmark on the band: ink->mint, Scroll->teal, eye/mouth holes -> band */
 .site-footer .wordmark-lockup{height:30px;width:auto;display:block;flex:none;--ink:var(--mint);--deep:var(--teal);--canvas:var(--foot-band)}
 /* re-pin: header's html[data-theme=dark] .wordmark-lockup{--deep:#006E5E} is (0,2,1)
@@ -470,7 +470,7 @@ html[data-theme=dark] .site-footer .wordmark-lockup{--deep:var(--teal)}
 .foot-alerts{margin-top:14px;max-width:none}
 .foot-alerts a{font-family:var(--mono);font-size:11.5px;letter-spacing:.02em;color:var(--teal);display:inline-block;padding:6px 0}
 .foot-alerts a:hover{color:#FFF}
-.foot-paper{margin-top:20px}
+.foot-paper{margin-top:0}
 .foot-bar{border-top:1px solid rgba(217,242,232,.25);margin-top:clamp(24px,4vh,38px);padding-top:16px;display:flex;flex-wrap:wrap;gap:10px 26px;align-items:center;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:rgba(217,242,232,.75)}
 .foot-bar a{color:rgba(217,242,232,.9)}
 .foot-bar a:hover{color:#FFF}
