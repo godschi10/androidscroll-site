@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.5 — 2026-09-11 — meta landscape + test-page parity
+- Landscape/tablet (640–899px) got the desktop row but not the width — wrapped ragged. Column discipline now runs to 899px; full labels kept (diet stays mobile-only).
+- style-test-article carried a stale hardcoded copy of the old meta (the "didn't change" the King saw) — mirrored to meta-facts/diet markup. Lesson: test route mirrors the template, always.
+
 ## 0.4.4 — 2026-09-11 — meta facts diet
 - Mobile facts were 2 lines with an orphaned "· 0 comments" (the "too long" the King saw). Labels abbreviated on mobile ("Published"/" read" hidden), and when the Updated pill exists the published date rests (desktop + JSON-LD keep it). Facts now one line @390: pill · min · comments.
 
