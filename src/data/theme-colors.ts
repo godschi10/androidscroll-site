@@ -5,8 +5,8 @@
    (Chrome does not support media/dark values in the manifest — see
    statusbar-PROGRESS.md Phase 1). Do NOT re-declare these hexes elsewhere. */
 export const THEME_COLORS = {
-  light: '#EDF6F3', // site green (matches manifest theme_color + --band)
-  dark: '#071512',  // dark canvas ink
+  light: '#EDF6F3', // site green (matches --band)
+  dark: '#071512',  // dark canvas ink (also the PWA manifest theme_color since v2.2A — status bar claims it at install)
 } as const;
 
 export type ThemeEffect = keyof typeof THEME_COLORS;

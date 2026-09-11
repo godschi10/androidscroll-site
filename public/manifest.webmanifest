@@ -6,7 +6,7 @@
   "scope": "/androidscroll-site/",
   "display": "standalone",
   "background_color": "#EDF6F3",
-  "theme_color": "#EDF6F3",
+  "theme_color": "#071512",
   "icons": [
     { "src": "/androidscroll-site/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/androidscroll-site/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
