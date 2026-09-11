@@ -164,6 +164,9 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
     const names = { light: 'light', dark: 'dark', system: 'auto (follows system)' };
     themeBtn.setAttribute('aria-label', 'Theme: ' + names[pref]);
     themeBtn.title = 'Theme: ' + names[pref] + ' — click to change';
+    /* King v0.6.6: live-sync theme-color meta on every toggle (status bar / browser chrome) */
+    const tcMeta = document.getElementById('tc-base');
+    if (tcMeta) tcMeta.setAttribute('content', eff === 'dark' ? '#071512' : '#F7FAF9');
     if (segWrap) segWrap.querySelectorAll('[data-pref]').forEach(btn => {
       const on = btn.dataset.pref === pref;
       btn.classList.toggle('is-active', on);
