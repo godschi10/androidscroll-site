@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.6 — 2026-09-11 — real hero art, placeholder band killed
+- The hero placeholder band (bordered box + accent bar + centered caps) read as a dead CTA to the King and two vision passes — frame tweaks couldn't save it. Deleted: all 13 articles now carry real field-manual SVG hero illustrations mapped per topic (storage/unknown-sources/toast/success/terminal), eager + captioned. Device shots replace them with the body port.
+
 ## 0.4.5 — 2026-09-11 — meta landscape + test-page parity
 - Landscape/tablet (640–899px) got the desktop row but not the width — wrapped ragged. Column discipline now runs to 899px; full labels kept (diet stays mobile-only).
 - style-test-article carried a stale hardcoded copy of the old meta (the "didn't change" the King saw) — mirrored to meta-facts/diet markup. Lesson: test route mirrors the template, always.

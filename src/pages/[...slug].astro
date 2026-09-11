@@ -30,6 +30,18 @@ const absUrl = SITE.url + p.url;
 const crumbTitle = p.title.split(' ').slice(0, 6).join(' ') + (p.title.split(' ').length > 6 ? '…' : '');
 const iso = (d: string) => d + 'T00:00:00+01:00';
 
+/* hero cover: field-manual SVG illustrations per topic (v0.4.6 King: the placeholder
+   band read as a dead CTA — real art now; device shots replace these with the body port). */
+const COVERS: Array<[RegExp, string, string]> = [
+  [/stor|space/, '/img/kb-storage.svg', 'Phone storage screen: free double the APK, cache is the thief'],
+  [/install|malware|unknown|security/, '/img/kb-unknown.svg', 'Unknown-sources prompt: allow only your file manager'],
+  [/toast|water|overheat/, '/img/kb-toast.svg', 'Phone alert toast mock'],
+  [/success|test|fix|problem/, '/img/kb-success.svg', 'Fix-confirmed check mock'],
+  [/batter|charg|drain|gemini|morning|whatsapp|excellence/, '/img/kb-hero.svg', 'Terminal showing the fix log'],
+];
+const coverHit = COVERS.find(([re]) => re.test(p.slug)) || COVERS[4];
+const coverSrc = coverHit[1]; const coverAlt = coverHit[2];
+
 const blogPosting = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
@@ -83,8 +95,9 @@ const breadcrumbLD = {
         <span>{p.comments} {p.comments === 1 ? 'comment' : 'comments'}</span></span>
       </div>
       {/* no body image in WP payload yet: category-tint hero band reserves the slot */}
-      <figure class="art-hero art-hero-ph" aria-label="Cover art lands with the body port">
-        <span class="art-hero-sig mono" aria-hidden="true">{p.root_name} · {p.words ? p.words.toLocaleString('en-US') + ' words' : ''}</span>
+      <figure class="art-hero">
+        <img src={coverSrc} width="800" height="450" alt={coverAlt} loading="eager" fetchpriority="high" decoding="async" itemprop="image" />
+        <figcaption>Field illustration — real device shots land with the body port.</figcaption>
       </figure>
     </header>
 
