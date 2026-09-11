@@ -132,6 +132,10 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
   /* One progressive-enhancement script: theme, compact header, browse sheet,
      search overlay (client index), Law-8 ad toggles (delegated, classed),
      rail stagger. */
+  /* NOTE: NO imports here — Astro passes this module script through to dist
+     verbatim, so a TS import 404s and kills the whole script (caught pre-ship
+     v0.6.9). Theme colors come from #tc-base data attrs, stamped at build time
+     from data/theme-colors.ts — still a single source of truth. */
   const root = document.documentElement;
   const header = document.getElementById('site-header');
   const scrim = document.getElementById('scrim');
@@ -164,9 +168,14 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
     const names = { light: 'light', dark: 'dark', system: 'auto (follows system)' };
     themeBtn.setAttribute('aria-label', 'Theme: ' + names[pref]);
     themeBtn.title = 'Theme: ' + names[pref] + ' — click to change';
-    /* King v0.6.6: live-sync theme-color meta on every toggle (status bar / browser chrome) */
+    /* v0.6.9: set + MOVE the dynamic meta to head's end (Chrome takes the LAST
+       matching theme-color; appendChild on a live node = remove+re-insert, which
+       also forces UA re-parse). Colors from #tc-base data attrs (build-stamped). */
     const tcMeta = document.getElementById('tc-base');
-    if (tcMeta) tcMeta.setAttribute('content', eff === 'dark' ? '#071512' : '#EDF6F3');
+    if (tcMeta) {
+      tcMeta.setAttribute('content', eff === 'dark' ? tcMeta.dataset.dark : tcMeta.dataset.light);
+      document.head.appendChild(tcMeta);
+    }
     if (segWrap) segWrap.querySelectorAll('[data-pref]').forEach(btn => {
       const on = btn.dataset.pref === pref;
       btn.classList.toggle('is-active', on);

@@ -1,6 +1,7 @@
 ---
 // Head — meta/OG per page, inline design tokens for flash-free theme.
 import { SITE } from '../data/site';
+import { THEME_COLORS } from '../data/theme-colors';
 const props = Astro.props;
 const canonical = SITE.url + Astro.url.pathname;
 const title = props.title ? `${props.title} — ${SITE.name}` : `${SITE.name} — ${props.desc || SITE.tagline}`;
@@ -16,7 +17,12 @@ const title = props.title ? `${props.title} — ${SITE.name}` : `${SITE.name} �
 <meta property="og:type" content={props.ogType || 'website'} />
 <meta property="og:url" content={canonical} />
 <meta name="twitter:card" content="summary" />
-<meta name="theme-color" content="#EDF6F3" id="tc-base" />
+<!-- v0.6.9 status-bar duality fix (see statusbar-PROGRESS.md): media pair paints the OS-level
+     color no-JS; the dynamic #tc-base sits BETWEEN them (last-match-wins keeps no-JS correct in
+     either OS mode) and is re-inserted at head's end by JS so the in-app toggle always wins. -->
+<meta name="theme-color" content={THEME_COLORS.light} media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content={THEME_COLORS.light} id="tc-base" data-light={THEME_COLORS.light} data-dark={THEME_COLORS.dark} />
+<meta name="theme-color" content={THEME_COLORS.dark} media="(prefers-color-scheme: dark)" />
 <meta name="mobile-web-app-capable" content="yes" />
 <link rel="manifest" href="/manifest.webmanifest" />
 {props.robots && <meta name="robots" content={props.robots} />}
@@ -32,9 +38,14 @@ const title = props.title ? `${props.title} — ${SITE.name}` : `${SITE.name} �
         var eff = t === 'system' ? (mq.matches ? 'dark' : 'light') : t;
         document.documentElement.setAttribute('data-theme', eff);
         document.documentElement.setAttribute('data-theme-pref', t);
-        /* King v0.6.6: theme-color meta follows OUR toggle — dark theme paints its own dark chrome */
+        /* v0.6.9: set + MOVE the dynamic meta to head's end (Chrome takes the LAST
+           matching theme-color; appendChild on a live node = remove+re-insert, which
+           also forces UA re-parse). Build-time values from data/theme-colors.ts only. */
         var tc = document.getElementById('tc-base');
-        if (tc) tc.setAttribute('content', eff === 'dark' ? '#071512' : '#EDF6F3');
+        if (tc) {
+          tc.setAttribute('content', eff === 'dark' ? tc.dataset.dark : tc.dataset.light);
+          document.head.appendChild(tc);
+        }
       };
       apply();
       if (t === 'system' && mq.addEventListener) mq.addEventListener('change', apply);
