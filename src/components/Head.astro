@@ -7,7 +7,7 @@ const canonical = SITE.url + Astro.url.pathname;
 const title = props.title ? `${props.title} — ${SITE.name}` : `${SITE.name} — ${props.desc || SITE.tagline}`;
 ---
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>{title}</title>
 <meta name="description" content={props.desc || SITE.tagline} />
 <link rel="canonical" href={canonical} />
@@ -17,10 +17,13 @@ const title = props.title ? `${props.title} — ${SITE.name}` : `${SITE.name} �
 <meta property="og:type" content={props.ogType || 'website'} />
 <meta property="og:url" content={canonical} />
 <meta name="twitter:card" content="summary" />
-<!-- v1.3 meta fix (see statusbar-PROGRESS.md): WHATWG takes the FIRST matching
-     theme-color meta, so ONE dynamic meta only — a static media pair would shadow
-     any manual choice that disagrees with the OS. Boot script sets content before
-     first paint; no-JS falls back to light. -->
+<!-- v2.0 hybrid (meta2 audit, see /tmp/meta2-freebuff/REPORT.md): three metas at
+     boot. The two media-pair metas serve no-JS/OS-dark sessions (v1.3's one known
+     regression); any JS deletes them FIRST, so WHATWG first-match never sees them —
+     a manual theme choice can never be shadowed. tc-base stays the single dynamic
+     meta for all JS sessions (toggle, pageshow, visibilitychange). -->
+<meta name="theme-color" content={THEME_COLORS.dark} media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content={THEME_COLORS.light} media="(prefers-color-scheme: light)" />
 <meta name="theme-color" content={THEME_COLORS.light} id="tc-base" data-light={THEME_COLORS.light} data-dark={THEME_COLORS.dark} />
 <meta name="mobile-web-app-capable" content="yes" />
 <link rel="manifest" href="/manifest.webmanifest" />
@@ -39,10 +42,13 @@ const title = props.title ? `${props.title} — ${SITE.name}` : `${SITE.name} �
         document.documentElement.setAttribute('data-theme-pref', t);
         /* v1.3: single meta = always the first match. Plain content setAttribute
            repaints per spec (re-run rule) — no remove+re-insert needed. */
-        var tc = document.getElementById('tc-base');
-        if (tc) {
-          tc.setAttribute('content', eff === 'dark' ? tc.dataset.dark : tc.dataset.light);
-        }
+      var tc = document.getElementById('tc-base');
+      /* v2.0 hybrid: drop the no-JS media-pair metas before touching tc-base so
+         the dynamic meta is always the first (and only) match for JS sessions. */
+      document.querySelectorAll('meta[name="theme-color"][media]').forEach(function (m) { m.remove(); });
+      if (tc) {
+        tc.setAttribute('content', eff === 'dark' ? tc.dataset.dark : tc.dataset.light);
+      }
       };
       apply();
       if (t === 'system' && mq.addEventListener) mq.addEventListener('change', apply);

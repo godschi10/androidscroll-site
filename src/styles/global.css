@@ -40,7 +40,11 @@ html[data-theme=dark]{color-scheme:dark;
 
 /* ---------- reset / base ---------- */
 *{box-sizing:border-box}html,body{margin:0;padding:0}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;background:var(--canvas)}
+/* v2.1 edge-to-edge (expert synthesis, doc_6d §7.2): A15/16 PWAs paint the page
+   background behind the transparent status bar — html MUST carry the canvas bg,
+   and the sticky header must respect the safe-area inset or it hides under the bar. */
+@supports (padding:env(safe-area-inset-top)){.site-header{padding-top:env(safe-area-inset-top,0)}}
 body{background:var(--canvas);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.65;font-weight:400;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 button,input{font:inherit;color:inherit}button{cursor:pointer;background:none;border:0;padding:0}
 a{color:var(--deep);text-decoration:none}
