@@ -1,69 +1,141 @@
 ---
-/* Article stub template — A2 reading rhythm adapted with real fonts.
-   Real titles/excerpts/dates from WP REST; body copy marked as the port target. */
+/* C-FULL article page — breadcrumb, h1+meta, hero, QUICK-ANSWER, dual TOC w/
+   scroll-spy, .prose body, tags/share/author/related/prev-next, ONE newsletter
+   slot, scaleX progress, BreadcrumbList + BlogPosting JSON-LD.
+   Bodies port from WP next: until then the reading surface carries the
+   excerpt-driven quick-answer + a port-pending note (never fabricated copy). */
 import Base from '../layouts/Base.astro';
 import AdSlot from '../components/AdSlot.astro';
-import { POSTS, byPath, postsIn, PILLARS, fmtDate, fmtLong, childrenOf } from '../data/site';
+import ArticleChrome from '../components/ArticleChrome.astro';
+import { SITE, POSTS, byPath, postsIn, fmtDate } from '../data/site';
 
 export function getStaticPaths() {
   return POSTS.map(p => ({ params: { slug: p.slug }, props: { p } }));
 }
-const p = Astro.props.p;
+const { p } = Astro.props;
 const cat = byPath[p.cat_path] || null;
-const siblings = cat ? postsIn(cat).filter(x => x.slug !== p.slug).slice(0, 3)
-  : POSTS.filter(x => x.slug !== p.slug).slice(0, 3);
+
+/* related: same-category first, recent-posts fallback (never empty). */
+const pool = cat ? postsIn(cat).filter(x => x.slug !== p.slug) : [];
+const fresh = [...POSTS].sort((a, b) => (a.date < b.date ? 1 : -1)).filter(x => x.slug !== p.slug && !pool.includes(x));
+const related = [...pool, ...fresh].slice(0, 3);
+
+/* prev/next: chronological neighbours (oldest → newest). */
+const chrono = [...POSTS].sort((a, b) => (a.date < b.date ? -1 : 1));
+const at = chrono.findIndex(x => x.slug === p.slug);
+const prev = at > 0 ? chrono[at - 1] : null;
+const next = at >= 0 && at < chrono.length - 1 ? chrono[at + 1] : null;
+
+const absUrl = SITE.url + p.url;
+const crumbTitle = p.title.split(' ').slice(0, 6).join(' ') + (p.title.split(' ').length > 6 ? '…' : '');
+const iso = (d: string) => d + 'T00:00:00+01:00';
+
+const blogPosting = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: p.title,
+  description: p.excerpt,
+  datePublished: iso(p.date),
+  dateModified: iso(p.modified),
+  author: { '@type': 'Person', name: 'G-will Chijioke', url: SITE.url + '/about/#author' },
+  publisher: { '@type': 'Organization', name: SITE.name, url: SITE.url },
+  mainEntityOfPage: absUrl,
+  wordCount: p.words,
+  timeRequired: `PT${p.read_min}M`,
+};
+const breadcrumbLD = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: SITE.url + '/' },
+    ...(cat ? [{ '@type': 'ListItem', position: 2, name: cat.name, item: SITE.url + cat.path }] : []),
+    { '@type': 'ListItem', position: cat ? 3 : 2, name: crumbTitle },
+  ],
+};
 ---
 <Base title={p.title} desc={p.excerpt} ogType="article">
-  <article>
+  <script type="application/ld+json" set:html={JSON.stringify(blogPosting)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbLD)} />
+
+  <article itemscope itemtype="https://schema.org/BlogPosting">
+    <meta itemprop="headline" content={p.title} />
+    <meta itemprop="description" content={p.excerpt} />
+    <meta itemprop="datePublished" content={iso(p.date)} />
+    <meta itemprop="dateModified" content={iso(p.modified)} />
+    <meta itemprop="wordCount" content={String(p.words)} />
+
     <header class="art-head col">
       <nav class="crumb" aria-label="Breadcrumb">
-        <a href="/">Home</a> <span>›</span>
-        <a href={p.cat_path}>{p.root_name}</a> <span>›</span>
-        <span>{p.cat_name}</span>
+        <ol>
+          <li><a href="/">Home</a></li>
+          {cat && (<li><a href={cat.path}>{cat.name}</a></li>)}
+          <li aria-current="page"><span>{crumbTitle}</span></li>
+        </ol>
       </nav>
-      <h1 class="art-h1">{p.title}</h1>
-      <p class="art-stand">{p.excerpt}</p>
+      <p class="art-kicker mono">{p.cat_name}</p>
+      <h1 class="art-h1" itemprop="headline">{p.title}</h1>
+      <p class="art-stand" itemprop="description">{p.excerpt}</p>
       <div class="meta-bar">
-        <span>By <a href="/about/#author">G-will Chijioke</a></span>
-        <span>Published {fmtDate(p.date)}</span>
-        {p.modified !== p.date && <span class="upd">Updated {fmtDate(p.modified)}</span>}
-        {p.read_min && <span>{p.read_min} min · {p.words.toLocaleString('en-US')} words</span>}
-        <span>{p.comments} comments</span>
+        <span class="meta-who"><span class="t-mono-av t-mono-av-s" aria-hidden="true">G</span> By <a href="/about/#author" rel="author">G-will Chijioke</a></span>
+        <span>Published <time datetime={p.date} itemprop="datePublished">{fmtDate(p.date)}</time></span>
+        {p.modified !== p.date && (<span class="upd">Updated <time datetime={p.modified} itemprop="dateModified">{fmtDate(p.modified)}</time></span>)}
+        {p.read_min && <span>{p.read_min} min read</span>}
+        <span>{p.comments} {p.comments === 1 ? 'comment' : 'comments'}</span>
       </div>
+      {/* no body image in WP payload yet: category-tint hero band reserves the slot */}
+      <figure class="art-hero art-hero-ph" aria-label="Cover art lands with the body port">
+        <span class="art-hero-sig mono" aria-hidden="true">{p.root_name} · {p.words ? p.words.toLocaleString('en-US') + ' words' : ''}</span>
+      </figure>
     </header>
 
-    <div class="art-body col">
-      <div class="stub-note">
-        <b>Prototype — body port pending</b>
-        The full {p.words ? p.words.toLocaleString('en-US') : ''}-word body from androidscroll.com ports into this A2 reading template next (H2 every 300–400 words, numbered steps, FAQ accordion, verdict box). Everything around it — header, furniture, meta, related — is live and final.
-      </div>
+    <div class="art-layout col">
+      <div class="art-main">
+        {/* QUICK-ANSWER: verdict first, King's voice, excerpt-honest until bodies land */}
+        <aside class="qa-box" aria-label="Quick answer">
+          <p class="qa-kicker mono">Quick answer</p>
+          <p class="qa-verdict"><strong>FIX:</strong> {p.excerpt}</p>
+          <p class="qa-meta mono">⏱ ~{p.read_min} min · Applies to: {p.cat_name} · Full steps land with the body port</p>
+          <a class="qa-jump" href="#keep-reading">Jump to the guide ↓</a>
+        </aside>
 
-      <div class="kicker-h">The short answer</div>
-      <div class="qa"><div class="qa-in">
-        <div class="qa-l"><span class="qa-k">Quick answer</span><p>{p.excerpt}</p></div>
-        <ul class="art-facts" style="padding:6px 18px 12px">
-          <li><span class="fk">Category</span><span><a href={p.cat_path}>{p.cat_name}</a></span></li>
-          <li><span class="fk">First published</span><span>{fmtLong(p.date)}</span></li>
-          <li><span class="fk">Last updated</span><span>{fmtLong(p.modified)}</span></li>
-          <li><span class="fk">Read time</span><span>{p.read_min} minutes</span></li>
-        </ul>
-      </div></div>
+        {/* mobile TOC: native details, zero JS required */}
+        <details class="toc-mobile" hidden>
+          <summary>On this page</summary>
+          <nav data-toc-mobile aria-label="Table of contents"></nav>
+        </details>
 
-      <AdSlot id="art-seam-1" note="In-article slot sits at section seams only — fixed container, zero CLS (Law 8)." />
-
-      <div class="author-box">
-        <span class="t-mono-av" aria-hidden="true">G</span>
-        <div>
-          <h4>G-will Chijioke</h4>
-          <p>Founder of AndroidScroll. Android &amp; security writing since 2019, tested on mid-range hardware. Corrections and tips: <a href="mailto:desk@androidscroll.com">desk@androidscroll.com</a> · <a href="/how-we-test/">How we test</a></p>
+        <div class="prose" id="keep-reading" itemprop="articleBody">
+          <div class="stub-note">
+            <b>Prototype — body port pending</b>
+            The full {p.words ? p.words.toLocaleString('en-US') + '-word' : ''} body from androidscroll.com ports into this reading template next (H2 every 300–400 words, numbered steps, FAQ accordion, verdict box). Everything around it — header, furniture, meta, related — is live and final.
+          </div>
         </div>
+
+        <ArticleChrome title={p.title} url={absUrl} tags={[]} />
+
+        {/* prev/next cards */}
+        {(prev || next) && (
+          <nav class="post-nav" aria-label="More guides">
+            {prev
+              ? (<a class="pn-card" href={prev.url} rel="prev"><span class="pn-k mono">← Older</span><span class="pn-t">{prev.title}</span><span class="pn-c mono">{prev.cat_name}</span></a>)
+              : <span class="pn-card pn-empty" aria-hidden="true"></span>}
+            {next
+              ? (<a class="pn-card" href={next.url} rel="next"><span class="pn-k mono">Newer →</span><span class="pn-t">{next.title}</span><span class="pn-c mono">{next.cat_name}</span></a>)
+              : <span class="pn-card pn-empty" aria-hidden="true"></span>}
+          </nav>
+        )}
       </div>
+
+      {/* desktop sticky TOC sidebar w/ scroll-spy */}
+      <aside class="toc-side" data-toc-desktop hidden aria-label="On this page"></aside>
     </div>
+
+    <AdSlot id="art-seam-1" note="In-article slot sits at section seams only — fixed container, zero CLS (Law 8)." />
 
     <section class="col" aria-label="Related" style="margin-bottom:40px">
       <div class="kicker-h">Keep reading · {p.root_name}</div>
       <div class="rel-grid">
-        {siblings.map(s => (
+        {related.map(s => (
           <article>
             <h3><a href={s.url}>{s.title}</a></h3>
             <div class="byline"><span>{fmtDate(s.date)}</span><span><b>{s.read_min} min</b></span></div>

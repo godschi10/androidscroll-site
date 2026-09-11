@@ -1,6 +1,6 @@
 # AndroidScroll — prototype (Astro)
 
-Clickable first build: **Header, Homepage, Footer** at flagship quality with real
+Clickable build: **Header, Homepage (v3 front page), Article (C-FULL), Footer** at flagship quality with real
 content from androidscroll.com (13 posts / 19 shelves / 52 comments — honest counts).
 Direction A2 "editorial green" (approved), self-hosted fonts, zero external requests.
 
@@ -20,7 +20,7 @@ from `file://` on a phone; every link, the Browse sheet, search, theme and ad-to
 - `src/data/content.json` — generated from WP REST (source of truth for counts/dates)
 - `src/styles/global.css` — A2 tokens + every signature (FIX rails, § dividers, verdict band)
 - `src/components/Header.astro` — masthead + sticky compact state + Browse sheet + search + theme + Law-8 ad toggles
-- `src/pages/` — home, 13 article stubs (canonical slugs), 19 category pages (12 empty = designed noindex), static stubs, latest, 404
+- `src/pages/` — home (v3: hero strip + ticker + Top fixes first), 13 articles (C-FULL: quick-answer, dual TOC + spy, prose, lightbox, share, author, related, prev/next, progress, JSON-LD), style-test-article (kitchen-sink, noindex), 19 category pages (12 empty = designed noindex), static stubs, latest, 404
 
 ## Fonts (OFL, self-hosted, subset latin)
 

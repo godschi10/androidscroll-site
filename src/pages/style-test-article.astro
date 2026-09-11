@@ -1,0 +1,260 @@
+---
+/* KITCHEN-SINK style test — renders article-kitchen-sink.md draft in full.
+   DRAFT ONLY: robots noindex,nofollow, absent from search index + sitemap.
+   Covers all 20 Gutenberg-mapped elements + HowTo/FAQ JSON-LD. */
+import Base from '../layouts/Base.astro';
+import AdSlot from '../components/AdSlot.astro';
+import ArticleChrome from '../components/ArticleChrome.astro';
+import { SITE } from '../data/site';
+
+const title = '"App Not Installed" on Android: the 3-minute fix that actually works';
+const desc = 'FIX: "App not installed" on sideloaded APKs is almost always a stale signature conflict — uninstall the old copy (keep data via ADB), then reinstall.';
+const absUrl = SITE.url + '/style-test-article/';
+const tags = ['sideload', 'adb', 'apk', 'play-protect'];
+const iso = (d: string) => d + 'T00:00:00+01:00';
+
+const blogPosting = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description: desc,
+  datePublished: iso('2026-09-01'),
+  dateModified: iso('2026-09-11'),
+  author: { '@type': 'Person', name: 'G-will Chijioke', url: SITE.url + '/about/#author' },
+  publisher: { '@type': 'Organization', name: SITE.name, url: SITE.url },
+  mainEntityOfPage: absUrl,
+  wordCount: 1200,
+  timeRequired: 'PT6M',
+};
+const breadcrumbLD = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: SITE.url + '/' },
+    { '@type': 'ListItem', position: 2, name: 'Troubleshooting & Fixes', item: SITE.url + '/category/troubleshooting-fixes/' },
+    { '@type': 'ListItem', position: 3, name: '"App Not Installed" on Android…' },
+  ],
+};
+const howToLD = {
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: title,
+  totalTime: 'PT6M',
+  step: [
+    { '@type': 'HowToStep', name: 'Uninstall the old copy', text: 'adb uninstall -k com.example.app keeps data; long-press Uninstall if you do not need data.' },
+    { '@type': 'HowToStep', name: 'Confirm arch and version match', text: 'Check arm64-v8a and minSdk against your Android version.' },
+    { '@type': 'HowToStep', name: 'Reinstall and read the error', text: 'adb install app-release.apk, then read the real failure line.' },
+  ],
+};
+const faqLD = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    { '@type': 'Question', name: 'Play Protect blocked it — now what?', acceptedAnswer: { '@type': 'Answer', text: 'Turn it back on after the test install. A blocked sideload that installs fine with Protect off is untrusted until proven otherwise — verify the SHA on the source site.' } },
+    { '@type': 'Question', name: 'Are split APKs (.apks) broken?', acceptedAnswer: { '@type': 'Answer', text: 'No — they are multi-file by design. Install with Split APK Installer or adb install-multiple.' } },
+  ],
+};
+---
+<Base title={title} desc={desc} ogType="article" robots="noindex, nofollow">
+  <script type="application/ld+json" set:html={JSON.stringify(blogPosting)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbLD)} />
+  <script type="application/ld+json" set:html={JSON.stringify(howToLD)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqLD)} />
+
+  <article itemscope itemtype="https://schema.org/BlogPosting">
+    <meta itemprop="headline" content={title} />
+    <meta itemprop="description" content={desc} />
+
+    <header class="art-head col">
+      <nav class="crumb" aria-label="Breadcrumb">
+        <ol>
+          <li><a href="/">Home</a></li>
+          <li><a href="/category/troubleshooting-fixes/">Troubleshooting &amp; Fixes</a></li>
+          <li aria-current="page"><span>"App Not Installed" on Android…</span></li>
+        </ol>
+      </nav>
+      <p class="art-kicker mono">Troubleshooting &amp; Fixes · style test</p>
+      <h1 class="art-h1" itemprop="headline">{title}</h1>
+      <p class="art-stand" itemprop="description">{desc}</p>
+      <div class="meta-bar">
+        <span class="meta-who"><span class="t-mono-av t-mono-av-s" aria-hidden="true">G</span> By <a href="/about/#author" rel="author">G-will Chijioke</a></span>
+        <span>Published <time datetime="2026-09-01" itemprop="datePublished">1 Sep 2026</time></span>
+        <span class="upd">Updated <time datetime="2026-09-11" itemprop="dateModified">11 Sep 2026</time></span>
+        <span>6 min read</span>
+        <span>0 comments</span>
+      </div>
+      <figure class="art-hero">
+        <img src="/img/kb-hero.svg" width="1200" height="675" alt="Terminal showing INSTALL_FAILED_UPDATE_INCOMPATIBLE, fixed with adb uninstall -k" loading="eager" fetchpriority="high" decoding="async" itemprop="image" />
+        <figcaption>The log names the cause; the toast never does. Placeholder art — field shots land with the body port.</figcaption>
+      </figure>
+    </header>
+
+    <div class="art-layout col">
+      <div class="art-main">
+        <aside class="qa-box" aria-label="Quick answer">
+          <p class="qa-kicker mono">Quick answer</p>
+          <p class="qa-verdict"><strong>FIX:</strong> "App not installed" on sideloaded APKs is almost always a stale signature conflict — uninstall the old copy (keep data via ADB), then reinstall.</p>
+          <ol class="qa-steps">
+            <li>Uninstall the old app: <code>adb uninstall -k com.example.app</code> (keeps data) — or long-press → Uninstall if you don't need data.</li>
+            <li>Confirm arch + Android version match the APK (arm64-v8a, minSdk ≤ your version).</li>
+            <li>Reinstall: <code>adb install app-release.apk</code> and read the real error if it fails.</li>
+          </ol>
+          <p class="qa-meta mono">⏱ ~6 min · Difficulty: Easy · Applies to: Android 12–14, sideloaded APKs</p>
+          <a class="qa-jump" href="#the-3-minute-fix">Jump to the fix ↓</a>
+        </aside>
+
+        <details class="toc-mobile" hidden>
+          <summary>On this page</summary>
+          <nav data-toc-mobile aria-label="Table of contents"></nav>
+        </details>
+
+        <div class="prose" itemprop="articleBody">
+          <h2>Why it happens</h2>
+          <p>Two paragraphs of lede. Android refuses the install and shows one useless toast. The Package Manager log always names the real cause — <strong>signature mismatch</strong> beats corrupt downloads 9 times out of 10. Second paragraph sets up the symptom table and keeps the promise: you will leave with the exact command that tells the truth.</p>
+          <h3>The one-line version</h3>
+          <p>Same key, same app — or no install. Everything below is just finding out which key signed what.</p>
+          <h4>Heading four, small-bold</h4>
+          <h5>Heading five, small-bold</h5>
+          <h6>Heading six, small-bold</h6>
+
+          <h2>Symptoms</h2>
+          <ul>
+            <li><strong>"App not installed"</strong> with no error code — classic signature conflict.</li>
+            <li>Install dies at ~90% — storage or split-APK issue:
+              <ul>
+                <li>Check free space (need 2× APK size).</li>
+                <li>Check if the file is <code>.apks</code>/<code>.xapk</code> (needs Split Installer, not plain install).</li>
+              </ul>
+            </li>
+            <li>Play Protect blocks silently — toggle to confirm, then re-enable.</li>
+          </ul>
+          <ol>
+            <li>Reproduce the failure once (note the exact screen).</li>
+            <li>Pull the truth from logcat (next section).</li>
+            <li>Apply the fix matrix in order — stop at the first green install.</li>
+          </ol>
+
+          <h2>The log never lies</h2>
+          <blockquote>
+            <p>"If the toast says nothing, <code>adb logcat</code> says everything. Read the install lines before you download a fourth copy of the same APK."</p>
+            <cite>— G-will, after fixing the same Tecno Spark issue twice in one week.</cite>
+          </blockquote>
+          <p>Pull the failure signature:</p>
+          <pre><code class="language-bash">adb logcat -c && adb install app-release.apk
+adb logcat -d | grep -i "packageinstaller\|install_failed" | tail -n 20</code></pre>
+          <div class="tbl-wrap" tabindex="0" role="region" aria-label="Scrollable table">
+          <table>
+            <thead><tr><th>Log line contains</th><th>Meaning</th><th>Fix</th></tr></thead>
+            <tbody>
+              <tr><td><code>INSTALL_FAILED_UPDATE_INCOMPATIBLE</code></td><td>Old copy signed with a different key</td><td class="tbl-best"><code>adb uninstall -k</code> then reinstall</td></tr>
+              <tr><td><code>INSTALL_FAILED_INSUFFICIENT_STORAGE</code></td><td>No room (needs ~2× APK)</td><td class="tbl-yes">Free space, clear cache</td></tr>
+              <tr><td><code>INSTALL_PARSE_FAILED_NO_CERTIFICATES</code></td><td>Corrupt/incomplete download</td><td class="tbl-no">Re-download, check SHA-256</td></tr>
+              <tr><td><code>INSTALL_FAILED_TEST_ONLY</code></td><td>Debug APK flagged test-only</td><td><code>adb install -t</code> or use release build</td></tr>
+            </tbody>
+          </table>
+          </div>
+          <p>Inline code for the road: run <code>adb shell pm list packages | grep example</code> to confirm the ghost copy is really gone.</p>
+          <pre class="verse">The toast says nothing.
+The log says everything.
+Read it first.</pre>
+
+          <h2>Screenshots</h2>
+          <figure>
+            <img src="/img/kb-toast.svg" width="800" height="450" alt="Install error toast on Galaxy A14" loading="lazy" decoding="async" />
+            <figcaption>The famous useless toast. The answer is in logcat, not here.</figcaption>
+          </figure>
+          <p>Gallery (before → after):</p>
+          <div class="gallery">
+            <figure>
+              <img src="/img/kb-storage.svg" width="800" height="450" alt="Storage screen" loading="lazy" decoding="async" />
+              <figcaption>Settings → Storage: free 2× the APK.</figcaption>
+            </figure>
+            <figure>
+              <img src="/img/kb-unknown.svg" width="800" height="450" alt="Unknown sources prompt" loading="lazy" decoding="async" />
+              <figcaption>Install unknown apps: allow only your file manager.</figcaption>
+            </figure>
+            <figure>
+              <img src="/img/kb-success.svg" width="800" height="450" alt="Success screen" loading="lazy" decoding="async" />
+              <figcaption>Green install. Done.</figcaption>
+            </figure>
+          </div>
+
+          <h2 id="the-3-minute-fix">The 3-minute fix</h2>
+          <figure class="pullquote">
+            <blockquote><p>Uninstall the signature conflict first. Everything else is guessing.</p></blockquote>
+          </figure>
+          <div class="callout warn" role="alert">
+            <p><strong>Warning:</strong> <code>adb uninstall</code> WITHOUT <code>-k</code> wipes app data. Keep the <code>-k</code> flag if chats, logins, or game saves matter.</p>
+          </div>
+          <div class="callout note" role="note">
+            <p><strong>Note:</strong> Play Protect re-enable after testing. Leaving it off for "faster installs" is how spyware earns a living.</p>
+          </div>
+          <div class="faq">
+            <details>
+              <summary>Play Protect blocked it — now what?</summary>
+              <p>Turn it back on after the test install. A blocked sideload that installs fine with Protect off is untrusted until proven otherwise — verify the SHA on the source site.</p>
+            </details>
+            <details>
+              <summary>Are split APKs (.apks) broken?</summary>
+              <p>No — they're multi-file by design. Install with Split APK Installer or <code>adb install-multiple base.apk config.arm64.apk</code>.</p>
+            </details>
+          </div>
+
+          <h2>Buttons, breaks, and motion</h2>
+          <p>Grab the tools once, reuse forever:</p>
+          <p class="btn-row">
+            <a class="btn" href="https://developer.android.com/tools/releases/platform-tools">Download Platform-Tools</a>
+            <a class="btn-ghost" href="#the-3-minute-fix">Check SHA-256</a>
+            <a class="btn-ghost" href="#the-3-minute-fix">Split APK Installer</a>
+          </p>
+          <hr />
+          <div class="cols">
+            <div><h3>Column one</h3><p>Columns stack on phones (≤767px). Two tools side by side on desktop, one column in the hand.</p></div>
+            <div><h3>Column two</h3><p>Same reading measure, no squeeze. Covers and groups behave like cards, never like desktop print.</p></div>
+          </div>
+          <div class="cover" style="background-image:url(/img/kb-success.svg)">
+            <span class="cover-dim" aria-hidden="true"></span>
+            <p>Green install. The whole guide in one screen.</p>
+          </div>
+          <p>Video walkthrough (facade: thumbnail + play, no YouTube JS until click):</p>
+          <div class="facade" data-facade data-title="Fix in 3 minutes — Galaxy A14">
+            <button type="button" aria-label="Play video: Fix in 3 minutes — Galaxy A14"><span aria-hidden="true">▶</span> Play video: "Fix in 3 minutes — Galaxy A14"</button>
+            <p class="facade-note" hidden>Video walkthrough lands with the field cut — the facade above swaps the player in with zero third-party JS until you press play.</p>
+          </div>
+          <p>Audio note (for the taxi test): <em>placeholder tone — the 40-second field recording lands with the narrated cut.</em></p>
+          <figure>
+            <audio controls preload="none" src="/audio/kb-note.wav"></audio>
+            <figcaption>Placeholder tone standing in for the on-device recording.</figcaption>
+          </figure>
+
+          <h2>Notes</h2>
+          <p>Signature conflicts survive reboots and re-downloads<sup id="fnref1"><a href="#fn1">[1]</a></sup>. Split APKs (<code>.apks</code>) are not broken — they're multi-file by design<sup id="fnref2"><a href="#fn2">[2]</a></sup>.</p>
+          <ol class="footnotes">
+            <li id="fn1">The old signature lives in <code>/data/system/packages.xml</code> until uninstall completes. <a href="#fnref1">↩</a></li>
+            <li id="fn2">Install with Split APK Installer or <code>adb install-multiple base.apk config.arm64.apk</code>. <a href="#fnref2">↩</a></li>
+          </ol>
+        </div>
+
+        <ArticleChrome title={title} url={absUrl} tags={tags} />
+
+        <nav class="post-nav" aria-label="More guides">
+          <a class="pn-card" href="/android-phone-overheating/" rel="prev"><span class="pn-k mono">← Older</span><span class="pn-t">Android Phone Overheating? Causes and Fixes (2026)</span><span class="pn-c mono">Troubleshooting &amp; Fixes</span></a>
+          <a class="pn-card" href="/android-storage-full-after-deleting-files/" rel="next"><span class="pn-k mono">Newer →</span><span class="pn-t">Android Storage Full After Deleting Files? Here's What's Actually Hiding</span><span class="pn-c mono">Troubleshooting &amp; Fixes</span></a>
+        </nav>
+      </div>
+
+      <aside class="toc-side" data-toc-desktop hidden aria-label="On this page"></aside>
+    </div>
+
+    <AdSlot id="art-seam-1" note="In-article slot sits at section seams only — fixed container, zero CLS (Law 8)." />
+
+    <section class="col" aria-label="Related" style="margin-bottom:40px">
+      <div class="kicker-h">Keep reading · Troubleshooting &amp; Fixes</div>
+      <div class="rel-grid">
+        <article><h3><a href="/android-problems-fix/">Android Problems: The Complete Fix Guide (2026)</a></h3><div class="byline"><span>13 Apr 2026</span><span><b>24 min</b></span></div></article>
+        <article><h3><a href="/android-phone-overheating/">Android Phone Overheating? Causes and Fixes (2026)</a></h3><div class="byline"><span>4 Apr 2026</span><span><b>11 min</b></span></div></article>
+        <article><h3><a href="/android-storage-full-after-deleting-files/">Android Storage Full After Deleting Files? Here's What's Actually Hiding</a></h3><div class="byline"><span>27 Apr 2026</span><span><b>11 min</b></span></div></article>
+      </div>
+    </section>
+  </article>
+</Base>

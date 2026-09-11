@@ -1,0 +1,336 @@
+---
+/* ArticleChrome — shared article furniture + vanilla islands (no jQuery, ever).
+   Used by [...slug].astro and the kitchen-sink style test.
+   Props: title, url (absolute), tags (string[]). */
+import { SITE } from '../data/site';
+const { title, url, tags = [] } = Astro.props;
+const enc = encodeURIComponent;
+const shareX = `https://twitter.com/intent/tweet?text=${enc(title)}&url=${enc(url)}`;
+const shareWa = `https://wa.me/?text=${enc(title + ' ' + url)}`;
+const shareTg = `https://t.me/share/url?url=${enc(url)}&text=${enc(title)}`;
+---
+<!-- reading progress: fixed top GPU bar, transform scaleX only (zero CLS) -->
+<div class="rprog" id="reading-progress" aria-hidden="true"><i></i></div>
+
+<!-- trust footer: tags + share -->
+{tags.length > 0 && (
+  <ul class="post-tags" aria-label="Tagged">
+    {tags.map(t => (<li><a href={`/latest/`} rel="tag">#{t}</a></li>))}
+  </ul>
+)}
+<div class="share-row" aria-label="Share this guide">
+  <span class="share-k" aria-hidden="true">Share</span>
+  <a class="sh-btn" href={shareX} target="_blank" rel="noopener" aria-label="Share on X">X</a>
+  <a class="sh-btn" href={shareWa} target="_blank" rel="noopener" aria-label="Share on WhatsApp">WA</a>
+  <a class="sh-btn" href={shareTg} target="_blank" rel="noopener" aria-label="Share on Telegram">TG</a>
+  <button class="sh-btn" type="button" data-copy-link={url} aria-label="Copy link">Copy link</button>
+</div>
+
+<!-- author bio -->
+<div class="author-box" itemprop="author" itemscope itemtype="https://schema.org/Person">
+  <span class="t-mono-av" aria-hidden="true">G</span>
+  <div>
+    <h4 itemprop="name">G-will Chijioke</h4>
+    <p><span itemprop="description">Founder of AndroidScroll. Fixes Android on cheap data and cheaper phones — everything tested on real Tecno/Infinix hardware.</span> Corrections and tips: <a href="mailto:desk@androidscroll.com">desk@androidscroll.com</a> · <a href="/how-we-test/">How we test</a></p>
+  </div>
+</div>
+
+<!-- ONE in-article newsletter slot -->
+<section class="notify notify-art" aria-label="Launch alerts">
+  <div class="notify-in">
+    <div>
+      <h2>One fix a week. No noise.</h2>
+      <p>Launch alerts go out when a shelf opens. {SITE.email} answers.</p>
+    </div>
+    <form data-notify-form action="/contact/" method="get">
+      <label class="sr-only" for="nl-email" style="position:absolute;left:-9999px">Email address</label>
+      <input id="nl-email" type="email" name="email" placeholder="you@example.com" required autocomplete="email" />
+      <button class="btn-deep" type="submit">Tell me</button>
+      <span class="n-note">Static site — submit opens the contact desk. No trackers.</span>
+    </form>
+  </div>
+</section>
+
+<script>
+/* Article islands — vanilla, article routes only. One IIFE per concern. */
+(function () {
+  'use strict';
+  var reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* 1. reading progress: scaleX on the GPU, rAF-throttled, passive. */
+  var pb = document.getElementById('reading-progress');
+  var ticking = false;
+  function updatePb() {
+    ticking = false;
+    if (!pb) return;
+    var mx = document.documentElement.scrollHeight - innerHeight;
+    var pc = mx > 0 ? Math.min(1, Math.max(0, scrollY / mx)) : 0;
+    pb.firstElementChild.style.transform = 'scaleX(' + pc + ')';
+  }
+  addEventListener('scroll', function () {
+    if (!ticking) { ticking = true; requestAnimationFrame(updatePb); }
+  }, { passive: true });
+  updatePb();
+
+  /* 2. heading IDs (respect explicit id, dedupe -2/-3) + dual TOC build. */
+  function slugify(s) {
+    return s.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/[\s_]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'section';
+  }
+  var prose = document.querySelector('.prose');
+  var heads = prose ? Array.prototype.slice.call(prose.querySelectorAll('h2, h3')) : [];
+  var seen = Object.create(null);
+  heads.forEach(function (h) {
+    var id = h.id || slugify(h.textContent || '');
+    if (seen[id] !== undefined) { seen[id] += 1; id = id + '-' + (seen[id] + 1); }
+    else seen[id] = 0;
+    h.id = id;
+  });
+  var h2s = heads.filter(function (h) { return h.tagName === 'H2'; });
+  var tocM = document.querySelector('[data-toc-mobile]');
+  var tocD = document.querySelector('[data-toc-desktop]');
+  /* >2-H2 gate: short posts skip the TOC entirely (tech rule). */
+  if (h2s.length <= 2) {
+    if (tocM && tocM.closest('details')) tocM.closest('details').hidden = true;
+    if (tocD) tocD.hidden = true;
+  } else {
+  /* build items by document order walk (robust): h3s nest under the preceding h2 */
+  var items = [];
+    var cur = null;
+    heads.forEach(function (h) {
+      if (h.tagName === 'H2') { cur = { h: h, subs: [] }; items.push(cur); }
+      else if (cur) cur.subs.push(h);
+    });
+    function listHTML(cls) {
+      return '<ul class="' + cls + '">' + items.map(function (it, i) {
+        var s = '<li><a href="#' + it.h.id + '" data-spy="' + it.h.id + '">' + it.h.textContent + '</a>';
+        if (it.subs.length) {
+          s += '<ul>' + it.subs.map(function (x) {
+            return '<li><a href="#' + x.id + '" data-spy="' + x.id + '">' + x.textContent + '</a></li>';
+          }).join('') + '</ul>';
+        }
+        return s + '</li>';
+      }).join('') + '</ul>';
+    }
+    if (tocM) { tocM.innerHTML = listHTML('toc-list'); tocM.closest('details').hidden = false; }
+    if (tocD) { tocD.innerHTML = '<p class="toc-k">&gt;_ On this page</p>' + listHTML('toc-list'); tocD.hidden = false; }
+  }
+
+  /* 3. scroll-spy: IntersectionObserver, .cur on the visible section link. */
+  if ('IntersectionObserver' in window && h2s.length > 2 && !reduceMotion) {
+    var links = Array.prototype.slice.call(document.querySelectorAll('[data-spy]'));
+    var map = {};
+    links.forEach(function (a) { (map[a.getAttribute('data-spy')] = map[a.getAttribute('data-spy')] || []).push(a); });
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.classList.remove('cur'); });
+        (map[en.target.id] || []).forEach(function (a) { a.classList.add('cur'); });
+      });
+    }, { rootMargin: '-20% 0px -65% 0px' });
+    heads.forEach(function (h) { obs.observe(h); });
+  }
+
+  /* 4. code copy buttons + lang labels (per-page, no highlighter dep). */
+  document.querySelectorAll('.prose pre').forEach(function (pre) {
+    if (pre.querySelector('.copy-btn')) return;
+    var code = pre.querySelector('code');
+    var lang = 'code';
+    if (code) {
+      var m = (code.className || '').match(/language-([\w+-]+)/);
+      if (m) lang = m[1];
+    }
+    pre.setAttribute('data-lang', lang);
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.setAttribute('aria-label', 'Copy code block (' + lang + ')');
+    btn.addEventListener('click', function () {
+      var txt = code ? code.textContent : pre.textContent;
+      function done() {
+        btn.textContent = 'Copied!';
+        setTimeout(function () { btn.textContent = 'Copy'; }, 1600);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(done, function () { fallback(); done(); });
+      } else { fallback(); done(); }
+      function fallback() {
+        var ta = document.createElement('textarea');
+        ta.value = txt;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'absolute';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); } catch (e) { /* ignore */ }
+        document.body.removeChild(ta);
+      }
+    });
+    pre.appendChild(btn);
+  });
+
+  /* 5. table x-scroll wrappers (JS safety net; CSS .tbl-wrap is primary). */
+  document.querySelectorAll('.prose table').forEach(function (t) {
+    if (t.parentElement && t.parentElement.classList.contains('tbl-wrap')) return;
+    var w = document.createElement('div');
+    w.className = 'tbl-wrap';
+    w.setAttribute('tabindex', '0');
+    w.setAttribute('role', 'region');
+    w.setAttribute('aria-label', 'Scrollable table');
+    t.parentNode.insertBefore(w, t);
+    w.appendChild(t);
+  });
+
+  /* 6. lightbox — vanilla port of the themes' gl-overlay pattern:
+        dialog + focus trap + counter + caption + swipe (>40px). */
+  var lbImgs = prose ? Array.prototype.slice.call(prose.querySelectorAll('img')).filter(function (im) {
+    return !im.closest('.no-zoom') && !im.closest('a');
+  }) : [];
+  lbImgs.forEach(function (im) {
+    im.style.cursor = 'zoom-in';
+    im.setAttribute('tabindex', '0');
+    im.setAttribute('role', 'button');
+    im.setAttribute('aria-label', 'Enlarge image: ' + (im.alt || 'screenshot'));
+  });
+  var ov = null, lbImg = null, lbCap = null, lbCount = null, idx = 0, lastTrigger = null;
+  function buildLb() {
+    if (ov) return;
+    ov = document.createElement('div');
+    ov.className = 'gl-overlay';
+    ov.setAttribute('role', 'dialog');
+    ov.setAttribute('aria-modal', 'true');
+    ov.setAttribute('aria-label', 'Image lightbox');
+    ov.hidden = true;
+    ov.innerHTML = '<button class="gl-close" aria-label="Close">&times;</button>' +
+      '<button class="gl-nav gl-prev" aria-label="Previous image">&lsaquo;</button>' +
+      '<div class="gl-image-wrap"><img class="gl-image" src="" alt=""></div>' +
+      '<button class="gl-nav gl-next" aria-label="Next image">&rsaquo;</button>' +
+      '<div class="gl-counter" aria-live="polite"></div>' +
+      '<div class="gl-caption"></div>';
+    document.body.appendChild(ov);
+    lbImg = ov.querySelector('.gl-image');
+    lbCap = ov.querySelector('.gl-caption');
+    lbCount = ov.querySelector('.gl-counter');
+    ov.querySelector('.gl-close').addEventListener('click', closeLb);
+    ov.addEventListener('click', function (e) { if (e.target === ov) closeLb(); });
+    ov.querySelector('.gl-prev').addEventListener('click', function (e) { e.stopPropagation(); navLb(-1); });
+    ov.querySelector('.gl-next').addEventListener('click', function (e) { e.stopPropagation(); navLb(1); });
+    document.addEventListener('keydown', function (e) {
+      if (!ov || ov.hidden) return;
+      if (e.key === 'Escape') closeLb();
+      if (e.key === 'ArrowLeft') navLb(-1);
+      if (e.key === 'ArrowRight') navLb(1);
+      if (e.key === 'Tab') {
+        var f = Array.prototype.filter.call(ov.querySelectorAll('button'), function (b) { return !b.disabled; });
+        if (!f.length) return;
+        var first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && (document.activeElement === first || !ov.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && (document.activeElement === last || !ov.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
+      }
+    });
+    var sx = 0, sy = 0;
+    ov.addEventListener('touchstart', function (e) {
+      if (e.target.closest('.gl-close') || e.target.closest('.gl-nav')) return;
+      sx = e.changedTouches[0].screenX; sy = e.changedTouches[0].screenY;
+    }, { passive: true });
+    ov.addEventListener('touchend', function (e) {
+      if (e.target.closest('.gl-close') || e.target.closest('.gl-nav')) return;
+      var dx = e.changedTouches[0].screenX - sx, dy = e.changedTouches[0].screenY - sy;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) navLb(dx > 0 ? -1 : 1);
+    }, { passive: true });
+  }
+  function captionFor(im) {
+    var fig = im.closest('figure');
+    var fc = fig ? fig.querySelector('figcaption') : null;
+    return fc ? fc.textContent : (im.alt || '');
+  }
+  function showLb() {
+    var im = lbImgs[idx];
+    lbImg.src = im.currentSrc || im.src;
+    lbImg.alt = im.alt || '';
+    lbCap.textContent = captionFor(im);
+    lbCount.textContent = (idx + 1) + ' / ' + lbImgs.length;
+    var single = lbImgs.length < 2;
+    ov.querySelector('.gl-prev').style.display = single ? 'none' : '';
+    ov.querySelector('.gl-next').style.display = single ? 'none' : '';
+  }
+  function openLb(i, trigger) {
+    buildLb();
+    idx = i; lastTrigger = trigger || null;
+    showLb();
+    ov.hidden = false;
+    requestAnimationFrame(function () { ov.classList.add('gl-open'); });
+    document.documentElement.classList.add('locked');
+    ov.querySelector('.gl-close').focus();
+  }
+  function closeLb() {
+    if (!ov) return;
+    ov.classList.remove('gl-open');
+    ov.hidden = true;
+    document.documentElement.classList.remove('locked');
+    if (lastTrigger && lastTrigger.focus) lastTrigger.focus();
+  }
+  function navLb(d) {
+    idx = (idx + d + lbImgs.length) % lbImgs.length;
+    showLb();
+  }
+  lbImgs.forEach(function (im, i) {
+    im.addEventListener('click', function () { openLb(i, im); });
+    im.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLb(i, im); }
+    });
+  });
+
+  /* 7. embed facades: click swaps the nocookie/dnt iframe in (zero 3rd-party until play). */
+  document.querySelectorAll('[data-facade]').forEach(function (f) {
+    var btn = f.querySelector('button');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      var src = f.getAttribute('data-src');
+      if (!src) {
+        var note = f.querySelector('.facade-note');
+        if (note) note.hidden = false;
+        btn.disabled = true;
+        return;
+      }
+      var ifr = document.createElement('iframe');
+      ifr.src = src;
+      ifr.title = f.getAttribute('data-title') || 'Embedded video';
+      ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+      ifr.allowFullscreen = true;
+      ifr.loading = 'lazy';
+      f.innerHTML = '';
+      f.appendChild(ifr);
+    });
+  });
+
+  /* 8. copy-link with execCommand fallback + toast. */
+  function toast(msg) {
+    var t = document.getElementById('toast');
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._h);
+    t._h = setTimeout(function () { t.classList.remove('show'); }, 2200);
+  }
+  document.querySelectorAll('[data-copy-link]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var link = b.getAttribute('data-copy-link');
+      function done(ok) { toast(ok ? 'Link copied.' : 'Copy failed — long-press the URL.'); }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(function () { done(true); }, function () { done(false); });
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = link;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'absolute';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); done(true); } catch (e) { done(false); }
+        document.body.removeChild(ta);
+      }
+    });
+  });
+})();
+</script>
