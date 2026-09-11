@@ -97,9 +97,10 @@ body.frozen{position:fixed;left:0;right:0;width:100%}
 .sheet,.search-results{overscroll-behavior:contain;touch-action:pan-y}
 .site-header{position:sticky;top:0;z-index:40;background:var(--canvas);max-width:100vw}
 .header-in{max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px);display:flex;align-items:center;gap:16px;height:54px;transition:height .18s ease-out,box-shadow .18s ease-out}
-/* compact state (JS adds .is-compact on scroll >8px): hairline + 4px shadow, eases to 48px */
-.site-header.is-compact{border-bottom:1px solid var(--line-2);box-shadow:0 4px 10px -6px rgba(7,21,18,.28)}
-.site-header.is-compact .header-in{height:48px}
+/* compact state: HAIRLINE + SHADOW ONLY — v2.9: the 54->48 height change is gone.
+   Any height delta = layout reflow on every threshold crossing = the "dancing" the
+   King saw on articles (mobile flicks bounce across it). Pure paint has zero shift. */
+.site-header.is-compact{box-shadow:inset 0 -1px 0 var(--line-2),0 4px 10px -6px rgba(7,21,18,.28)}
 /* wordmark = brand element, biggest thing in the bar */
 .wordmark{display:inline-flex;align-items:center;gap:10px;color:var(--ink);flex:none;min-width:0}
 .wordmark:hover{text-decoration:none}
