@@ -24,9 +24,16 @@ const title = props.title ? `${props.title} â€” ${SITE.name}` : `${SITE.name} â€
 <script is:inline>
   (function () {
     try {
-      var t = localStorage.getItem('as-theme');
-      if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', t);
+      var t = localStorage.getItem('as-theme') || 'system';
+      localStorage.setItem('as-theme', t);
+      var mq = matchMedia('(prefers-color-scheme: dark)');
+      var apply = function () {
+        var eff = t === 'system' ? (mq.matches ? 'dark' : 'light') : t;
+        document.documentElement.setAttribute('data-theme', eff);
+        document.documentElement.setAttribute('data-theme-pref', t);
+      };
+      apply();
+      if (t === 'system' && mq.addEventListener) mq.addEventListener('change', apply);
       var a = localStorage.getItem('as-ads') || 'off';
       var p = localStorage.getItem('as-ph') || 'on';
       document.documentElement.setAttribute('data-ads', a);
