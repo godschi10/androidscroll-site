@@ -69,7 +69,7 @@ const footPillars = PILLARS
         <label><input type="checkbox" id="foot-ads-toggle" /> Site-wide ad slots: <b id="foot-ad-state">OFF</b></label>
         <span class="foot-ad-off" id="foot-ad-law">off = zero height · zero requests · zero shift</span>
       </span>
-      <a class="foot-top" href="#site-header">Back to top ↑</a>
+      <a class="foot-top" href="#top">Back to top ↑</a>
     </div>
   </div>
 </footer>
@@ -92,6 +92,14 @@ const footPillars = PILLARS
   const cur = root.getAttribute('data-ads') === 'on';
   box.checked = cur; state.textContent = cur ? 'ON' : 'OFF';
   box.addEventListener('change', () => sync(box.checked));
+  /* v2.5 back-to-top: href="#top" is the no-JS fallback; JS owns the jump so it
+     works in every engine (native anchor jumps are flaky on some builds). */
+  const topLink = document.querySelector('.foot-top');
+  if (topLink) topLink.addEventListener('click', e => {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    try { history.replaceState(null, '', location.pathname + location.search); } catch {}
+  });
   /* stub-form handler stays: / and category pages still ship honest on-device stubs */
   document.querySelectorAll('form[data-stub]').forEach(f => {
     f.addEventListener('submit', e => {

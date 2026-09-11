@@ -41,6 +41,13 @@ html[data-theme=dark]{color-scheme:dark;
 /* ---------- reset / base ---------- */
 *{box-sizing:border-box}html,body{margin:0;padding:0}
 html{scroll-behavior:smooth;background:var(--canvas)}
+/* v2.5 branded scrollbar: deep green thumb on canvas track (both engines) */
+html{scrollbar-color:var(--deep) var(--canvas)}
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:var(--canvas)}
+::-webkit-scrollbar-thumb{background:var(--deep);border:3px solid var(--canvas);border-radius:999px}
+::-webkit-scrollbar-thumb:hover{background:var(--deeper)}
+::-webkit-scrollbar-corner{background:var(--canvas)}
 /* v2.1 edge-to-edge (expert synthesis, doc_6d §7.2): A15/16 PWAs paint the page
    background behind the transparent status bar — html MUST carry the canvas bg,
    and the sticky header must respect the safe-area inset or it hides under the bar. */
