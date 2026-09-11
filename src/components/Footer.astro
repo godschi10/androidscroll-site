@@ -1,39 +1,48 @@
 ---
-/* Footer — sitemap columns, notify-me stub, legal, Matomo consent note,
-   ad-slot toggle OFF state echo. Deep-verdict band, mint type. */
-import { SITE, PILLARS, POSTS, TOTALS } from '../data/site';
+/* Footer v2.4 — D3 MAGAZINE KEEPER (King verdict, Sep 11).
+   C1 wordmark nameplate (eyes pinned open), honest alerts link (no stub form),
+   capped pillar sitemap + The paper in the brand block, legal lives in the
+   bottom bar dots. Deep-verdict band, mint type. */
+import Wordmark from './Wordmark.astro';
+import { SITE, PILLARS, POSTS, TOTALS, postsIn } from '../data/site';
 const latest3 = POSTS.slice(0, 3);
 const year = 2026;
 const started = POSTS.reduce((min, p) => p.date < min ? p.date : min, POSTS[0].date).slice(0, 4);
+/* sitemap columns: pillars with live posts, capped to 3 visual columns (digest trait 2);
+   children capped at 6 (digest: 4–7 links). Empty shelves (buying-guides today) stay
+   reachable via the Browse sheet until they have posts. */
+const footPillars = PILLARS
+  .map(p => ({ ...p, real: postsIn(p).length }))
+  .filter(p => p.real > 0)
+  .slice(0, 3);
 ---
 <footer class="site-footer" id="colophon">
   <div class="foot-in">
     <div class="foot-grid">
       <div class="foot-col foot-brand">
         <a class="nameplate" href="/" aria-label="AndroidScroll — home">
-          <svg class="brand-mark" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M4 0 H24 V24 H0 V4 A4 4 0 0 1 4 0 Z" fill="var(--teal)"/>
-            <path d="M24 10 H14 A4 4 0 0 0 10 14 V24 H16 V17 A1 1 0 0 1 17 16 H24 Z" fill="#0C2B24"/>
-            <rect x="15" y="3.5" width="6" height="2.4" fill="#0C2B24"/>
-          </svg>
-          <span class="brand-name">Android<em style="color:var(--teal)">Scroll</em></span>
+          <Wordmark />
         </a>
         <p>{SITE.tagline} Built as a static publication: Astro on the edge, no trackers without your consent.</p>
-        <div class="foot-notify" style="margin-top:16px">
-          <form data-stub id="foot-notify-form">
-            <input type="email" placeholder="Email for launch alerts" aria-label="Email address" required />
-            <button type="submit">Notify me</button>
-          </form>
-          <p class="n-note mono" style="font-size:10px;margin-top:8px;opacity:.7">Prototype stub — no network call fires.</p>
-        </div>
+        <p class="foot-alerts"><a href="/contact/">Get launch alerts — tell us where to reach you →</a></p>
+        <nav class="foot-col foot-paper" aria-label="The paper">
+          <h4>The paper</h4>
+          <ul>
+            <li><a href="/start-here/"><span>Start here</span></a></li>
+            <li><a href="/about/"><span>About AndroidScroll</span></a></li>
+            <li><a href="/how-we-test/"><span>How we test</span></a></li>
+            <li><a href="/contact/"><span>Contact the desk</span></a></li>
+            <li><a href="/latest/"><span>Latest {TOTALS.posts} guides</span></a></li>
+          </ul>
+        </nav>
       </div>
 
-      {PILLARS.map(p => (
+      {footPillars.map(p => (
         <nav class="foot-col" aria-label={p.name}>
           <h4>{p.name}</h4>
           <ul>
             <li><a href={p.path}><span>All {p.name.toLowerCase()}</span></a></li>
-            {p.children.map(k => (
+            {p.children.slice(0, 6).map(k => (
               <li><a href={k.path}><span>{k.name}</span><span class="cnt">{k.count}</span></a></li>
             ))}
             {p.children.length === 0 && latest3.filter(x => x.root_slug === p.slug).map(x => (
@@ -42,47 +51,32 @@ const started = POSTS.reduce((min, p) => p.date < min ? p.date : min, POSTS[0].d
           </ul>
         </nav>
       ))}
-
-      <nav class="foot-col" aria-label="The paper">
-        <h4>The paper</h4>
-        <ul>
-          <li><a href="/start-here/"><span>Start here</span></a></li>
-          <li><a href="/about/"><span>About AndroidScroll</span></a></li>
-          <li><a href="/how-we-test/"><span>How we test</span></a></li>
-          <li><a href="/contact/"><span>Contact the desk</span></a></li>
-          <li><a href="/latest/"><span>Latest {TOTALS.posts} guides</span></a></li>
-        </ul>
-      </nav>
-
-      <nav class="foot-col" aria-label="Legal">
-        <h4>Legal</h4>
-        <ul>
-          <li><a href="/privacy-policy/"><span>Privacy policy</span></a></li>
-          <li><a href="/cookie-policy/"><span>Cookie policy</span></a></li>
-          <li><a href="/disclaimer/"><span>Disclaimer</span></a></li>
-          <li><a href="/comments-policy/"><span>Comments policy</span></a></li>
-        </ul>
-      </nav>
     </div>
 
     <div class="foot-bar">
       <span>© {started}–{year} AndroidScroll.com</span>
       <span class="sep">·</span>
-      <span class="matomo-note">Analytics: self-hosted Matomo, cookie-free, loaded only after you consent. No third-party trackers, no ad pixels while slots are off.</span>
+      <nav class="foot-legal" aria-label="Legal">
+        <a href="/privacy-policy/"><span>Privacy</span></a><span class="sep" aria-hidden="true">·</span>
+        <a href="/cookie-policy/"><span>Cookie</span></a><span class="sep" aria-hidden="true">·</span>
+        <a href="/disclaimer/"><span>Disclaimer</span></a><span class="sep" aria-hidden="true">·</span>
+        <a href="/comments-policy/"><span>Comments</span></a>
+      </nav>
+      <span class="sep">·</span>
+      <span class="matomo-note">Self-hosted Matomo · consent-only · no third-party trackers</span>
       <span class="sep">·</span>
       <span class="foot-ad">
         <label><input type="checkbox" id="foot-ads-toggle" /> Site-wide ad slots: <b id="foot-ad-state">OFF</b></label>
+        <span class="foot-ad-off" id="foot-ad-law">off = zero height · zero requests · zero shift</span>
       </span>
-      <span class="foot-ad-off" id="foot-ad-law">off = zero height · zero requests · zero shift</span>
-      <span class="sep">·</span>
-      <a href="/contact/">Report a broken link</a>
+      <a class="foot-top" href="#site-header">Back to top ↑</a>
     </div>
   </div>
 </footer>
 
 <script type="module">
   /* footer ad toggle mirrors the header control (same localStorage keys, law 8);
-     notify form is an honest stub: no network, confirmation in-page. */
+     #foot-ads-toggle/#foot-ad-state ids are load-bearing for the header sync. */
   const root = document.documentElement;
   const box = document.getElementById('foot-ads-toggle');
   const state = document.getElementById('foot-ad-state');
@@ -98,6 +92,7 @@ const started = POSTS.reduce((min, p) => p.date < min ? p.date : min, POSTS[0].d
   const cur = root.getAttribute('data-ads') === 'on';
   box.checked = cur; state.textContent = cur ? 'ON' : 'OFF';
   box.addEventListener('change', () => sync(box.checked));
+  /* stub-form handler stays: / and category pages still ship honest on-device stubs */
   document.querySelectorAll('form[data-stub]').forEach(f => {
     f.addEventListener('submit', e => {
       e.preventDefault();

@@ -430,32 +430,63 @@ h1.hero-h1 .dot{color:var(--deep)}
 .cat-empty{padding:8px 0 0}
 
 /* ---------- footer (mono voice) ---------- */
-.site-footer{margin-top:clamp(48px,8vh,84px);background:var(--verdict);color:var(--mint);border-top:4px solid var(--teal)}
-html[data-theme=dark] .site-footer{background:#050F0D}
+/* C1 wordmark on the deep band: remap type tokens to the footer palette,
+   size ~30px. --canvas feeds the eye holes + mouth — must equal the band
+   (--foot-band) so they read as punched holes, same trick as the header.
+   Eyes pinned open in the footer; blink stays a header trait.
+   Re-pin --deep too: header's html[data-theme=dark] rule would win on specificity. */
+.site-footer{margin-top:clamp(48px,8vh,84px);background:var(--verdict);--foot-band:var(--verdict);color:var(--mint);border-top:4px solid var(--teal)}
+html[data-theme=dark] .site-footer{background:#050F0D;--foot-band:#050F0D}
 .foot-in{max-width:1180px;margin:0 auto;padding:clamp(30px,5vh,52px) clamp(16px,4vw,40px) 22px}
+/* v2.4 D3: brand block + 3 sitemap columns on one grid row at 1280;
+   mobile: brand full width, pillars 2-col (digest trait 7) */
 .foot-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:clamp(20px,3vw,36px)}
+@media (min-width:1024px){.foot-grid{grid-template-columns:1.3fr 1fr 1fr 1fr}}
+/* Wordmark on the band: ink->mint, Scroll->teal, eye/mouth holes -> band */
+.site-footer .wordmark-lockup{height:30px;width:auto;display:block;flex:none;--ink:var(--mint);--deep:var(--teal);--canvas:var(--foot-band)}
+/* re-pin: header's html[data-theme=dark] .wordmark-lockup{--deep:#006E5E} is (0,2,1)
+   and would beat the rule above in dark; (0,3,1) keeps Scroll teal on the band */
+html[data-theme=dark] .site-footer .wordmark-lockup{--deep:var(--teal)}
+.site-footer .wordmark-lockup .eye{animation:none}
+.foot-brand .nameplate{display:inline-flex;align-items:center;color:var(--ink);min-width:0;padding:8px 0}
 .foot-col h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#FFF;margin:0 0 12px;font-weight:600}
 .foot-col ul{list-style:none;margin:0;padding:0}
 .foot-col li+li{margin-top:7px}
 .foot-col a{color:var(--mint);font-family:var(--mono);font-size:12px;letter-spacing:.02em;display:inline-flex;gap:8px;align-items:baseline;justify-content:space-between;width:100%}
 .foot-col a:hover{color:#FFF;text-decoration:none}
 .foot-col .cnt{color:rgba(217,242,232,.65)}
-.foot-brand .brand-name{font-size:22px;color:#FFF}
-.foot-brand .brand-mark{width:24px;height:24px;flex:none}
+/* v2.4: stale pre-C1 nameplate markup gone — brand-mark/brand-name rules pruned */
 .foot-brand p{font-size:13px;color:rgba(217,242,232,.85);line-height:1.6;margin-top:12px;max-width:34ch}
-.foot-notify input{background:transparent;border:1px solid rgba(217,242,232,.4);border-bottom-width:2px;color:#FFF;padding:10px 12px;border-radius:2px;font-size:13.5px;width:100%;max-width:230px}
-.foot-notify input::placeholder{color:rgba(217,242,232,.6);font-family:var(--mono);font-size:11px;letter-spacing:.04em}
-.foot-notify button{margin-top:10px;border:1px solid var(--teal);color:#FFF;padding:9px 16px;border-radius:2px;font-weight:800;font-size:13px;background:transparent}
-.foot-notify button:hover{background:rgba(0,168,143,.18)}
+/* v2.4: notify stub form killed — honest one-line link to the contact desk */
+.foot-alerts{margin-top:14px;max-width:none}
+.foot-alerts a{font-family:var(--mono);font-size:11.5px;letter-spacing:.02em;color:var(--teal);display:inline-block;padding:6px 0}
+.foot-alerts a:hover{color:#FFF}
+.foot-paper{margin-top:20px}
 .foot-bar{border-top:1px solid rgba(217,242,232,.25);margin-top:clamp(24px,4vh,38px);padding-top:16px;display:flex;flex-wrap:wrap;gap:10px 26px;align-items:center;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:rgba(217,242,232,.75)}
 .foot-bar a{color:rgba(217,242,232,.9)}
 .foot-bar a:hover{color:#FFF}
 .foot-bar .sep{opacity:.4}
 .matomo-note{max-width:62ch}
+/* v2.4 D3: legal dots live in the bottom bar (digest trait 4) */
+.foot-legal{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+.foot-legal .sep{opacity:.4}
+/* back-to-top pinned right on desktop; smooth scroll is the html{} rule */
+.foot-top{margin-left:auto;white-space:nowrap;padding:8px 0}
 .foot-ad{display:inline-flex;align-items:center;gap:8px;border:1px dashed rgba(217,242,232,.4);padding:6px 10px;border-radius:2px}
 .foot-ad label{display:inline-flex;gap:6px;align-items:center;cursor:pointer;font-weight:500}
 .foot-ad input{accent-color:var(--teal);width:13px;height:13px;margin:0}
 .foot-ad-off{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal)}
+/* v2.4 responsive contract: brand full width + pillars 2-col on phones, foot-bar stacks */
+@media (max-width:1023.98px){.foot-brand{grid-column:1/-1}}
+@media (max-width:767px){
+  .foot-grid{grid-template-columns:1fr 1fr}
+  .foot-bar{flex-direction:column;align-items:flex-start;gap:12px}
+  .foot-bar > .sep{display:none}
+  .foot-top{margin-left:0}
+  .foot-ad{flex-direction:column;align-items:flex-start}
+  /* WCAG target size on touch: every footer link ≥44px tappable box */
+  .foot-col a,.foot-alerts a,.foot-bar a,.foot-ad label{min-height:44px;display:inline-flex;align-items:center}
+}
 
 /* ---------- toast (v0.6.8: hidden state FULLY off-screen + invisible — sliver fix; visibility flips only after the .18s exit completes) ---------- */
 .toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,calc(100% + 40px));opacity:0;visibility:hidden;z-index:80;background:var(--verdict);color:#FFF;border:1px solid var(--teal);padding:11px 18px;border-radius:2px;font-family:var(--mono);font-size:12px;letter-spacing:.04em;box-shadow:var(--float);max-width:90vw;transition:transform .18s ease-out,opacity .18s ease-out,visibility 0s linear .18s}
