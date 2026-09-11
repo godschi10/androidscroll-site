@@ -235,8 +235,15 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
   addEventListener('scroll', onScroll, { passive: true }); onScroll();
 
   /* sheets */
-  const openSheet = () => { scrim.hidden = false; sheet.hidden = false; requestAnimationFrame(() => { scrim.classList.add('is-open'); sheet.classList.add('is-open'); }); document.getElementById('browse-trigger').setAttribute('aria-expanded', 'true'); };
-  const closeSheet = () => { scrim.classList.remove('is-open'); sheet.classList.remove('is-open'); document.getElementById('browse-trigger').setAttribute('aria-expanded', 'false'); setTimeout(() => { sheet.hidden = true; scrim.hidden = true; }, 200); };
+  /* v2.3 scroll lock (King: scrolling an open menu/search must NEVER move the page).
+     Counter-based: sheet + search can overlap; the page unlocks only when BOTH are shut.
+     html-level class (not just body overflow) because mobile Chrome scrolls the
+     documentElement; panels keep their own scroll via overscroll-behavior:contain. */
+  let locks = 0, lockY = 0;
+  const lockPage = () => { if (!locks) { lockY = window.scrollY || 0; document.body.style.top = (-lockY) + 'px'; document.body.classList.add('frozen'); } locks++; document.documentElement.classList.add('locked'); };
+  const unlockPage = () => { locks = Math.max(0, locks - 1); if (!locks) { document.documentElement.classList.remove('locked'); document.body.classList.remove('frozen'); document.body.style.top = ''; try { window.scrollTo({ top: lockY, behavior: 'instant' }); } catch (e) { window.scrollTo(0, lockY); } } };
+  const openSheet = () => { if (!sheet.hidden) return; lockPage(); scrim.hidden = false; sheet.hidden = false; requestAnimationFrame(() => { scrim.classList.add('is-open'); sheet.classList.add('is-open'); }); document.getElementById('browse-trigger').setAttribute('aria-expanded', 'true'); };
+  const closeSheet = () => { if (sheet.hidden) return; scrim.classList.remove('is-open'); sheet.classList.remove('is-open'); document.getElementById('browse-trigger').setAttribute('aria-expanded', 'false'); setTimeout(() => { sheet.hidden = true; scrim.hidden = true; unlockPage(); }, 200); };
   document.getElementById('browse-trigger').addEventListener('click', openSheet);
   document.getElementById('browse-close').addEventListener('click', closeSheet);
   scrim.addEventListener('click', closeSheet);
@@ -250,9 +257,9 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
   let currentHits = [];
   const openSearch = () => {
     if (!searchLayer.hidden) return;
+    lockPage();
     searchLayer.hidden = false;
     searchLayer.classList.add('is-open');
-    document.body.style.overflow = 'hidden';
     searchInput.setAttribute('aria-expanded', 'true');
     render(searchInput.value || '');
     /* Focus the input so the keyboard comes up on mobile / cursor is in the field.
@@ -268,7 +275,7 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
   const closeSearch = () => {
     if (searchLayer.hidden) return;
     searchLayer.classList.remove('is-open'); searchLayer.hidden = true;
-    document.body.style.overflow = '';
+    unlockPage();
     searchInput.setAttribute('aria-expanded', 'false');
     searchInput.removeAttribute('aria-activedescendant');
     activeIdx = -1;

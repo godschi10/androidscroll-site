@@ -80,6 +80,14 @@ html.js .batt i{transition:background-color .3s ease}
 
 /* ---------- header v0.3: ONE bar (header-patterns.md) ---------- */
 html,body{overflow-x:clip} /* layout-blowout guard: nothing may paint past the viewport */
+/* v2.3 scroll lock (King: open menu/search must never move the page beneath).
+   html-level because mobile Chrome scrolls the documentElement, not just body.
+   Panels keep their own scroll: overscroll-behavior:contain stops the chain. */
+html.locked,html.locked body{overflow:hidden !important;overscroll-behavior:none}
+/* freeze: body leaves the scroll flow entirely — neither finger nor script can
+   move the page beneath an open overlay; unlock restores the exact position */
+body.frozen{position:fixed;left:0;right:0;width:100%}
+.sheet,.search-results{overscroll-behavior:contain;touch-action:pan-y}
 .site-header{position:sticky;top:0;z-index:40;background:var(--canvas);max-width:100vw}
 .header-in{max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px);display:flex;align-items:center;gap:16px;height:54px;transition:height .18s ease-out,box-shadow .18s ease-out}
 /* compact state (JS adds .is-compact on scroll >8px): hairline + 4px shadow, eases to 48px */
