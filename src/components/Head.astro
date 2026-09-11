@@ -16,7 +16,7 @@ const title = props.title ? `${props.title} â€” ${SITE.name}` : `${SITE.name} â€
 <meta property="og:type" content={props.ogType || 'website'} />
 <meta property="og:url" content={canonical} />
 <meta name="twitter:card" content="summary" />
-<meta name="theme-color" content="#F7FAF9" id="tc-base" />
+<meta name="theme-color" content="#EDF6F3" id="tc-base" />
 {props.robots && <meta name="robots" content={props.robots} />}
 <link rel="alternate" type="application/rss+xml" title={SITE.name} href={new URL('rss.xml', canonical).href} />
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='3' fill='%23006E5E'/%3E%3Crect x='19' y='6' width='7' height='7' fill='%23fff'/%3E%3C/svg%3E" />
@@ -32,7 +32,7 @@ const title = props.title ? `${props.title} â€” ${SITE.name}` : `${SITE.name} â€
         document.documentElement.setAttribute('data-theme-pref', t);
         /* King v0.6.6: theme-color meta follows OUR toggle â€” dark theme paints its own dark chrome */
         var tc = document.getElementById('tc-base');
-        if (tc) tc.setAttribute('content', eff === 'dark' ? '#071512' : '#F7FAF9');
+        if (tc) tc.setAttribute('content', eff === 'dark' ? '#071512' : '#EDF6F3');
       };
       apply();
       if (t === 'system' && mq.addEventListener) mq.addEventListener('change', apply);
