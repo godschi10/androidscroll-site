@@ -86,6 +86,10 @@ html,body{overflow-x:clip} /* layout-blowout guard: nothing may paint past the v
 .wordmark:hover{text-decoration:none}
 /* v1.0 C1 lockup: robot-A wordmark (replaces mark+word-text). 661.8x100 units. */
 .wordmark-lockup{height:26px;width:auto;display:block;flex:none}
+/* v1.2 King's pin: Scroll reads var(--deep) = #006E5E light; in dark the lockup
+   alone remaps to #00C896 (TEAL_D) so the wordmark keeps its dark-mode teal —
+   site-wide --deep (links) untouched. */
+html[data-theme=dark] .wordmark-lockup{--deep:#00C896}
 /* the blink: eyes fade shut ~0.2s every 5.4s. OPACITY only — a transform-box:fill-box
    scaleY loop was proven to wedge sync layout in real Chrome (pre-ship catch, v1.0).
    Fading works because the eye rects sit ON the ink dome: transparent = closed. */
