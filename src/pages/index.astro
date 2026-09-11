@@ -1,10 +1,9 @@
 ---
-/* Homepage v0.2 — TERMINAL EDITORIAL spine (design-plan-v3.md):
-   masthead band → hero (H1 left 8 cols + live site-status panel right 4,
-   real counts from content.json) → quick-answer terminal readout →
-   TOP FIXES spec-sheet rows (no boxes) → §01 PILLAR MAP battery tiles →
-   §02 MONEY TREE deep-teal verdict band → §03 LATEST mono list →
-   trust band → notify. Density is a feature; stepped 8/16/32 rhythm. */
+/* Homepage v3 — H1 FRONT PAGE with H2 VOICE (King verdict, home-mobile-patterns.md).
+   Front page, not welcome mat: hero strip (kicker + H1 + one-sentence stand +
+   hairline meta + status TICKER) → §00 TOP FIXES (first content ≤420px at 390)
+   → §01 LATEST → §02 THE LEDGER (full status panel, below the fold) → §03 PILLAR
+   MAP → §04 MONEY TREE → §05 trust → notify. Terminal quick-answer kept, compressed. */
 import Base from '../layouts/Base.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -22,55 +21,46 @@ const fixSlugs = [
   '6-charging-mistakes-that-damage-your-phone-battery',
 ];
 const topFixes = fixSlugs.map(s => POSTS.find(p => p.slug === s)!).filter(Boolean);
-const lead = POSTS[0];
 const latest = [...POSTS].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 8);
 const buying = PILLARS.find(p => p.slug === 'buying-guides')!;
 const emptyShelves = buying.children.map(c => ({ ...c, real: postsIn(c).length })).filter(c => !c.real);
 const shorts = POSTS.filter(p => p.read_min <= 10).length;
 const words = POSTS.reduce((n, p) => n + (p.words || 0), 0);
-const shelfName = (name: string) => name.split(/[ &]/)[0].toLowerCase();
 ---
 <Base>
-  <!-- hero: H1 block (left) + site-status panel (right) -->
+  <!-- hero strip: masthead voice in three lines, then the ticker (traits 1-4) -->
   <section class="hero wrap" aria-labelledby="hero-h1">
-    <div class="hero-grid">
-      <div class="hero-main">
-        <div class="hero-kicker">The Android field manual · {SITE.benchline}</div>
-        <h1 class="hero-h1" id="hero-h1">Master your Android<span class="dot">.</span></h1>
-        <p class="hero-stand">No hype, no filler, no “10 tips you already know.” {TOTALS.posts} long guides tested on the same mid-range phones you hold — symptom to root cause, fix to verdict.</p>
-        <div class="hero-meta">
-          <span>Est. <b>2019</b></span>
-          <span>{TOTALS.posts} guides · {TOTALS.comments} reader comments</span>
-          <span>{(words / 1000).toFixed(1)}k words written</span>
-          <span>Android 16 on the bench</span>
-        </div>
+    <div class="hero-main">
+      <div class="hero-kicker">The Android field manual · {SITE.benchline}</div>
+      <h1 class="hero-h1" id="hero-h1">Master your Android<span class="dot">.</span></h1>
+      <p class="hero-stand">No hype, no filler — {TOTALS.posts} long guides tested on the same mid-range phones you hold.</p>
+      <div class="hero-meta">
+        <span>Est. <b>2019</b></span>
+        <span>{TOTALS.posts} guides</span>
+        <span>{TOTALS.comments} comments</span>
+        <span>{(words / 1000).toFixed(1)}k words</span>
+        <span>Android 16 on the bench</span>
       </div>
-      <aside class="st-panel mono" aria-label="Site status — live counts">
-        <div class="st-head"><span>site:status</span><span class="st-sig">● live</span></div>
-        <ul class="st-rows">
-          <li><span class="k">fix_guides</span><span class="dots"></span><span class="v">{TOTALS.posts}</span></li>
-          <li><span class="k">quick_reads</span><span class="dots"></span><span class="v">{shorts} ≤10 min</span></li>
-          <li><span class="k">comments</span><span class="dots"></span><span class="v">{TOTALS.comments}</span></li>
-          <li><span class="k">shelves_open</span><span class="dots"></span><span class="v">{TOTALS.categories - TOTALS.empty_categories}/{TOTALS.categories}</span></li>
-          <li><span class="k">shelves_stocking</span><span class="dots"></span><span class="v zero">{TOTALS.empty_categories}</span></li>
-          <li><span class="k">library_target</span><span class="dots"></span><span class="v">200 · dec 2026</span></li>
-          <li class="st-batt"><span class="k">stock_level</span>
-            <span class="batt" data-lvl={Math.round((TOTALS.posts / 200) * 5)} aria-label={`${TOTALS.posts} of 200 guides live`}><i></i><i></i><i></i><i></i><i></i></span>
-            <span class="v">{TOTALS.posts}/200</span>
-          </li>
-        </ul>
-        <div class="st-foot">counts read straight off the live WP database · {SITE.url.replace('https://', '')}</div>
-      </aside>
+      <div class="st-ticker mono" aria-label="Site status — live counts">
+        <span class="st-sig">site:status ● live</span>
+        <span class="sep">—</span>
+        <span>fix_guides <b>{TOTALS.posts}</b></span><span class="sep">·</span>
+        <span>quick_reads <b>{shorts}</b> ≤10 min</span><span class="sep">·</span>
+        <span>comments <b>{TOTALS.comments}</b></span><span class="sep">·</span>
+        <span>shelves <b>{TOTALS.categories - TOTALS.empty_categories}/{TOTALS.categories}</b></span><span class="sep">·</span>
+        <span>stocked <b>{TOTALS.posts}/200</b></span>
+        <span class="batt" data-lvl={Math.round((TOTALS.posts / 200) * 5)} aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+      </div>
     </div>
 
-    <!-- quick-answer terminal box (signature #4) -->
+    <!-- quick-answer terminal box (signature #4) — compressed to two lines -->
     <div class="term stag" role="group" aria-label="Quick answer">
-      <div class="t-line"><span class="t-p">&gt; question:</span><span class="t-k">“my android is acting up — where do I even start?”</span></div>
-      <div class="t-line"><span class="t-p">&gt; solution:</span><span class="t-a">Restart, then <a href="/android-problems-fix/">work the full fix rail</a> — safe mode, rogue updates, storage, battery, in that order. <span class="t-cursor" aria-hidden="true"></span></span></div>
+      <div class="t-line"><span class="t-p">&gt; q:</span><span class="t-k">phone acting up — where do I start?</span></div>
+      <div class="t-line"><span class="t-p">&gt; a:</span><span class="t-a">Restart, then <a href="/android-problems-fix/">work the full fix rail</a> in order. <span class="t-cursor" aria-hidden="true"></span></span></div>
     </div>
   </section>
 
-  <!-- TOP FIXES: spec-sheet rows, no boxes -->
+  <!-- §00 TOP FIXES: spec-sheet rows, no boxes — the front page leads with help -->
   <section class="sec wrap" aria-labelledby="s-fixes">
     <div class="rule-s"><span class="s-no">§00</span><h2 id="s-fixes">Top fixes</h2><span class="s-side">start here · most-worked rails first</span></div>
     <div class="fix-rail">
@@ -90,9 +80,48 @@ const shelfName = (name: string) => name.split(/[ &]/)[0].toLowerCase();
 
   <AdSlot id="home-mid" />
 
-  <!-- §01 pillar map: battery-glyph tiles -->
+  <!-- §01 latest: chronologic mono list (moved up — readers want what's new next) -->
+  <section class="sec wrap" aria-labelledby="s-latest">
+    <div class="rule-s"><span class="s-no">§01</span><h2 id="s-latest">Latest from the bench</h2><span class="s-side">{TOTALS.posts} guides since 2019 · newest first</span></div>
+    <div class="lat-list">
+      {latest.map(r => (
+        <article class="lat-row stag">
+          <span class="d mono">{fmtDate(r.date)}</span>
+          <div>
+            <h3><a href={r.url}>{r.title}</a></h3>
+            <div class="m mono"><b>{r.root_name}</b> · {r.read_min} min · {r.comments} comments</div>
+          </div>
+          <span class="arr" aria-hidden="true">→</span>
+        </article>
+      ))}
+    </div>
+    <div class="lat-more"><a href="/latest/">Full chronology, oldest to newest →</a></div>
+  </section>
+
+  <!-- §02 THE LEDGER: the full status panel, below the fold where it earns its rows -->
+  <section class="sec wrap" aria-labelledby="s-ledger">
+    <div class="rule-s"><span class="s-no">§02</span><h2 id="s-ledger">The ledger</h2><span class="s-side">live counts · no vanity metrics</span></div>
+    <aside class="st-panel mono" aria-label="Site status — live counts">
+      <div class="st-head"><span>site:status</span><span class="st-sig">● live</span></div>
+      <ul class="st-rows">
+        <li><span class="k">fix_guides</span><span class="dots"></span><span class="v">{TOTALS.posts}</span></li>
+        <li><span class="k">quick_reads</span><span class="dots"></span><span class="v">{shorts} ≤10 min</span></li>
+        <li><span class="k">comments</span><span class="dots"></span><span class="v">{TOTALS.comments}</span></li>
+        <li><span class="k">shelves_open</span><span class="dots"></span><span class="v">{TOTALS.categories - TOTALS.empty_categories}/{TOTALS.categories}</span></li>
+        <li><span class="k">shelves_stocking</span><span class="dots"></span><span class="v zero">{TOTALS.empty_categories}</span></li>
+        <li><span class="k">library_target</span><span class="dots"></span><span class="v">200 · dec 2026</span></li>
+        <li class="st-batt"><span class="k">stock_level</span>
+          <span class="batt" data-lvl={Math.round((TOTALS.posts / 200) * 5)} aria-label={`${TOTALS.posts} of 200 guides live`}><i></i><i></i><i></i><i></i><i></i></span>
+          <span class="v">{TOTALS.posts}/200</span>
+        </li>
+      </ul>
+      <div class="st-foot">counts read straight off the build — no CMS, no database · {SITE.url.replace('https://', '')}</div>
+    </aside>
+  </section>
+
+  <!-- §03 pillar map: battery-glyph tiles -->
   <section class="sec wrap" aria-labelledby="s-map">
-    <div class="rule-s"><span class="s-no">§01</span><h2 id="s-map">The pillar map</h2><span class="s-side">four shelves · battery glyphs = honest stock</span></div>
+    <div class="rule-s"><span class="s-no">§03</span><h2 id="s-map">The pillar map</h2><span class="s-side">four shelves · battery glyphs = honest stock</span></div>
     <div class="tiles">
       {PILLARS.map(p => {
         const live = postsIn(p);
@@ -122,7 +151,7 @@ const shelfName = (name: string) => name.split(/[ &]/)[0].toLowerCase();
     </div>
   </section>
 
-  <!-- §02 money tree: deep-teal verdict band -->
+  <!-- §04 money tree: deep-teal verdict band -->
   <section class="verdict-band" aria-labelledby="s-money">
     <div class="wrap"><div class="vb-in">
       <div>
@@ -136,7 +165,7 @@ const shelfName = (name: string) => name.split(/[ &]/)[0].toLowerCase();
         </div>
       </div>
       <div>
-        <div class="vb-kicker">§02 · Money tree — the honest state</div>
+        <div class="vb-kicker">§04 · Money tree — the honest state</div>
         <h2 class="vb-title" id="s-money">We won’t tell you what to buy until we’ve broken one first.</h2>
         <p class="vb-copy">Buying Guides is the emptiest shelf on the site and the most expensive mistake we could make filling it with filler. {emptyShelves.length} sub-shelves are planned; first drops January 2027; every pick bought at retail and daily-driven two weeks before a verdict ships. Where the library is already deep, the guides above are the receipts.</p>
         <div class="vb-shelves">
@@ -150,27 +179,9 @@ const shelfName = (name: string) => name.split(/[ &]/)[0].toLowerCase();
     </div></div>
   </section>
 
-  <!-- §03 latest: chronologic mono list -->
-  <section class="sec wrap" aria-labelledby="s-latest">
-    <div class="rule-s"><span class="s-no">§03</span><h2 id="s-latest">Latest from the bench</h2><span class="s-side">{TOTALS.posts} guides since 2019 · newest first</span></div>
-    <div class="lat-list">
-      {latest.map(r => (
-        <article class="lat-row stag">
-          <span class="d mono">{fmtDate(r.date)}</span>
-          <div>
-            <h3><a href={r.url}>{r.title}</a></h3>
-            <div class="m mono"><b>{r.root_name}</b> · {r.read_min} min · {r.comments} comments</div>
-          </div>
-          <span class="arr" aria-hidden="true">→</span>
-        </article>
-      ))}
-    </div>
-    <div class="lat-more"><a href="/latest/">Full chronology, oldest to newest →</a></div>
-  </section>
-
   <!-- trust / EEAT band -->
   <section class="sec wrap" aria-labelledby="s-trust">
-    <div class="rule-s"><span class="s-no">§04</span><h2 id="s-trust">Who’s behind this</h2><span class="s-side">EEAT, stated plainly</span></div>
+    <div class="rule-s"><span class="s-no">§05</span><h2 id="s-trust">Who’s behind this</h2><span class="s-side">EEAT, stated plainly</span></div>
     <div class="trust">
       <div class="trust-in">
         <div class="t-cell">
