@@ -428,6 +428,10 @@ html[data-theme=dark] .notify .btn-deep{color:var(--mint)}
 .meta-bar{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;margin:18px 0 0;padding-top:12px;padding-bottom:12px;border-top:1px solid var(--ink);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--muted);font-variant-numeric:tabular-nums}
 .meta-bar a{color:var(--deep);font-weight:500}
 .meta-bar .upd{border:1px solid var(--deep);color:var(--deep);padding:2px 7px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:9.5px}
+/* v0.4.3 King: meta is TWO deliberate lines, never wrap-shrapnel — author line + middot facts line */
+.meta-facts{display:flex;flex-wrap:wrap;gap:8px 0;align-items:center}
+.meta-facts span + span::before{content:"·";margin:0 10px;color:var(--muted)}
+@media (max-width:639px){.meta-bar{flex-direction:column;align-items:flex-start;gap:8px}.meta-bar .meta-who{font-size:12px}}
 .art-body{padding-top:26px;padding-bottom:10px}
 .stub-note{border-left:3px solid var(--deep);background:var(--band);padding:14px 18px;font-size:14px;color:var(--ink-2);line-height:1.6;margin:22px 0}
 .stub-note b{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--deep);display:block;margin-bottom:4px}

@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.3 — 2026-09-11 — article meta two-line discipline
+- `.meta-bar` flex-wrap shattered into 3 ragged lines @390 (author @420, orphaned date @440, rest @486). Facts now grouped in `.meta-facts` with middot separators; mobile stacks two deliberate lines (author, facts). Desktop untouched.
+
 ## 0.4.2 — 2026-09-11 — verdict-band score stat
 - `.vb-score` was a baseline row: giant 0 with the label hanging off its 110px baseline (the "didn't move an inch" the King saw — my v0.4.1 fixed the CATEGORY zero, this is the HOMEPAGE money-tree one). Stacked stat now: number over label, left-aligned with band content (x=36/36 @390).
 - Standing clarity: two zeroes exist — category empty-hero count vs homepage verdict score. Name them in reports.
