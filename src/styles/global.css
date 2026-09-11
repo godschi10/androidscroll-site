@@ -454,11 +454,13 @@ html[data-theme=dark] .site-footer{background:#050F0D;--foot-band:#050F0D}
 /* re-pin: header's html[data-theme=dark] .wordmark-lockup{--deep:#006E5E} is (0,2,1)
    and would beat the rule above in dark; (0,3,1) keeps Scroll teal on the band */
 html[data-theme=dark] .site-footer .wordmark-lockup{--deep:var(--teal)}
-.site-footer .wordmark-lockup .eye{animation:none}
+/* v2.6 King: the footer wordmark blinks too — pin removed, same 5.4s wink as the header */
 .foot-brand .nameplate{display:inline-flex;align-items:center;color:var(--ink);min-width:0;padding:8px 0}
 .foot-col h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#FFF;margin:0 0 12px;font-weight:600}
 .foot-col ul{list-style:none;margin:0;padding:0}
 .foot-col li+li{margin-top:7px}
+/* v2.6 mobile/tab friendly: link hit rows >=40px on touch, list rows breathe */
+@media (hover:none),(max-width:1023px){.foot-col li+li{margin-top:1px}.foot-col a{padding:10px 0;min-height:40px}.foot-alerts a{padding:12px 0;min-height:44px}.foot-top{padding:12px 14px;min-height:44px}.foot-legal a{padding:10px 4px}}
 .foot-col a{color:var(--mint);font-family:var(--mono);font-size:12px;letter-spacing:.02em;display:inline-flex;gap:8px;align-items:baseline;justify-content:space-between;width:100%}
 .foot-col a:hover{color:#FFF;text-decoration:none}
 .foot-col .cnt{color:rgba(217,242,232,.65)}

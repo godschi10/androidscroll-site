@@ -226,10 +226,14 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
     stag.forEach(el => el.classList.add('in'));
   }
 
-  /* compact sticky state: >8px scroll adds hairline + 4px shadow, eases to 48px */
+  /* compact sticky state — v2.6 HYSTERESIS: the old single >8px threshold made the
+     header dance forever on small scrolls: entering compact shrinks 54->48, which
+     shifts content and can put scrollY back under 8, re-expanding and re-shifting
+     (feedback loop, worst on mobile flick scrolls). Enter compact only past 12px,
+     leave only under 4px — the 8px dead band kills the oscillation. */
   let compact = false;
   const onScroll = () => {
-    const want = window.scrollY > 8;
+    const want = compact ? window.scrollY > 4 : window.scrollY > 12;
     if (want !== compact) { compact = want; header.classList.toggle('is-compact', want); }
   };
   addEventListener('scroll', onScroll, { passive: true }); onScroll();
