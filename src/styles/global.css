@@ -407,6 +407,11 @@ h1.hero-h1 .dot{color:var(--deep)}
 .notify p{color:var(--muted);font-size:14px;margin:8px 0 0;max-width:48ch}
 .notify form{display:flex;gap:10px;flex-wrap:wrap}
 .notify input[type=email]{flex:1;min-width:200px;border:1px solid var(--line-2);border-bottom-width:2px;background:var(--paper);padding:12px 14px;border-radius:2px;font-size:15px;font-weight:500}
+/* v3.3 King: dark field melted into the page (1.14:1) — mint field, ink text */
+html[data-theme=dark] .notify input[type=email]{background:var(--mint);border-color:var(--mint);color:#10231F}
+html[data-theme=dark] .notify input[type=email]::placeholder{color:#2C4640}
+/* v3.3 King: dark button text melted into the button (verdict bg + ink text) */
+html[data-theme=dark] .notify .btn-deep{color:var(--mint)}
 .notify .btn-deep{border-top-width:0;background:var(--verdict)}
 .notify .btn-deep:hover{background:var(--deeper)}
 .notify .n-note{flex-basis:100%;font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.03em}
