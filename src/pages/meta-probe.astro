@@ -1,0 +1,21 @@
+---
+/* TEMPORARY diagnostic probe (King's meta A/B V1) — delete after the phone verdict.
+   Hard-coded light-green meta, ZERO scripts: if a fresh tab to this URL does not
+   paint the bar light green, the cause is the Chrome build/UI, not our markup. */
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Meta probe — light green bar test</title>
+<meta name="theme-color" content="#EDF6F3" />
+<style>html,body{margin:0;background:#EDF6F3;color:#10231F;font:17px/1.6 system-ui,sans-serif}main{max-width:34rem;margin:0 auto;padding:4rem 1.25rem}p{margin:0 0 1rem}</style>
+</head>
+<body>
+<main>
+<p><strong>Probe V1.</strong> This page carries one hard-coded <code>&lt;meta name="theme-color" content="#EDF6F3"&gt;</code> and no scripts at all.</p>
+<p>Open this URL in a <strong>fresh regular tab</strong>. If the bar above is light green, meta works and our dynamic path is the suspect. If it is not, the Chrome build/UI owns the bar.</p>
+</main>
+</body>
+</html>
