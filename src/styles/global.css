@@ -115,8 +115,17 @@ html,body{overflow-x:clip} /* layout-blowout guard: nothing may paint past the v
 /* King fix 2: Browse sheet hugs the header — slides from under the bar, not the screen bottom */
 .sheet{position:fixed;z-index:60;left:0;right:0;top:var(--header-h,54px);bottom:auto;max-height:calc(100dvh - var(--header-h,54px) - 12px);overflow:auto;background:var(--paper);border:1px solid var(--line-2);border-top:0;border-radius:0 0 4px 4px;box-shadow:var(--float);transform:translateY(-12px);opacity:0;pointer-events:none;transition:transform .18s ease-out,opacity .18s ease-out}
 .sheet.is-open{transform:none;opacity:1;pointer-events:auto}
-.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:14px clamp(16px,4vw,28px);position:sticky;top:0;background:var(--paper);border-bottom:1px solid var(--line-2)}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:14px clamp(16px,4vw,28px);position:sticky;top:0;background:var(--paper);z-index:2}
 .sheet-head h2{font-family:var(--display);font-size:22px;font-weight:800;letter-spacing:-.03em}
+/* King fix v0.4 (2): direct 3-way theme control at the TOP of the Browse sheet — Light | Auto | Dark */
+.sheet-theme{position:sticky;top:63px;z-index:1;display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:12px clamp(16px,4vw,28px);background:var(--paper);border-bottom:1px solid var(--line-2)}
+.sheet-theme .st-kicker{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.theme-seg{display:inline-flex;border:1px solid var(--line-2);border-radius:2px;overflow:hidden;background:var(--paper)}
+.theme-seg button{font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.02em;color:var(--ink-2);padding:9px 16px;min-height:38px;border-left:1px solid var(--line-2);transition:background-color .14s ease-out,color .14s ease-out}
+.theme-seg button:first-child{border-left:0}
+.theme-seg button:hover{color:var(--deep);background:var(--band)}
+.theme-seg button.is-active{background:var(--deeper);color:#FFF}
+html[data-theme=dark] .theme-seg button.is-active{background:#006E5E;color:#FFF}
 .sheet-body{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0 clamp(20px,4vw,48px);padding:8px clamp(16px,4vw,28px) 34px}
 .b-pillar{border-bottom:1px solid var(--line);padding:14px 0}
 .b-pillar>a.p-name{display:flex;align-items:baseline;gap:10px;color:var(--ink);font-family:var(--display);font-weight:800;font-size:19px;letter-spacing:-.025em}
@@ -141,9 +150,18 @@ html,body{overflow-x:clip} /* layout-blowout guard: nothing may paint past the v
 .search-layer{position:fixed;inset:0;z-index:70;display:none}
 .search-layer.is-open{display:block}
 .search-box{position:absolute;left:50%;transform:translateX(-50%);top:calc(var(--header-h,54px) + 10px);width:min(640px,calc(100vw - 24px));margin:0;background:var(--paper);border:1px solid var(--line-2);border-top:4px solid var(--teal);border-radius:4px;box-shadow:0 18px 48px rgba(7,21,18,.28);overflow:hidden}
-/* King fix (v0.3.2): in dark theme the panel blended into the dim canvas → lift it clearly as foreground */
+/* King fix (v0.4): dark-mode search panel INVERTS to light — near-white sheet (#F7FAF9) on the dark canvas, dark ink, teal top rule. Luminance must beat ~rgb(7-21) canvas. */
 html[data-theme=dark] .search-layer .scrim{background:rgba(0,0,0,.78)}
-html[data-theme=dark] .search-box{background:#123A30;border-color:#3E7A69;border-top-color:var(--teal);box-shadow:0 24px 70px rgba(0,0,0,.7)}
+html[data-theme=dark] .search-box{background:#F7FAF9;color:#10231F;border-color:#DDE8E3;border-top:4px solid #00A88F;box-shadow:0 24px 70px rgba(0,0,0,.7)}
+html[data-theme=dark] .search-box input{color:#10231F}
+html[data-theme=dark] .search-box input::placeholder{color:#52635F}
+html[data-theme=dark] .search-box .search-meta{border-bottom-color:#DDE8E3;color:#52635F}
+html[data-theme=dark] .search-box .search-results li a{color:#10231F;border-bottom-color:#DDE8E3}
+html[data-theme=dark] .search-box .search-results li a:hover{background:#EDF6F3}
+html[data-theme=dark] .search-box .search-results h3{color:#10231F}
+html[data-theme=dark] .search-box .search-results .sr-x{color:#52635F}
+html[data-theme=dark] .search-box .search-results .sr-meta{color:#006E5E}
+html[data-theme=dark] .search-box .search-empty{color:#52635F}
 .search-box input{width:100%;border:0;outline:0;background:transparent;padding:18px 20px;font-size:18px;font-weight:500}
 .search-box input::placeholder{color:var(--muted);font-family:var(--mono);font-size:14px;letter-spacing:.03em}
 .search-meta{display:flex;justify-content:space-between;padding:8px 20px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--muted)}

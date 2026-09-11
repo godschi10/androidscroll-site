@@ -63,6 +63,14 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5 5 19"/></svg>
     </button>
   </div>
+  <div class="sheet-theme">
+    <span class="st-kicker">Theme</span>
+    <div class="theme-seg" id="theme-seg" role="radiogroup" aria-label="Theme mode">
+      <button type="button" role="radio" data-pref="light" aria-checked="false">Light</button>
+      <button type="button" role="radio" data-pref="system" aria-checked="false">Auto</button>
+      <button type="button" role="radio" data-pref="dark" aria-checked="false">Dark</button>
+    </div>
+  </div>
   <nav class="sheet-body" aria-label="Categories">
     {pillarsWithPosts.map(p => (
       <div class="b-pillar">
@@ -129,8 +137,11 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
   let toastTimer;
   const say = m => { toast.textContent = m; toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 2600); };
 
-  /* theme — 3-state cycle: light → dark → system (King fix 3); SVG glyph reflects PREF, not just effect */
+  /* theme — 3-state cycle button + 3-way segmented control in Browse sheet (King v0.4).
+     pref ('light'|'dark'|'system') persists in localStorage 'as-theme'; 'system' tracks
+     the phone's prefers-color-scheme live. SVG glyph + segments reflect PREF, not just effect. */
   const themeBtn = document.getElementById('theme-toggle');
+  const segWrap = document.getElementById('theme-seg');
   const mqDark = matchMedia('(prefers-color-scheme: dark)');
   const applyTheme = () => {
     const pref = store.get('as-theme') || 'system';
@@ -143,9 +154,24 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
     const names = { light: 'light', dark: 'dark', system: 'auto (follows system)' };
     themeBtn.setAttribute('aria-label', 'Theme: ' + names[pref]);
     themeBtn.title = 'Theme: ' + names[pref] + ' — click to change';
+    if (segWrap) segWrap.querySelectorAll('[data-pref]').forEach(btn => {
+      const on = btn.dataset.pref === pref;
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
   };
   applyTheme();
   mqDark.addEventListener?.('change', () => { if ((store.get('as-theme') || 'system') === 'system') applyTheme(); });
+  /* King fix v0.4 (2): direct selection — segment applies + persists immediately */
+  if (segWrap) segWrap.addEventListener('click', e => {
+    const btn = e.target instanceof Element ? e.target.closest('[data-pref]') : null;
+    if (!btn) return;
+    const pref = btn.dataset.pref;
+    const was = root.getAttribute('data-theme');
+    store.set('as-theme', pref); applyTheme();
+    const msg = { light: 'Theme: light', dark: 'Theme: dark', system: 'Theme: auto — follows your phone' };
+    say(root.getAttribute('data-theme') !== was ? msg[pref] : msg[pref] + ' (already matching your phone)');
+  });
   themeBtn.addEventListener('click', () => {
     /* every click must produce a VISIBLE change or land on system — never an invisible hop */
     const cur = store.get('as-theme') || 'system';
