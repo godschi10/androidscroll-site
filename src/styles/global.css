@@ -84,6 +84,14 @@ html,body{overflow-x:clip} /* layout-blowout guard: nothing may paint past the v
 /* wordmark = brand element, biggest thing in the bar */
 .wordmark{display:inline-flex;align-items:center;gap:10px;color:var(--ink);flex:none;min-width:0}
 .wordmark:hover{text-decoration:none}
+/* v1.0 C1 lockup: robot-A wordmark (replaces mark+word-text). 661.8x100 units. */
+.wordmark-lockup{height:26px;width:auto;display:block;flex:none}
+/* the blink: eyes fade shut ~0.2s every 5.4s. OPACITY only — a transform-box:fill-box
+   scaleY loop was proven to wedge sync layout in real Chrome (pre-ship catch, v1.0).
+   Fading works because the eye rects sit ON the ink dome: transparent = closed. */
+.wordmark-lockup .eye{animation:as-blink 5.4s ease-in-out infinite}
+@keyframes as-blink{0%,91%,100%{opacity:1}94.5%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.wordmark-lockup .eye{animation:none}}
 .wordmark .mark{width:20px;height:20px;flex:none;transition:width .18s ease-out,height .18s ease-out}
 .wordmark .word-text{font-family:var(--display);font-weight:800;font-size:24px;letter-spacing:-.03em;line-height:1;white-space:nowrap}
 .wordmark .word-text em{font-style:normal;color:var(--deep)}
@@ -115,6 +123,7 @@ html[data-theme=dark] .theme-menu{box-shadow:0 24px 70px rgba(0,0,0,.75)}
   .header-in{height:60px}
   .head-cats{display:inline-flex}
   .wordmark .mark{width:24px;height:24px}
+  .wordmark-lockup{height:30px}
   .wordmark .word-text{font-size:28px}
 }
 

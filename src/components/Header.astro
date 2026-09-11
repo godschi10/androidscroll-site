@@ -14,6 +14,7 @@
      .ad-toggle, wired by event delegation — no duplicate IDs; Footer.astro keeps
      its own instance). Browse bottom sheet + search overlay IDs preserved. */
 import { SITE, CATS, PILLARS, TOTALS, childrenOf, postsIn, POSTS } from '../data/site';
+import Wordmark from './Wordmark.astro';
 const pillarsWithPosts = PILLARS.map(p => ({ ...p, real: postsIn(p).length }));
 const navCats = pillarsWithPosts.filter(p => p.real > 0).slice(0, 4);
 const navLabel = (name: string) => name.split(/[ &—-]+/).filter(Boolean)[0] || name;
@@ -22,12 +23,7 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
 <header class="site-header" id="site-header">
   <div class="header-in">
     <a class="wordmark" href="/" aria-label="AndroidScroll — home">
-      <svg class="mark" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M4 0 H24 V24 H0 V4 A4 4 0 0 1 4 0 Z" fill="var(--deep)"/>
-        <path d="M24 10 H14 A4 4 0 0 0 10 14 V24 H16 V17 A1 1 0 0 1 17 16 H24 Z" fill="var(--canvas)"/>
-        <rect x="15" y="3.5" width="6" height="2.4" fill="var(--canvas)"/>
-      </svg>
-      <span class="word-text">Android<em>Scroll</em></span>
+      <Wordmark />
     </a>
 
     {navCats.length > 0 && (
