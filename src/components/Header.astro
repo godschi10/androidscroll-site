@@ -147,9 +147,17 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
   applyTheme();
   mqDark.addEventListener?.('change', () => { if ((store.get('as-theme') || 'system') === 'system') applyTheme(); });
   themeBtn.addEventListener('click', () => {
-    const pref = store.get('as-theme') || 'system';
-    const next = pref === 'light' ? 'dark' : pref === 'dark' ? 'system' : 'light';
+    /* every click must produce a VISIBLE change or land on system — never an invisible hop */
+    const cur = store.get('as-theme') || 'system';
+    const eff = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+    const sys = mqDark.matches ? 'dark' : 'light';
+    let next;
+    if (cur === 'system') next = eff === 'dark' ? 'light' : 'dark';
+    else if (sys !== cur) next = 'system';
+    else next = cur === 'dark' ? 'light' : 'dark';
     store.set('as-theme', next); applyTheme();
+    const msg = { light: 'Theme: light', dark: 'Theme: dark', system: 'Theme: auto — follows your phone' };
+    say(msg[next]);
   });
 
   /* rails stagger-in on scroll (IntersectionObserver, 40ms steps, translateY 8px) */
