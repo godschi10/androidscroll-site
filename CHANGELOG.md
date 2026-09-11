@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.2 — 2026-09-11 — verdict-band score stat
+- `.vb-score` was a baseline row: giant 0 with the label hanging off its 110px baseline (the "didn't move an inch" the King saw — my v0.4.1 fixed the CATEGORY zero, this is the HOMEPAGE money-tree one). Stacked stat now: number over label, left-aligned with band content (x=36/36 @390).
+- Standing clarity: two zeroes exist — category empty-hero count vs homepage verdict score. Name them in reports.
+
 ## 0.4.1 — 2026-09-11 — empty-shelf count alignment
 - Category `.cat-hero` had the same zero-side padding shorthand (gutters dead, giant "0" at x=0) — longhand now; empty-state composed centered (tabular-nums zero + centered launch pill), deliberate at any future count.
 - Probe note: `file://` hangs Obscura on island module scripts — article/category probes serve dist over local HTTP.
