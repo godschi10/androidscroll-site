@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1 — 2026-09-11 — empty-shelf count alignment
+- Category `.cat-hero` had the same zero-side padding shorthand (gutters dead, giant "0" at x=0) — longhand now; empty-state composed centered (tabular-nums zero + centered launch pill), deliberate at any future count.
+- Probe note: `file://` hangs Obscura on island module scripts — article/category probes serve dist over local HTTP.
+
 ## 0.4.0 — 2026-09-11 — homepage FRONT PAGE + C-FULL article
 - Homepage v3 (H1 front page, H2 voice): hero strip (H1 halved, one-sentence stand, hairline meta), status TICKER above fold (swipeable 1-line), full ledger moved below LATEST, Top fixes first (first guide ~1000px → 482px), LATEST §01, tiles 1/2/4 cols, terminal compressed, WP-database lie killed ("counts read straight off the build").
 - v3.2 bleed fix: `.sec`/`.notify`/`.hero` padding shorthands had zeroed `.wrap` side gutters site-wide since v0.2 — longhands now; article/category layouts swept; pixel proof 0 text rows inside 12px gutters @390. Standing law: no zero-side padding shorthands, ever.

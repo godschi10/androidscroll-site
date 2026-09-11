@@ -599,11 +599,12 @@ html[data-theme=dark] .prose audio{color-scheme:dark}
 @media (max-width:639px){.art-hero-ph{min-height:96px}.pn-empty{display:none}.gl-nav{width:44px;height:56px}}
 
 /* ---------- category pages ---------- */
-.cat-hero{padding:clamp(24px,5vh,42px) 0 0}
+.cat-hero{padding-top:clamp(24px,5vh,42px)} /* v3.4: longhand — shorthand killed wrap gutters (the "0" sat at x=0) */
 .cat-hero h1{font-family:var(--display);font-weight:800;font-size:clamp(30px,5.2vw,52px);letter-spacing:-.035em;line-height:.92}
 .cat-hero .intro{color:var(--ink-2);font-size:16px;max-width:68ch;margin-top:12px}
-.empty-hero .launch{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--deep);border:1px solid var(--deep);padding:7px 12px;border-radius:2px;margin-top:14px;text-transform:uppercase}
-.empty-hero .zero{font-family:var(--display);font-weight:800;font-size:clamp(60px,12vw,96px);letter-spacing:-.05em;line-height:.85;color:var(--muted)}
+.empty-hero .launch{display:flex;width:fit-content;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--deep);border:1px solid var(--deep);padding:7px 12px;border-radius:2px;margin:14px auto 0;text-transform:uppercase}
+/* v3.4 King: the count is a composed centered empty-state, not a stray glyph at the edge */
+.empty-hero .zero{font-family:var(--display);font-weight:800;font-size:clamp(60px,12vw,96px);letter-spacing:-.05em;line-height:.85;color:var(--muted);text-align:center;margin-top:22px;font-variant-numeric:tabular-nums}
 .cat-list{margin-top:clamp(22px,4vh,36px);border-top:1px solid var(--line-2)}
 .cat-list article{padding:16px 0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr;gap:4px}
 @media (min-width:760px){.cat-list article{grid-template-columns:1fr auto;column-gap:30px;align-items:baseline}}
