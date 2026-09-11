@@ -7,7 +7,7 @@ const canonical = SITE.url + Astro.url.pathname;
 const title = props.title ? `${props.title} — ${SITE.name}` : `${SITE.name} — ${props.desc || SITE.tagline}`;
 ---
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>{title}</title>
 <meta name="description" content={props.desc || SITE.tagline} />
 <link rel="canonical" href={canonical} />
