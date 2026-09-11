@@ -17,12 +17,11 @@ const title = props.title ? `${props.title} — ${SITE.name}` : `${SITE.name} �
 <meta property="og:type" content={props.ogType || 'website'} />
 <meta property="og:url" content={canonical} />
 <meta name="twitter:card" content="summary" />
-<!-- v0.6.9 status-bar duality fix (see statusbar-PROGRESS.md): media pair paints the OS-level
-     color no-JS; the dynamic #tc-base sits BETWEEN them (last-match-wins keeps no-JS correct in
-     either OS mode) and is re-inserted at head's end by JS so the in-app toggle always wins. -->
-<meta name="theme-color" content={THEME_COLORS.light} media="(prefers-color-scheme: light)" />
+<!-- v1.3 meta fix (see statusbar-PROGRESS.md): WHATWG takes the FIRST matching
+     theme-color meta, so ONE dynamic meta only — a static media pair would shadow
+     any manual choice that disagrees with the OS. Boot script sets content before
+     first paint; no-JS falls back to light. -->
 <meta name="theme-color" content={THEME_COLORS.light} id="tc-base" data-light={THEME_COLORS.light} data-dark={THEME_COLORS.dark} />
-<meta name="theme-color" content={THEME_COLORS.dark} media="(prefers-color-scheme: dark)" />
 <meta name="mobile-web-app-capable" content="yes" />
 <link rel="manifest" href="/manifest.webmanifest" />
 {props.robots && <meta name="robots" content={props.robots} />}
@@ -38,13 +37,11 @@ const title = props.title ? `${props.title} — ${SITE.name}` : `${SITE.name} �
         var eff = t === 'system' ? (mq.matches ? 'dark' : 'light') : t;
         document.documentElement.setAttribute('data-theme', eff);
         document.documentElement.setAttribute('data-theme-pref', t);
-        /* v0.6.9: set + MOVE the dynamic meta to head's end (Chrome takes the LAST
-           matching theme-color; appendChild on a live node = remove+re-insert, which
-           also forces UA re-parse). Build-time values from data/theme-colors.ts only. */
+        /* v1.3: single meta = always the first match. Plain content setAttribute
+           repaints per spec (re-run rule) — no remove+re-insert needed. */
         var tc = document.getElementById('tc-base');
         if (tc) {
           tc.setAttribute('content', eff === 'dark' ? tc.dataset.dark : tc.dataset.light);
-          document.head.appendChild(tc);
         }
       };
       apply();

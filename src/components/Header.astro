@@ -164,13 +164,11 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
     const names = { light: 'light', dark: 'dark', system: 'auto (follows system)' };
     themeBtn.setAttribute('aria-label', 'Theme: ' + names[pref]);
     themeBtn.title = 'Theme: ' + names[pref] + ' — click to change';
-    /* v0.6.9: set + MOVE the dynamic meta to head's end (Chrome takes the LAST
-       matching theme-color; appendChild on a live node = remove+re-insert, which
-       also forces UA re-parse). Colors from #tc-base data attrs (build-stamped). */
+    /* v1.3: single meta — plain content set (first-match always wins).
+       Colors from #tc-base data attrs (build-stamped). */
     const tcMeta = document.getElementById('tc-base');
     if (tcMeta) {
       tcMeta.setAttribute('content', eff === 'dark' ? tcMeta.dataset.dark : tcMeta.dataset.light);
-      document.head.appendChild(tcMeta);
     }
     if (segWrap) segWrap.querySelectorAll('[data-pref]').forEach(btn => {
       const on = btn.dataset.pref === pref;
