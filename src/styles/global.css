@@ -169,6 +169,15 @@ html[data-theme=dark] .theme-seg button.is-active{background:#006E5E;color:#FFF}
 html[data-theme=dark] .search-layer .scrim{background:rgba(0,0,0,.6)}
 html[data-theme=dark] .search-box{border-color:var(--line-2);border-top-color:var(--teal);box-shadow:0 24px 70px rgba(0,0,0,.75)}
 .search-box input{width:100%;border:0;outline:0;background:transparent;padding:18px 20px;font-size:18px;font-weight:500}
+/* v0.6 search-smart (behavior only — existing palette, flat): field row, clear btn, mark, keyboard highlight */
+.search-field{display:flex;align-items:center;gap:4px}
+.search-field input{flex:1;min-width:0;width:auto}
+.search-clear{flex:none;width:44px;height:44px;margin-right:6px;border:1px solid var(--line-2);border-radius:2px;background:transparent;color:var(--muted);font-size:20px;line-height:1;cursor:pointer}
+.search-clear:hover{border-color:var(--deep);color:var(--deep)}
+.search-clear[hidden]{display:none}
+.search-results mark{background:#bfe3cb;color:inherit;padding:0 1px;border-radius:2px}
+html[data-theme=dark] .search-results mark{background:#0d4f42;color:#fff}
+.search-results li.is-active a{background:var(--band);box-shadow:inset 3px 0 0 var(--deep)}
 .search-box input::placeholder{color:var(--muted);font-family:var(--mono);font-size:14px;letter-spacing:.03em}
 .search-meta{display:flex;justify-content:space-between;padding:8px 20px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--muted)}
 .search-results{max-height:48dvh;overflow:auto;list-style:none;margin:0;padding:6px 0}

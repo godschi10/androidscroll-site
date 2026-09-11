@@ -114,10 +114,13 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
 <div class="search-layer" id="search-layer" role="dialog" aria-modal="true" aria-label="Search" hidden>
   <div class="scrim is-open" id="search-scrim" style="position:absolute"></div>
   <div class="search-box">
-    <div class="search-meta"><span>Search {TOTALS.posts} guides</span><span>Esc to close</span></div>
-    <label class="sr-only" for="search-input" style="position:absolute;left:-9999px">Search query</label>
-    <input id="search-input" type="search" placeholder="battery, overheating, whatsapp, malware…" autocomplete="off" />
-    <ul class="search-results" id="search-results" aria-live="polite"></ul>
+    <div class="search-meta"><span id="search-status" role="status" aria-live="polite">Search {TOTALS.posts} guides</span><span>Esc to close</span></div>
+    <div class="search-field">
+      <label class="sr-only" for="search-input" style="position:absolute;left:-9999px">Search query</label>
+      <input id="search-input" type="search" placeholder="battery, overheating, whatsapp, malware…" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list" />
+      <button class="search-clear" id="search-clear" type="button" aria-label="Clear search" title="Clear" hidden>×</button>
+    </div>
+    <ul class="search-results" id="search-results" role="listbox" aria-label="Search suggestions"></ul>
     <div class="search-empty no-js-hide" id="search-empty" hidden>
       No guide matches that yet — and that's the backlog, not a dead end.<br />
       <a href="/contact/">Tell us what to write →</a>
@@ -227,24 +230,105 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
   document.getElementById('browse-close').addEventListener('click', closeSheet);
   scrim.addEventListener('click', closeSheet);
 
-  /* search overlay */
+  /* search overlay — v0.6 smart: keyboard nav, clear, <mark>, status, focus return, scroll lock */
   const INDEX = JSON.parse(document.getElementById('search-index').textContent);
-  const openSearch = () => { searchLayer.hidden = false; searchLayer.classList.add('is-open'); setTimeout(() => searchInput.focus(), 30); render(''); };
-  const closeSearch = () => { searchLayer.classList.remove('is-open'); searchLayer.hidden = true; };
-  document.getElementById('search-trigger').addEventListener('click', openSearch);
+  const searchTrigger = document.getElementById('search-trigger');
+  const searchClear = document.getElementById('search-clear');
+  const searchStatus = document.getElementById('search-status');
+  let activeIdx = -1;
+  let currentHits = [];
+  const openSearch = () => {
+    if (!searchLayer.hidden) return;
+    searchLayer.hidden = false;
+    searchLayer.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+    searchInput.setAttribute('aria-expanded', 'true');
+    render(searchInput.value || '');
+    /* Focus the input so the keyboard comes up on mobile / cursor is in the field.
+       Use rAF + short setTimeout so the browser has flushed the overlay paint first —
+       this is the actual UX fix for "open search and nothing is focused". */
+    requestAnimationFrame(() => {
+      try { searchInput.focus(); } catch (e) {}
+      setTimeout(() => {
+        try { if (document.activeElement !== searchInput) searchInput.focus(); } catch (e) {}
+      }, 30);
+    });
+  };
+  const closeSearch = () => {
+    if (searchLayer.hidden) return;
+    searchLayer.classList.remove('is-open'); searchLayer.hidden = true;
+    document.body.style.overflow = '';
+    searchInput.setAttribute('aria-expanded', 'false');
+    searchInput.removeAttribute('aria-activedescendant');
+    activeIdx = -1;
+    searchTrigger.focus();
+  };
+  searchTrigger.addEventListener('click', openSearch);
+  /* tap the overlay background (anywhere outside the search box) to close */
+  searchLayer.addEventListener('click', e => {
+    if (!e.target.closest('.search-box') && !e.target.closest('#search-trigger')) closeSearch();
+  });
   document.getElementById('search-scrim').addEventListener('click', closeSearch);
   addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closeSheet(); closeSearch(); }
-    if (e.key === '/' && !/input|textarea/i.test(document.activeElement.tagName)) { e.preventDefault(); openSearch(); }
+    if (e.key === 'Escape') { if (!searchLayer.hidden) closeSearch(); else closeSheet(); return; }
+    if (e.key !== '/') return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (!searchLayer.hidden) return;
+    const ae = document.activeElement;
+    const tag = ae && ae.tagName ? ae.tagName.toLowerCase() : '';
+    if (tag === 'input' || tag === 'textarea' || tag === 'select' || (ae && ae.isContentEditable)) return;
+    e.preventDefault(); openSearch();
   });
-  const esc = s => s.replace(/[&<"]/g, c => ({ '&': '&amp;', '<': '&lt;', '"': '&quot;' }[c]));
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const escReg = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const hi = (text, terms) => {
+    let out = esc(text);
+    for (const t of terms) {
+      if (!t) continue;
+      out = out.replace(new RegExp('(' + escReg(esc(t)) + ')', 'gi'), '<mark>$1</mark>');
+    }
+    return out;
+  };
+  const paint = () => {
+    const items = results.querySelectorAll('li');
+    items.forEach((li, i) => {
+      const on = i === activeIdx;
+      li.classList.toggle('is-active', on);
+      li.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    if (activeIdx >= 0) searchInput.setAttribute('aria-activedescendant', 'search-opt-' + activeIdx);
+    else searchInput.removeAttribute('aria-activedescendant');
+  };
   function render(q) {
     const terms = q.toLowerCase().trim().split(/\s+/).filter(Boolean);
-    const hits = (terms.length ? INDEX.filter(p => terms.every(t => (p.title + ' ' + p.excerpt + ' ' + p.cat).toLowerCase().includes(t))) : INDEX).slice(0, 8);
-    results.innerHTML = hits.map(p => `<li><a href="${p.url}"><h3>${esc(p.title)}</h3><div class="sr-x">${esc(p.excerpt)}</div><div class="sr-meta">${p.meta}</div></a></li>`).join('');
-    empty.hidden = !(terms.length && hits.length === 0);
+    const matched = terms.length ? INDEX.filter(p => terms.every(t => (p.title + ' ' + p.excerpt + ' ' + p.cat).toLowerCase().includes(t))) : INDEX;
+    const hits = matched.slice(0, 8);
+    currentHits = hits; activeIdx = -1;
+    searchInput.removeAttribute('aria-activedescendant');
+    results.innerHTML = hits.map((p, i) => `<li role="option" id="search-opt-${i}" aria-selected="false"><a href="${p.url}" tabindex="-1"><h3>${hi(p.title, terms)}</h3><div class="sr-x">${hi(p.excerpt, terms)}</div><div class="sr-meta">${esc(p.meta)}</div></a></li>`).join('');
+    /* honest count: total matched, plus a showing-note when the slice hides some */
+    if (!terms.length) searchStatus.textContent = INDEX.length + ' guides';
+    else if (matched.length > hits.length) searchStatus.textContent = matched.length + ' matches — showing first ' + hits.length;
+    else if (matched.length) searchStatus.textContent = matched.length + (matched.length === 1 ? ' match' : ' matches');
+    else searchStatus.textContent = '0 matches';
+    empty.hidden = !(terms.length && matched.length === 0);
+    searchClear.hidden = !searchInput.value;
   }
   searchInput.addEventListener('input', () => render(searchInput.value));
+  searchInput.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Enter') return;
+    if (!currentHits.length) return;
+    if (e.key === 'Enter') {
+      if (activeIdx >= 0 && currentHits[activeIdx]) { e.preventDefault(); location.href = currentHits[activeIdx].url; }
+      return;
+    }
+    e.preventDefault();
+    const n = currentHits.length;
+    activeIdx = e.key === 'ArrowDown' ? (activeIdx + 1) % n : (activeIdx - 1 + n) % n;
+    paint();
+    results.children[activeIdx]?.scrollIntoView({ block: 'nearest' });
+  });
+  searchClear.addEventListener('click', () => { searchInput.value = ''; render(''); searchInput.focus(); });
 
   /* Law 8 ad toggles — one source of truth via event delegation on .ad-toggle.
      Every instance (Browse sheet here, Footer control elsewhere) reads and
