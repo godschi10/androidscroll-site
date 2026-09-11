@@ -432,9 +432,9 @@ html[data-theme=dark] .site-footer{background:#050F0D}
 .foot-ad input{accent-color:var(--teal);width:13px;height:13px;margin:0}
 .foot-ad-off{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal)}
 
-/* ---------- toast ---------- */
-.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,140%);z-index:80;background:var(--verdict);color:#FFF;border:1px solid var(--teal);padding:11px 18px;border-radius:2px;font-family:var(--mono);font-size:12px;letter-spacing:.04em;box-shadow:var(--float);transition:transform .18s ease-out;max-width:90vw}
-.toast.show{transform:translate(-50%,0)}
+/* ---------- toast (v0.6.8: hidden state FULLY off-screen + invisible — sliver fix; visibility flips only after the .18s exit completes) ---------- */
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,calc(100% + 40px));opacity:0;visibility:hidden;z-index:80;background:var(--verdict);color:#FFF;border:1px solid var(--teal);padding:11px 18px;border-radius:2px;font-family:var(--mono);font-size:12px;letter-spacing:.04em;box-shadow:var(--float);max-width:90vw;transition:transform .18s ease-out,opacity .18s ease-out,visibility 0s linear .18s}
+.toast.show{transform:translate(-50%,0);opacity:1;visibility:visible;transition:transform .18s ease-out,opacity .18s ease-out,visibility 0s linear 0s}
 
 /* ---------- motion (restrained, 60fps; design-plan-v3) ---------- */
 html.js .stag{opacity:0;transform:translateY(8px);transition:opacity .32s ease,transform .32s ease}
