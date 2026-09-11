@@ -105,9 +105,9 @@ html[data-theme=dark] .theme-menu{box-shadow:0 24px 70px rgba(0,0,0,.75)}
 .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:2px;color:var(--ink);transition:color .16s ease-out,background-color .16s ease-out}
 .icon-btn:hover{color:var(--deep);background:var(--band)}
 .icon-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:square}
-/* King fix 3: 3-state theme button — light (sun) / dark (moon) / system (auto circle) */
-.icon-btn .glyph-moon{display:none}
-.icon-btn .glyph-auto{display:none}
+/* King fix 3: 3-state theme button — light (sun) / dark (moon) / system (auto circle).
+   ALL glyphs hidden by default; exactly one shows per pref (v0.5.1: sun was never hidden → double icon). */
+.icon-btn .glyph-sun,.icon-btn .glyph-moon,.icon-btn .glyph-auto{display:none}
 .icon-btn.pref-light .glyph-sun{display:block}
 .icon-btn.pref-dark .glyph-moon{display:block}
 .icon-btn.pref-system .glyph-auto{display:block}
