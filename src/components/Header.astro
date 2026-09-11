@@ -45,11 +45,17 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
       <button class="icon-btn" id="search-trigger" aria-label="Search guides" aria-controls="search-layer" title="Search (/)">
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="6.3"/><path d="M15.6 15.6 20.5 20.5"/></svg>
       </button>
-      <button class="icon-btn" id="theme-toggle" aria-label="Theme: auto (follows system)" title="Light / dark / auto">
+      <button class="icon-btn" id="theme-toggle" aria-label="Theme: auto (follows system)" aria-haspopup="true" aria-expanded="false" aria-controls="theme-menu" title="Theme">
         <svg class="glyph-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.6v2.5M12 18.9v2.5M2.6 12h2.5M18.9 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M18.7 5.3l-1.8 1.8M7.1 16.9l-1.8 1.8"/></svg>
         <svg class="glyph-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.2 14.5A8.5 8.5 0 0 1 9.5 3.8a8.5 8.5 0 1 0 10.7 10.7Z"/></svg>
         <svg class="glyph-auto" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.6"/><path d="M12 3.4a8.6 8.6 0 0 1 0 17.2Z" fill="currentColor" stroke="none"/><path d="M12 1.6v2.2M12 20.2v2.2M1.6 12h2.2M20.2 12h2.2"/></svg>
       </button>
+      <!-- King v0.5: header button OPENS a 3-option menu (no more cycle) -->
+      <div class="theme-menu" id="theme-menu" role="menu" aria-label="Choose theme" hidden>
+        <button type="button" role="menuitemradio" aria-checked="false" data-pref="light"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.6v2.5M12 18.9v2.5M2.6 12h2.5M18.9 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M18.7 5.3l-1.8 1.8M7.1 16.9l-1.8 1.8"/></svg>Light</button>
+        <button type="button" role="menuitemradio" aria-checked="true" data-pref="system"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="M12 3.4a8.6 8.6 0 0 1 0 17.2Z" fill="currentColor" stroke="none"/></svg>Auto</button>
+        <button type="button" role="menuitemradio" aria-checked="false" data-pref="dark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 14.5A8.5 8.5 0 0 1 9.5 3.8a8.5 8.5 0 1 0 10.7 10.7Z"/></svg>Dark</button>
+      </div>
     </div>
   </div>
 </header>
@@ -142,6 +148,7 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
      the phone's prefers-color-scheme live. SVG glyph + segments reflect PREF, not just effect. */
   const themeBtn = document.getElementById('theme-toggle');
   const segWrap = document.getElementById('theme-seg');
+  const themeMenu = document.getElementById('theme-menu');
   const mqDark = matchMedia('(prefers-color-scheme: dark)');
   const applyTheme = () => {
     const pref = store.get('as-theme') || 'system';
@@ -159,6 +166,10 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
       btn.classList.toggle('is-active', on);
       btn.setAttribute('aria-checked', on ? 'true' : 'false');
     });
+    if (themeMenu) themeMenu.querySelectorAll('[data-pref]').forEach(mi => {
+      mi.setAttribute('aria-checked', mi.dataset.pref === pref ? 'true' : 'false');
+      mi.classList.toggle('is-active', mi.dataset.pref === pref);
+    });
   };
   applyTheme();
   mqDark.addEventListener?.('change', () => { if ((store.get('as-theme') || 'system') === 'system') applyTheme(); });
@@ -172,19 +183,18 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
     const msg = { light: 'Theme: light', dark: 'Theme: dark', system: 'Theme: auto — follows your phone' };
     say(root.getAttribute('data-theme') !== was ? msg[pref] : msg[pref] + ' (already matching your phone)');
   });
-  themeBtn.addEventListener('click', () => {
-    /* every click must produce a VISIBLE change or land on system — never an invisible hop */
-    const cur = store.get('as-theme') || 'system';
-    const eff = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-    const sys = mqDark.matches ? 'dark' : 'light';
-    let next;
-    if (cur === 'system') next = eff === 'dark' ? 'light' : 'dark';
-    else if (sys !== cur) next = 'system';
-    else next = cur === 'dark' ? 'light' : 'dark';
-    store.set('as-theme', next); applyTheme();
+  /* King v0.5: header button OPENS the 3-option menu (cycle removed — direct choice only) */
+  const openMenu = (on) => { themeMenu.hidden = !on; themeBtn.setAttribute('aria-expanded', on ? 'true' : 'false'); };
+  themeBtn.addEventListener('click', (e) => { e.stopPropagation(); openMenu(themeMenu.hidden); });
+  themeMenu.addEventListener('click', (e) => {
+    const btn = e.target instanceof Element ? e.target.closest('[data-pref]') : null;
+    if (!btn) return;
+    const pref = btn.dataset.pref;
+    store.set('as-theme', pref); applyTheme(); openMenu(false);
     const msg = { light: 'Theme: light', dark: 'Theme: dark', system: 'Theme: auto — follows your phone' };
-    say(msg[next]);
+    say(msg[pref]);
   });
+  document.addEventListener('click', (e) => { if (!themeMenu.hidden && !(e.target instanceof Element && e.target.closest('#theme-menu, #theme-toggle'))) openMenu(false); });
 
   /* rails stagger-in on scroll (IntersectionObserver, 40ms steps, translateY 8px) */
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
