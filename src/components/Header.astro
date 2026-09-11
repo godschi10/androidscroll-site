@@ -184,6 +184,11 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
   };
   applyTheme();
   mqDark.addEventListener?.('change', () => { if ((store.get('as-theme') || 'system') === 'system') applyTheme(); });
+  /* v1.1 meta hardening: a standalone PWA resumed from recents/bfcache can come back
+     with a stale head (OS theme may have flipped while frozen, 'change' never fired).
+     Re-run the same set+move path on resume — no new mechanism, just no stale state. */
+  window.addEventListener('pageshow', applyTheme);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) applyTheme(); });
   /* King fix v0.4 (2): direct selection — segment applies + persists immediately */
   if (segWrap) segWrap.addEventListener('click', e => {
     const btn = e.target instanceof Element ? e.target.closest('[data-pref]') : null;
