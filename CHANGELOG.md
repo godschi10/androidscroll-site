@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.4 — 2026-09-11 — meta facts diet
+- Mobile facts were 2 lines with an orphaned "· 0 comments" (the "too long" the King saw). Labels abbreviated on mobile ("Published"/" read" hidden), and when the Updated pill exists the published date rests (desktop + JSON-LD keep it). Facts now one line @390: pill · min · comments.
+
 ## 0.4.3 — 2026-09-11 — article meta two-line discipline
 - `.meta-bar` flex-wrap shattered into 3 ragged lines @390 (author @420, orphaned date @440, rest @486). Facts now grouped in `.meta-facts` with middot separators; mobile stacks two deliberate lines (author, facts). Desktop untouched.
 

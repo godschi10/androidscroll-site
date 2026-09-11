@@ -431,7 +431,7 @@ html[data-theme=dark] .notify .btn-deep{color:var(--mint)}
 /* v0.4.3 King: meta is TWO deliberate lines, never wrap-shrapnel — author line + middot facts line */
 .meta-facts{display:flex;flex-wrap:wrap;gap:8px 0;align-items:center}
 .meta-facts span + span::before{content:"·";margin:0 10px;color:var(--muted)}
-@media (max-width:639px){.meta-bar{flex-direction:column;align-items:flex-start;gap:8px}.meta-bar .meta-who{font-size:12px}}
+@media (max-width:639px){.meta-bar{flex-direction:column;align-items:flex-start;gap:8px}.meta-bar .meta-who{font-size:12px}.meta-facts{gap:6px 0;font-size:10px}.meta-facts span + span::before{margin:0 7px}.meta-facts .f-lbl{display:none}.meta-facts:has(.upd) .f-pub{display:none}} /* v0.4.4 King: facts diet — updated pill carries recency on mobile, published date rests on desktop+markup */
 .art-body{padding-top:26px;padding-bottom:10px}
 .stub-note{border-left:3px solid var(--deep);background:var(--band);padding:14px 18px;font-size:14px;color:var(--ink-2);line-height:1.6;margin:22px 0}
 .stub-note b{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--deep);display:block;margin-bottom:4px}
