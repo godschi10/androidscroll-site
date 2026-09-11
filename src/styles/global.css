@@ -175,6 +175,15 @@ html[data-theme=dark] .search-box{border-color:var(--line-2);border-top-color:va
 .search-clear{flex:none;width:44px;height:44px;margin-right:6px;border:1px solid var(--line-2);border-radius:2px;background:transparent;color:var(--muted);font-size:20px;line-height:1;cursor:pointer}
 .search-clear:hover{border-color:var(--deep);color:var(--deep)}
 .search-clear[hidden]{display:none}
+/* v0.6.5 fix 1: type=search gets Blink's native ::-webkit-search-cancel-button 'x' —
+   double clear icon next to our #search-clear. Suppress the UA decoration entirely. */
+.search-field input[type=search]{appearance:none;-webkit-appearance:none}
+.search-field input[type=search]::-webkit-search-cancel-button,
+.search-field input[type=search]::-webkit-search-decoration{-webkit-appearance:none;appearance:none;display:none;width:0;height:0;margin:0}
+/* v0.6.5 fix 2: 'Esc to close' is a real tappable button (keyboard hint kept on desktop) */
+.search-close{flex:none;min-height:40px;min-width:88px;display:inline-flex;align-items:center;justify-content:center;padding:6px 12px;margin:-6px -8px -6px 0;border:1px solid var(--line-2);border-radius:2px;background:transparent;color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:.03em;cursor:pointer}
+.search-close:hover{border-color:var(--deep);color:var(--deep)}
+.search-close:focus-visible{outline:2px solid var(--deep);outline-offset:1px;color:var(--deep)}
 .search-results mark{background:#bfe3cb;color:inherit;padding:0 1px;border-radius:2px}
 html[data-theme=dark] .search-results mark{background:#0d4f42;color:#fff}
 .search-results li.is-active a{background:var(--band);box-shadow:inset 3px 0 0 var(--deep)}

@@ -114,7 +114,7 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
 <div class="search-layer" id="search-layer" role="dialog" aria-modal="true" aria-label="Search" hidden>
   <div class="scrim is-open" id="search-scrim" style="position:absolute"></div>
   <div class="search-box">
-    <div class="search-meta"><span id="search-status" role="status" aria-live="polite">Search {TOTALS.posts} guides</span><span>Esc to close</span></div>
+    <div class="search-meta"><span id="search-status" role="status" aria-live="polite">Search {TOTALS.posts} guides</span><button class="search-close" id="search-close" type="button" aria-label="Close search" title="Close search">Esc to close</button></div>
     <div class="search-field">
       <label class="sr-only" for="search-input" style="position:absolute;left:-9999px">Search query</label>
       <input id="search-input" type="search" placeholder="battery, overheating, whatsapp, malware…" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list" />
@@ -122,7 +122,7 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
     </div>
     <ul class="search-results" id="search-results" role="listbox" aria-label="Search suggestions"></ul>
     <div class="search-empty no-js-hide" id="search-empty" hidden>
-      No guide matches that yet — and that's the backlog, not a dead end.<br />
+      <span id="search-empty-msg">No guide matches that yet — and that's the backlog, not a dead end.</span><br />
       <a href="/contact/">Tell us what to write →</a>
     </div>
   </div>
@@ -248,9 +248,9 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
        Use rAF + short setTimeout so the browser has flushed the overlay paint first —
        this is the actual UX fix for "open search and nothing is focused". */
     requestAnimationFrame(() => {
-      try { searchInput.focus(); } catch (e) {}
+      try { searchInput.focus({ preventScroll: true }); } catch (e) {}
       setTimeout(() => {
-        try { if (document.activeElement !== searchInput) searchInput.focus(); } catch (e) {}
+        try { if (document.activeElement !== searchInput) searchInput.focus({ preventScroll: true }); } catch (e) {}
       }, 30);
     });
   };
@@ -261,9 +261,12 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
     searchInput.setAttribute('aria-expanded', 'false');
     searchInput.removeAttribute('aria-activedescendant');
     activeIdx = -1;
-    searchTrigger.focus();
+    searchTrigger.focus({ preventScroll: true });
   };
   searchTrigger.addEventListener('click', openSearch);
+  /* v0.6.5: the 'Esc to close' hint is now a REAL button — same close path as tap-outside */
+  const searchCloseBtn = document.getElementById('search-close');
+  searchCloseBtn.addEventListener('click', closeSearch);
   /* tap the overlay background (anywhere outside the search box) to close */
   searchLayer.addEventListener('click', e => {
     if (!e.target.closest('.search-box') && !e.target.closest('#search-trigger')) closeSearch();
@@ -283,7 +286,8 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
   const escReg = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const hi = (text, terms) => {
     let out = esc(text);
-    for (const t of terms) {
+    /* longest tokens first so shorter ones can't shred a longer highlight */
+    for (const t of [...terms].sort((a, b) => b.length - a.length)) {
       if (!t) continue;
       out = out.replace(new RegExp('(' + escReg(esc(t)) + ')', 'gi'), '<mark>$1</mark>');
     }
@@ -299,19 +303,83 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
     if (activeIdx >= 0) searchInput.setAttribute('aria-activedescendant', 'search-opt-' + activeIdx);
     else searchInput.removeAttribute('aria-activedescendant');
   };
+  /* v0.6.5+ ranking engine — ported from the proven wordpress-smart-search scorer
+     (host-independent pure JS; index stays client-side — zero network per keystroke).
+     norm → token weights → first-letter-anchored fuzzy → honest totals. */
+  /* v065-SCORER-START */
+  const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+  function levLE(a, b, max) { /* bounded Levenshtein, returns dist if <=max else max+1 */
+    if (Math.abs(a.length - b.length) > max) return max + 1;
+    let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+    for (let i = 1; i <= a.length; i++) {
+      const cur = [i]; let rowMin = i;
+      for (let j = 1; j <= b.length; j++) {
+        const d = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+        cur.push(d); if (d < rowMin) rowMin = d;
+      }
+      if (rowMin > max) return max + 1;
+      prev = cur;
+    }
+    return prev[b.length];
+  }
+  /* fuzzy MUST be first-letter-anchored: without it 'battery'↔'matter' (dist 2) leaks */
+  const fuzzyHit = (tok, word) => tok[0] === word[0] && levLE(tok, word, tok.length >= 6 ? 2 : (tok.length >= 4 ? 1 : 0)) <= (tok.length >= 6 ? 2 : (tok.length >= 4 ? 1 : 0));
+  function rank(terms) {
+    const q = terms.join(' ');
+    const scored = [];
+    for (const p of INDEX) {
+      const nt = norm(p.title), ns = norm(p.url), nx = norm(p.excerpt), nc = norm(p.cat);
+      const words = nt.split(' ');
+      const all = nt + ' ' + ns + ' ' + nx + ' ' + nc;
+      let s = 0, allTitle = true, allAnywhere = true;
+      if (nt === q) s += 150; else if (nt.startsWith(q)) s += 110; else if (nt.includes(q)) s += 70;
+      for (const tok of terms) {
+        const inT = nt.includes(tok), inS = ns.includes(tok), inX = nx.includes(tok), inC = nc.includes(tok);
+        if (inT) s += 20; else allTitle = false;
+        if (inS) s += 12;
+        if (inX) s += 8;
+        if (inC) s += 6;
+        if (!(inT || inS || inX || inC)) {
+          let fz = false;
+          for (const w of words) { if (fuzzyHit(tok, w)) { fz = true; break; } }
+          if (fz) s += 15; else allAnywhere = false;
+        } else if (inT) {
+          for (const w of words) {
+            if (w === tok) { s += 34; break; }
+            if (w.startsWith(tok)) { s += 28; break; }
+            if (fuzzyHit(tok, w)) { s += 15; break; }
+          }
+        }
+      }
+      if (terms.length && allTitle) s += 40;
+      if (terms.length && allAnywhere) s += 25;
+      if (terms.length > 1 && all.includes(q)) s += 4;
+      if (s > 0) scored.push([p, s]);
+    }
+    /* stable sort keeps INDEX's date-desc order → ties = newer post first */
+    scored.sort((a, b) => b[1] - a[1]);
+    return scored.map(x => x[0]);
+  }
+  /* v065-SCORER-END */
   function render(q) {
-    const terms = q.toLowerCase().trim().split(/\s+/).filter(Boolean);
-    const matched = terms.length ? INDEX.filter(p => terms.every(t => (p.title + ' ' + p.excerpt + ' ' + p.cat).toLowerCase().includes(t))) : INDEX;
-    const hits = matched.slice(0, 8);
+    const terms = norm(q).split(' ').filter(Boolean);
+    const matched = terms.length ? rank(terms) : INDEX;
+    const fallback = terms.length && matched.length === 0;
+    /* never a dead end: no match → the 3 latest guides (index is date-desc) */
+    const list = fallback ? INDEX.slice(0, 3) : matched;
+    const hits = list.slice(0, 8);
     currentHits = hits; activeIdx = -1;
     searchInput.removeAttribute('aria-activedescendant');
     results.innerHTML = hits.map((p, i) => `<li role="option" id="search-opt-${i}" aria-selected="false"><a href="${p.url}" tabindex="-1"><h3>${hi(p.title, terms)}</h3><div class="sr-x">${hi(p.excerpt, terms)}</div><div class="sr-meta">${esc(p.meta)}</div></a></li>`).join('');
     /* honest count: total matched, plus a showing-note when the slice hides some */
     if (!terms.length) searchStatus.textContent = INDEX.length + ' guides';
+    else if (fallback) searchStatus.textContent = '0 matches — showing the 3 latest guides';
     else if (matched.length > hits.length) searchStatus.textContent = matched.length + ' matches — showing first ' + hits.length;
     else if (matched.length) searchStatus.textContent = matched.length + (matched.length === 1 ? ' match' : ' matches');
     else searchStatus.textContent = '0 matches';
-    empty.hidden = !(terms.length && matched.length === 0);
+    const emptyMsg = document.getElementById('search-empty-msg');
+    if (emptyMsg) emptyMsg.textContent = fallback ? 'No match for “' + q.trim() + '” — meanwhile, the latest from the shelves:' : '';
+    empty.hidden = !fallback;
     searchClear.hidden = !searchInput.value;
   }
   searchInput.addEventListener('input', () => render(searchInput.value));
@@ -328,7 +396,7 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
     paint();
     results.children[activeIdx]?.scrollIntoView({ block: 'nearest' });
   });
-  searchClear.addEventListener('click', () => { searchInput.value = ''; render(''); searchInput.focus(); });
+  searchClear.addEventListener('click', () => { searchInput.value = ''; render(''); searchInput.focus({ preventScroll: true }); });
 
   /* Law 8 ad toggles — one source of truth via event delegation on .ad-toggle.
      Every instance (Browse sheet here, Footer control elsewhere) reads and
