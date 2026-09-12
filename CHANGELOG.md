@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.9 — 2026-09-12 — code blocks: highlighting + scroll-anchor fix
+- Code blocks had no syntax highlighting and multiple bugs. Added: a dependency-free bash micro-tokenizer (commands teal, flags/numbers/strings/comments tinted — no Prism, no jQuery) applied to `language-bash/sh/shell/console` blocks.
+- Copy button + language chip were absolutely positioned INSIDE the x-scrolling `<pre>`, so they slid off-screen with long code — moved to a non-scrolling `.code-wrap` wrapper (verified: button stays at right=366 while code scrolls 40px).
+- Table inline `INSTALL_FAILED_*` tokens were breaking mid-word — now `white-space:nowrap` in cells (table scrolls, tokens stay whole).
+
 ## 0.4.8 — 2026-09-12 — list marker breathing room
 - Ol step-pill (26px box) sat in a 24px gutter — touching the text on every numbered step (King's shot). Gutter now 36px both list types, pill at -36: 16px clean gap (measured: pill 16→36, text at 52). Ul diamond re-synced to the shared indent; nested lists align. Zero overflow held @390.
 

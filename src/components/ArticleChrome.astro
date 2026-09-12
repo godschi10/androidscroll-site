@@ -133,7 +133,19 @@ const shareTg = `https://t.me/share/url?url=${enc(url)}&text=${enc(title)}`;
     heads.forEach(function (h) { obs.observe(h); });
   }
 
-  /* 4. code copy buttons + lang labels (per-page, no highlighter dep). */
+  /* 4. code blocks: micro-tokenizer bash highlighting (zero deps, token colors)
+   + copy button + lang chip on a NON-scrolling wrapper (v0.4.9 King: the chip and
+   button lived inside the x-scrolling pre and slid off-screen). No Prism, no jQuery. */
+  var BASH_CMDS = /^(adb|pm|wm|am|svc|cmd|content|settings|dumpsys|input|getprop|setprop|logcat|install|uninstall|push|pull|shell|devices|wait|start|reboot|emu|grep|egrep|fgrep|cat|tail|head|echo|df|du|ls|find|rm|mv|cp|mkdir|unzip|zip|tar|sha256sum|md5sum|openssl|run-as|split|monkey|bu|dmesg|sort|cut|sed|awk|wc|sleep|kill|pkill)$/;
+  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function hlBash(text) {
+    var re = /(#[^\n]*)|("[^"\n]*"|'[^'\n]*')|(-{1,2}[A-Za-z][\w-]*)|(\|\||&&|[|><;]|\$[\w{}]+)|(\d+)|([a-z][a-z0-9_.-]*)|([\s\S])/g, out = '', m;
+    while ((m = re.exec(text))) {
+      var t = m[0], cls = m[1] ? 'tk-cmt' : m[2] ? 'tk-str' : m[3] ? 'tk-flag' : m[4] ? 'tk-op' : m[5] ? 'tk-num' : (m[6] && BASH_CMDS.test(m[6])) ? 'tk-cmd' : '';
+      out += cls ? '<span class="' + cls + '">' + esc(t) + '</span>' : esc(t);
+    }
+    return out;
+  }
   document.querySelectorAll('.prose pre').forEach(function (pre) {
     if (pre.querySelector('.copy-btn')) return;
     var code = pre.querySelector('code');
@@ -141,8 +153,13 @@ const shareTg = `https://t.me/share/url?url=${enc(url)}&text=${enc(title)}`;
     if (code) {
       var m = (code.className || '').match(/language-([\w+-]+)/);
       if (m) lang = m[1];
+      if (/^(bash|sh|shell|console)$/i.test(lang) && !code.querySelector('span')) code.innerHTML = hlBash(code.textContent);
     }
-    pre.setAttribute('data-lang', lang);
+    var wrap = document.createElement('div');
+    wrap.className = 'code-wrap';
+    wrap.setAttribute('data-lang', lang);
+    pre.parentNode.insertBefore(wrap, pre);
+    wrap.appendChild(pre);
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'copy-btn';
@@ -169,7 +186,7 @@ const shareTg = `https://t.me/share/url?url=${enc(url)}&text=${enc(title)}`;
         document.body.removeChild(ta);
       }
     });
-    pre.appendChild(btn);
+    wrap.appendChild(btn);
   });
 
   /* 5. table x-scroll wrappers (JS safety net; CSS .tbl-wrap is primary). */
