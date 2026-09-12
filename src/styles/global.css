@@ -617,8 +617,8 @@ html[data-theme=dark] .prose audio{color-scheme:dark}
 .gl-overlay{position:fixed;inset:0;z-index:90;background:rgba(7,21,18,.9);display:flex;align-items:center;justify-content:center;flex-direction:column;opacity:0;transition:opacity .18s ease-out;padding-top:20px;padding-bottom:20px;padding-left:16px;padding-right:16px}
 .gl-overlay[hidden]{display:none}
 .gl-overlay.gl-open{opacity:1}
-.gl-image-wrap{max-width:min(1000px,100%);max-height:76dvh;display:flex;align-items:center;justify-content:center;min-width:0}
-.gl-image{max-width:100%;max-height:76dvh;width:auto;height:auto;border-radius:4px}
+.gl-image-wrap{width:100%;max-width:min(1000px,100%);max-height:76dvh;display:flex;align-items:center;justify-content:center;min-width:0;min-height:40px} /* v0.4.13 King: wrap is definite-width so the enlarged image can never collapse to zero (flex circular-sizing blanked it on phones) */
+.gl-image{display:block;width:100%;height:auto;max-height:76dvh;object-fit:contain;border-radius:4px}
 .gl-close{position:absolute;top:12px;right:12px;width:48px;height:48px;font-size:28px;line-height:1;color:#FFF;border:1px solid rgba(255,255,255,.4);border-radius:4px}
 .gl-close:hover{background:rgba(255,255,255,.12)}
 .gl-nav{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:64px;font-size:34px;color:#FFF;border:1px solid rgba(255,255,255,.25);border-radius:4px;background:rgba(7,21,18,.4)}

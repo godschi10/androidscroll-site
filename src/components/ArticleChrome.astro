@@ -268,7 +268,9 @@ const shareTg = `https://t.me/share/url?url=${enc(url)}&text=${enc(title)}`;
   }
   function showLb() {
     var im = lbImgs[idx];
-    lbImg.src = im.currentSrc || im.src;
+    var src = im.currentSrc || im.src || '';
+    if (!src) { var a = im.getAttribute('src'); if (a) { try { src = new URL(a, document.baseURI).href; } catch (e) { src = a; } } } /* v0.4.13 King: never hand the dialog an empty src (paints zero px, no broken icon) */
+    lbImg.src = src;
     lbImg.alt = im.alt || '';
     lbCap.textContent = captionFor(im);
     lbCount.textContent = (idx + 1) + ' / ' + lbImgs.length;

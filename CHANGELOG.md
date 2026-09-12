@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.13 — 2026-09-12 — lightbox: scope + blank-image fix
+- King's shot: dialog opened (X, arrows, `2 / 5`, caption all live) but the enlarged image painted zero pixels on his phone. Root: `.gl-image{width:auto}` inside a shrink-to-fit flex wrap — circular sizing that collapses to nothing on phone browsers. Fix: wrap is definite-width (`width:100%`, `min-height:40px`) + image is `display:block;width:100%;height:auto;object-fit:contain` — always nonzero, correct aspect. Proven: mobile 390 renders 358×201, desktop all 5 open at wrap-full width.
+- Scope (shipped same cycle): lightbox now watches `figure img, .gallery img, .art-hero img, .qa-box img` across the whole article, not just `.prose` descendants — hero + gallery + qa all zoomable. Plus a src guard: never hand the dialog an empty `src` (paints zero px with no broken icon); falls back to resolving the `src` attribute against the document base.
+
 ## 0.4.12 — 2026-09-12 — no Copy button on poems
 - King found a second Copy button and asked what it was: the decorative `.verse` stanza ("The toast says nothing...") in the kitchen-sink was caught by the copy-button loop that targeted ALL `pre` blocks. Poems are not code — verse now skips button, wrapper, and lang chip. Exactly one Copy per page region: the bash block.
 
