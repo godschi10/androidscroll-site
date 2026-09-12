@@ -80,8 +80,8 @@ const breadcrumbLD = {
       <nav class="crumb" aria-label="Breadcrumb">
         <ol>
           <li><a href="/">Home</a></li>
-          {cat && (<li><a href={cat.path}>{cat.name}</a></li>)}
-          <li aria-current="page"><span>{crumbTitle}</span></li>
+          {cat && (<li><span class="sep" aria-hidden="true">›</span><a href={cat.path}>{cat.name}</a></li>)}
+          <li aria-current="page"><span class="sep" aria-hidden="true">›</span><span class="txt">{crumbTitle}</span></li>
         </ol>
       </nav>
       <p class="art-kicker mono">{p.cat_name}</p>

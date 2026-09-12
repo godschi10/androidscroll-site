@@ -420,13 +420,18 @@ html[data-theme=dark] .notify .btn-deep{color:var(--mint)}
 /* v3.2: longhands ONLY below — shorthand with 0 sides kills .col gutters */
 .art-head{padding-top:clamp(26px,5vh,46px);padding-bottom:0}
 .crumb{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--muted);margin-bottom:16px}
-.crumb ol{list-style:none;margin:0;padding-left:0;padding-right:0;display:flex;gap:8px;flex-wrap:wrap;align-items:baseline}
-.crumb li+li::before{content:"›";margin-right:8px;color:var(--line-2)}
+.crumb ol{list-style:none;margin:0;padding-left:0;padding-right:0;display:flex;gap:8px;flex-wrap:nowrap;align-items:center} /* v0.4.14 King: trail never wraps — a dangling › on line two is the mess */
+.crumb li{min-width:0;white-space:nowrap;flex:none;display:flex;align-items:center} /* real spans below; li itself centers its content */
+.crumb li .sep{color:var(--line-2);margin-right:8px;line-height:1;flex:none} /* v0.4.14: REAL separator span — pseudo-element ::before line metrics doubled li height in phone engines (Obscura 35px vs 17px strut) */
+.crumb li .sep+.txt,.crumb li>a{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.crumb li .sep{color:var(--line-2);margin-right:8px;line-height:1;flex:none} /* v0.4.14: REAL separator span — pseudo-element ::before line metrics doubled li height in phone engines (Obscura 35px vs 17px strut) */
 .crumb a{color:var(--deep)}
 .art-h1{font-family:var(--display);font-weight:800;font-size:clamp(30px,5.6vw,58px);letter-spacing:-.035em;line-height:.92;max-width:22ch}
 .art-stand{font-family:var(--sans);font-weight:400;font-size:clamp(16px,2.2vw,19px);line-height:1.65;color:var(--ink-2);max-width:68ch;margin-top:16px}
 .meta-bar{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;margin:18px 0 0;padding-top:12px;padding-bottom:12px;border-top:1px solid var(--ink);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--muted);font-variant-numeric:tabular-nums}
 .meta-bar a{color:var(--deep);font-weight:500}
+.meta-who{display:inline-flex;align-items:center;gap:10px} /* v0.4.14 King: avatar + byline on one centered row — no more hanging author */
+.meta-bar .t-mono-av{width:32px;height:32px;font-size:13px} /* hero avatar steps down from the 40px author-box block */
 .meta-bar .upd{border:1px solid var(--deep);color:var(--deep);padding:2px 7px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:9.5px}
 /* v0.4.3 King: meta is TWO deliberate lines, never wrap-shrapnel — author line + middot facts line */
 .meta-facts{display:flex;flex-wrap:wrap;gap:8px 0;align-items:center}

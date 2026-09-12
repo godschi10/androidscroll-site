@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.14 — 2026-09-12 — article hero discipline: breadcrumbs + author row
+- King's shot: hero is beautiful but messy — breadcrumbs wrapped with a dangling `›` onto line two, and the author hung loose beside the 40px avatar.
+- Breadcrumbs: single line, never wraps; long current-page title truncates with ellipsis (Home + section always visible). Root cause of the wrap + misalignment was the `li+li::before` pseudo-element separator — its glyph line-metrics doubled li height in phone engines (35px vs 17px). Replaced with REAL `<span class="sep">›</span>` markup — no pseudo-metric quirks in any engine. Verified: 390 + 768 + 1280 all single-line, all items top-aligned (96/96/96, heights 18/18/18), arrows visible.
+- Author row: avatar + "By" + name now one centered inline-flex row (32px hero avatar, down from the 40px author-box block) — no more hanging author.
+
 ## 0.4.13 — 2026-09-12 — lightbox: scope + blank-image fix
 - King's shot: dialog opened (X, arrows, `2 / 5`, caption all live) but the enlarged image painted zero pixels on his phone. Root: `.gl-image{width:auto}` inside a shrink-to-fit flex wrap — circular sizing that collapses to nothing on phone browsers. Fix: wrap is definite-width (`width:100%`, `min-height:40px`) + image is `display:block;width:100%;height:auto;object-fit:contain` — always nonzero, correct aspect. Proven: mobile 390 renders 358×201, desktop all 5 open at wrap-full width.
 - Scope (shipped same cycle): lightbox now watches `figure img, .gallery img, .art-hero img, .qa-box img` across the whole article, not just `.prose` descendants — hero + gallery + qa all zoomable. Plus a src guard: never hand the dialog an empty `src` (paints zero px with no broken icon); falls back to resolving the `src` attribute against the document base.
