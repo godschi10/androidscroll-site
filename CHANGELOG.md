@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.24 — 2026-09-12 — self-hosted audio figure: dropped the oversized facade-card wrapper
+- King's call: the field-note audio row was buried inside a hollow `.facade-card` (min-height 200px, 28px padding, flex-centered) whose poster/scrim/play/title children don't exist for self-hosted audio — a big stretched empty box around one slim row.
+- Fix: removed the wrapper in `style-test-article.astro` — `figure.audio-fig` now contains just `.fc-audio-row` + `figcaption`. Re-scoped the row's CSS from `.facade-card .fc-audio-row` to `.audio-fig .fc-audio-row` (margin-top 14→0 — no more padded parent to clear) and gave `.audio-fig .fc-badge` the same static-badge look it had via the old `.facade-card .fc-badge`+`position:static` override. The row's own border/background/radius is now the visible card; `figure` keeps `.prose figure` spacing.
+
 ## 0.4.23 — 2026-09-12 — embed cards: no excessive space after play
 - King's shot: after clicking play, the card kept its poster min-height/padding while the live iframe (e.g. Spotify's 152px audio player) sat inside — leaving a big empty band under the player.
 - Fix: on play, `ArticleChrome` marks the card `.fc-live`; CSS sheds the poster box (`min-height:0`, padding `0`) and the iframe flows in normal layout sized to the **provider's intrinsic box** — `data-embed-height` px for audio players (Spotify 152, Apple Music 270, Audiomack 252), `data-embed-ratio` for portrait video (TikTok 9/16), CSS default 16/9 for plain video. Cards now shrink to fit the live player; no dead space below.
