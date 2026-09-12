@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.11 — 2026-09-12 — bash block mobile wrap
+- King's shot: long command lines were clipped at the right edge on mobile (half-visible `adb install app-release…`). Touch widths now wrap code (pre-wrap + break-word, measured scrollW 358/358 — nothing truncated); desktop ≥1024 keeps the terminal x-scroll. Top padding reserved so lines clear the BASH chip.
+
 ## 0.4.10 — 2026-09-12 — copy button: real button + no code overlap
 - King's shot: the Copy control was a transparent ghost AND covered the tail of every code line. Restyled solid teal fill + dark text (clear affordance) and reserved a bottom band in the code block so the button always sits below the code, never on it (verified: 14px clear).
 

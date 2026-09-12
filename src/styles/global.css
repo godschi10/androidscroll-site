@@ -530,6 +530,12 @@ html[data-theme=dark] .notify .btn-deep{color:var(--mint)}
 .code-wrap>pre{margin-bottom:0;padding-bottom:56px} /* v0.4.10 King: the absolute button was covering the tail of every code line — reserved band below code; button lives there, never on text */
 .code-wrap::after{content:attr(data-lang);position:absolute;top:8px;right:12px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);opacity:.9;pointer-events:none}
 .code-wrap:has(pre.verse)::after{content:none}
+/* v0.4.11 King: mobile code lines were truncated at the edge (half-visible commands) — touch widths WRAP the code instead of clipping; chip-clearance top pad */
+@media (max-width:1023px){
+  .prose pre{padding-right:18px;padding-top:30px}
+  .prose pre code{white-space:pre-wrap;overflow-wrap:break-word}
+  .prose pre.verse{padding-top:14px}
+}
 .prose code .tk-cmd{color:var(--teal);font-weight:600}
 .prose code .tk-str{color:#FFF}
 .prose code .tk-flag{color:var(--mint);opacity:.7}
