@@ -259,8 +259,8 @@ Read it first.</pre>
             <span class="fc-title">Audio · music embed</span>
           </div>
 
-          {/* Apple Music */}
-          <div class="facade-card" data-facade data-src="https://embed.music.apple.com/us/album/never-gonna-give-you-up/1773292758?i=1773293184" data-embed-height="270" data-title="Never Gonna Give You Up — Rick Astley (Apple Music)">
+          {/* Apple Music — v0.4.29 King: measured 176px white widget card at every width (684 desktop & 356 mobile); the old 270 left ~95px of see-through space under the player = the reported excess space */}
+          <div class="facade-card" data-facade data-src="https://embed.music.apple.com/us/album/never-gonna-give-you-up/1773292758?i=1773293184" data-embed-height="176" data-title="Never Gonna Give You Up — Rick Astley (Apple Music)">
             <img class="fc-poster" src="/img/og-applemusic.jpg" alt="" aria-hidden="true" loading="lazy" decoding="async" />
             <span class="fc-scrim" aria-hidden="true"></span>
             <span class="fc-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17.1 12.4c0-2.5 2-3.7 2.1-3.8-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.9C7.4 6.7 6 7.7 5.3 9.2c-1.5 2.5-.4 6.3 1 8.4.7 1 1.6 2.2 2.7 2.1 1.1 0 1.5-.7 2.8-.7s1.6.7 2.7.7c1.1 0 1.9-1.1 2.6-2.1.8-1.2 1.1-2.3 1.2-2.4-.1 0-2.2-.9-2.2-2.8zm-2.6-6.5c.6-.7 1-1.7.9-2.7-.9 0-2 .6-2.6 1.3-.6.6-1 1.6-.9 2.6 1 .1 2-.5 2.6-1.2z"/></svg> Apple&nbsp;Music</span>
@@ -279,8 +279,8 @@ Read it first.</pre>
             <span class="fc-title">Audio · music embed</span>
           </div>
 
-          {/* YouTube Music */}
-          <div class="facade-card" data-facade data-src="https://music.youtube.com/embed/4NRXx6U8ABQ?autoplay=1" data-embed-ratio="16/9" data-title="Blinding Lights (Official Video) — YouTube Music">
+          {/* YouTube Music — v0.4.29 King fix: music.youtube.com/embed/ is NOT a player URL (302s to a consent wall, serves the YTM SPA shell with no iframe player — the card rendered a broken grey page). Same video on the standard nocookie embed host plays everywhere. */}
+          <div class="facade-card" data-facade data-src="https://www.youtube-nocookie.com/embed/4NRXx6U8ABQ?autoplay=1" data-embed-ratio="16/9" data-title="Blinding Lights (Official Video) — YouTube Music">
             <img class="fc-poster" src="/img/og-youtubemusic.jpg" alt="" aria-hidden="true" loading="lazy" decoding="async" />
             <span class="fc-scrim" aria-hidden="true"></span>
             <span class="fc-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm-1.5-5.5 5-2.5-5-2.5z"/></svg> YouTube&nbsp;Music</span>

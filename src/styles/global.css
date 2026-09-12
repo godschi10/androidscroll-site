@@ -602,8 +602,8 @@ html[data-theme=dark] .notify .btn-deep{color:var(--mint)}
    video (TikTok 9/16, YouTube/Vimeo 16/9). The v0.4.23 blanket aspect-ratio:16/9 here stretched every
    audio player to a 16/9 ratio box — the white space the King reported. JS owns sizing; CSS only
    un-fits the poster-mode absolute layout. Higher specificity than .facade-card iframe above. */
-.facade-card.fc-live{min-height:0;padding-top:0;padding-bottom:0}
-.facade-card.fc-live iframe{position:relative;inset:auto;width:100%;height:auto;min-height:0;display:block}
+.facade-card.fc-live{min-height:0;padding-top:0;padding-bottom:0;border:0;background:transparent} /* v0.4.29 King: Spotify white tips = card border+green bg + own 6px radius double-clipping the widget's rounded corners; live cards shed the frame, the widget's own corners carry the shape */
+.facade-card.fc-live iframe{position:relative;inset:auto;width:100%;height:auto;min-height:0;display:block;border-radius:6px}
 .audio-fig .fc-audio-row{width:100%;display:flex;align-items:center;gap:12px;background-color:rgba(7,21,18,.5);background-image:url("/img/audio-note.svg");background-position:center;background-size:120px;background-repeat:no-repeat;border:1px solid var(--line-2);border-radius:6px;margin-top:0;margin-bottom:0;padding-top:10px;padding-bottom:10px;padding-left:14px;padding-right:14px;text-align:left} /* v0.4.24: re-scoped from .facade-card — the row is the card now */
 .audio-fig .fc-audio-row audio{flex:1;min-width:0;height:40px}
 .audio-fig .fc-badge{display:inline-flex;align-items:center;gap:6px;height:22px;border-radius:3px;background:rgba(7,21,18,.72);color:var(--mint);font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding-left:8px;padding-right:8px;flex:none} /* v0.4.24: same look the .facade-card .fc-badge gave with position:static */

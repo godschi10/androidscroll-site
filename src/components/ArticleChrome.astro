@@ -343,6 +343,13 @@ const shareTg = `https://t.me/share/url?url=${enc(url)}&text=${enc(title)}`;
       while (f.firstChild) f.removeChild(f.firstChild);
       f.appendChild(ifr);
       f.classList.add('fc-live');
+      /* v0.4.29 King: provider class so per-provider CSS can align corners/bg with the widget */
+      try {
+        var host = new URL(src).hostname.replace(/^www\./, '').split('.');
+        var pk = host.length > 2 ? host[host.length-2] : host[0];
+        if (/music/.test(src) && /youtube/.test(src)) pk = 'ytmusic';
+        f.classList.add('fc-live-' + pk);
+      } catch (e) {}
     });
   });
 
