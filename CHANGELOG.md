@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.8 — 2026-09-12 — list marker breathing room
+- Ol step-pill (26px box) sat in a 24px gutter — touching the text on every numbered step (King's shot). Gutter now 36px both list types, pill at -36: 16px clean gap (measured: pill 16→36, text at 52). Ul diamond re-synced to the shared indent; nested lists align. Zero overflow held @390.
+
 ## 0.4.7 — 2026-09-11 — TOC clarity
 - Mobile TOC read as a bare grey bar the user couldn't identify. Now a labeled disclosure card: "In this guide (N)" with § marker + rotating chevron, paper bg + deep left rule, distinct from body.
 - Widget TOC (`.toc-side`) hard-hidden below 1024 via CSS `display:none` — JS can no longer leak a stray aside onto mobile; desktop sticky aside keeps `display:block` at ≥1024.

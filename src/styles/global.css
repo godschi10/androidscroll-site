@@ -507,15 +507,15 @@ html[data-theme=dark] .notify .btn-deep{color:var(--mint)}
 .prose h3{font-size:18px;letter-spacing:-.01em;margin-top:26px;margin-bottom:8px}
 .prose h4,.prose h5,.prose h6{font-size:14px;letter-spacing:.02em;margin-top:20px;margin-bottom:6px}
 .prose p{margin-top:0;margin-bottom:1.2em}
-.prose ul,.prose ol{margin-top:0;margin-bottom:1.2em;padding-left:24px;padding-right:0}
-.prose ul{list-style:none;padding-left:20px}
+.prose ul,.prose ol{margin-top:0;margin-bottom:1.2em;padding-left:36px;padding-right:0}
+.prose ul{list-style:none;padding-left:36px}
 .prose ul>li{position:relative;margin-bottom:.45em}
-.prose ul>li::before{content:"◆";position:absolute;left:-20px;color:var(--deep);font-size:.8em;top:.25em}
+.prose ul>li::before{content:"◆";position:absolute;left:-22px;color:var(--deep);font-size:.8em;top:.3em}
 .prose ul ul>li::before{content:"◇"}
 .prose ul ul ul>li::before{content:"▪"}
 .prose ol{counter-reset:step;list-style:none}
 .prose ol>li{position:relative;counter-increment:step;margin-bottom:.55em}
-.prose ol>li::before{content:counter(step);position:absolute;left:-24px;top:.15em;min-width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;background:var(--deep);color:var(--on-deep);font-family:var(--mono);font-size:10.5px;font-weight:600;border-radius:999px;padding-left:4px;padding-right:4px}
+.prose ol>li::before{content:counter(step);position:absolute;left:-36px;top:.15em;min-width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;background:var(--deep);color:var(--on-deep);font-family:var(--mono);font-size:10.5px;font-weight:600;border-radius:999px;padding-left:5px;padding-right:5px} /* v0.4.8 King: the 26px pill sat in a 24px gutter — touching the text; gutter 36, pill -36 → 6px clean gap */
 .prose ol.footnotes,.prose ol.qa-steps{counter-reset:none}
 .prose ol.footnotes>li::before,.prose ol.qa-steps>li::before{content:none}
 .prose blockquote{border-left:3px solid var(--deep);background:var(--band);margin-top:0;margin-bottom:1.2em;margin-left:0;margin-right:0;border-radius:0 4px 4px 0;padding-top:12px;padding-bottom:12px;padding-left:16px;padding-right:16px;font-style:italic}
