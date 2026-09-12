@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.21 — 2026-09-12 — embed posters: REAL platform OG art, self-hosted
+- King's call: prefer each platform's **real cover/OG art** over hand-made SVGs; brand-color blanks only where no art exists. Fetched and self-hosted (no hotlinking) into `public/img/` as `og-*.jpg`: **YouTube** (aqz-KE-bpKQ maxresdefault 1280×720), **YouTube Music** (4NRXx6U8ABQ maxresdefault), **Spotify** (Blinding Lights album cover via scdn 300×300), **Apple Music** (Never Gonna Give You Up artwork via iTunes lookup API, 600×600 upscaled URL), **Audiomack** (Got It On Me og:image from the song page, 1200×1200 webp → jpg). **Real art: 5 of 7.**
+- Brand-color blanks (no usable art source): **Vimeo** — oEmbed for 76979871 returns 404 (video has no public embed art), plain `#1AB7EA` 1200×675; **TikTok** — no oEmbed artwork available, black 1200×1200 with white music-note glyphs.
+- `style-test-article.astro` fc-poster srcs repointed to the 7 jpgs (Vimeo/Audiomack/YouTube-Music swapped off leftover `kb-*` placeholders too). The 7 hand-made `og-*.svg` are retired — not committed, deleted from the tree (they were never in git).
+
 ## 0.4.18 — 2026-09-12 — embed cards: right-edge bleed fix
 - King's shot: YouTube/Vimeo cards bled to the right screen edge (cut-off corners) while TikTok stayed fine. Root cause, proven in-DOM: `aspect-ratio:16/9` + `min-height:200px` makes the engine compute card width as 200×16/9 = **356px** regardless of container — fits at 390 (358) but overflows 360/320 viewports. Worse: phone engines **ignore `max-width` against ratio-transferred width** (even an inline `288px` didn't clamp it). Fix: dropped `aspect-ratio` from the cards (min-height + vertical padding carry the frame; poster is `cover` so nothing distorts) — width is always the container now. Verified: 320 → all cards 16-304, 360 → 16-344, docW clean at every width; vision-confirmed equal gutters + rounded corners both sides. Standing law: never pair `aspect-ratio` with `min-height` on full-bleed-width elements — and never trust `max-width` to save it.
 
