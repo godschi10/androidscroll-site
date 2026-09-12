@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.10 — 2026-09-12 — copy button: real button + no code overlap
+- King's shot: the Copy control was a transparent ghost AND covered the tail of every code line. Restyled solid teal fill + dark text (clear affordance) and reserved a bottom band in the code block so the button always sits below the code, never on it (verified: 14px clear).
+
 ## 0.4.9 — 2026-09-12 — code blocks: highlighting + scroll-anchor fix
 - Code blocks had no syntax highlighting and multiple bugs. Added: a dependency-free bash micro-tokenizer (commands teal, flags/numbers/strings/comments tinted — no Prism, no jQuery) applied to `language-bash/sh/shell/console` blocks.
 - Copy button + language chip were absolutely positioned INSIDE the x-scrolling `<pre>`, so they slid off-screen with long code — moved to a non-scrolling `.code-wrap` wrapper (verified: button stays at right=366 while code scrolls 40px).
