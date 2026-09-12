@@ -202,10 +202,12 @@ const shareTg = `https://t.me/share/url?url=${enc(url)}&text=${enc(title)}`;
   });
 
   /* 6. lightbox — vanilla port of the themes' gl-overlay pattern:
-        dialog + focus trap + counter + caption + swipe (>40px). */
-  var lbImgs = prose ? Array.prototype.slice.call(prose.querySelectorAll('img')).filter(function (im) {
+        dialog + focus trap + counter + caption + swipe (>40px).
+        Scope: EVERY article image the reader can zoom — hero + every figureimg,
+        not only .prose descendants (gallery + hero live outside prose). */
+  var lbImgs = Array.prototype.slice.call(document.querySelectorAll('figure img, .gallery img, .art-hero img, .qa-box img')).filter(function (im) {
     return !im.closest('.no-zoom') && !im.closest('a');
-  }) : [];
+  });
   lbImgs.forEach(function (im) {
     im.style.cursor = 'zoom-in';
     im.setAttribute('tabindex', '0');
