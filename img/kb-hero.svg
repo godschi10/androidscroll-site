@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Logcat install failure placeholder art">
+<rect width="1200" height="675" fill="#0A332C"/>
+<rect y="0" width="1200" height="6" fill="#00A88F"/>
+<g font-family="monospace" font-size="30" fill="#D9F2E8">
+<text x="60" y="140">$ adb install app-release.apk</text>
+<text x="60" y="220" fill="#5EEAD4">Failure [INSTALL_FAILED_UPDATE_INCOMPATIBLE:</text>
+<text x="60" y="265" fill="#5EEAD4">Package com.example.app signatures do not match]</text>
+<text x="60" y="360" fill="#8FA9A2">$ adb uninstall -k com.example.app</text>
+<text x="60" y="410" fill="#ffffff">Success — data kept. Reinstall clean.</text>
+</g>
+<rect x="60" y="480" width="16" height="28" fill="#00A88F"/>
+<g font-family="monospace" font-size="22" fill="#8FA9A2">
+<text x="60" y="580">ANDROIDSCROLL · FIELD NOTE · STYLE-TEST PLACEHOLDER</text>
+</g>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" role="img" aria-label="Successful install placeholder">
+<rect width="800" height="450" fill="#0A332C"/>
+<g font-family="monospace" font-size="26" fill="#D9F2E8" text-anchor="middle">
+<text x="400" y="200">App installed.</text>
+<text x="400" y="245" fill="#5EEAD4">Done. Green install.</text>
+</g>
+<circle cx="400" cy="130" r="34" fill="none" stroke="#00C896" stroke-width="6"/>
+<path d="M385 130 l11 11 l22 -24" fill="none" stroke="#00C896" stroke-width="6"/>
+</svg>
