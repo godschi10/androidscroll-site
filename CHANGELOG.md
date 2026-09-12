@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.15 — 2026-09-12 — ol number pills: optical centering
+- King's shot: numbered-list pills floated ABOVE the text line. Root cause chain: (1) `top:.15em` anchored the pill to the li box top, not the text band; (2) my first fix used the `1lh` unit, which phone-class engines drop as invalid — the pill never moved (two identical pixel measurements exposed it). Final: `top:calc(.875em - 5px)` — em-based, engine-safe, pixel-measured at 390 to land the pill center within 1.5px of the first line's glyph band center; vision-confirmed "centered on the first line." Lesson recorded: never use `1lh` in this codebase.
+
 ## 0.4.14 — 2026-09-12 — article hero discipline: breadcrumbs + author row
 - King's shot: hero is beautiful but messy — breadcrumbs wrapped with a dangling `›` onto line two, and the author hung loose beside the 40px avatar.
 - Breadcrumbs: single line, never wraps; long current-page title truncates with ellipsis (Home + section always visible). Root cause of the wrap + misalignment was the `li+li::before` pseudo-element separator — its glyph line-metrics doubled li height in phone engines (35px vs 17px). Replaced with REAL `<span class="sep">›</span>` markup — no pseudo-metric quirks in any engine. Verified: 390 + 768 + 1280 all single-line, all items top-aligned (96/96/96, heights 18/18/18), arrows visible.

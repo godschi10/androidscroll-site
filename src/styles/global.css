@@ -520,7 +520,7 @@ html[data-theme=dark] .notify .btn-deep{color:var(--mint)}
 .prose ul ul ul>li::before{content:"▪"}
 .prose ol{counter-reset:step;list-style:none}
 .prose ol>li{position:relative;counter-increment:step;margin-bottom:.55em}
-.prose ol>li::before{content:counter(step);position:absolute;left:-36px;top:.15em;min-width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;background:var(--deep);color:var(--on-deep);font-family:var(--mono);font-size:10.5px;font-weight:600;border-radius:999px;padding-left:5px;padding-right:5px} /* v0.4.8 King: the 26px pill sat in a 24px gutter — touching the text; gutter 36, pill -36 → 6px clean gap */
+.prose ol>li::before{content:counter(step);position:absolute;left:-36px;top:calc(.875em - 5px);min-width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;background:var(--deep);color:var(--on-deep);font-family:var(--mono);font-size:10.5px;font-weight:600;border-radius:999px;padding-left:5px;padding-right:5px} /* v0.4.15 King: pill floated ABOVE the text. Pixel-measured at 390: em-centering landed 2.25-3px high (glyph band sits below line-box center); final nudge −7.5→−5px puts pill center ON the text band's optical center. 1lh unit dropped as invalid in phone engines — never use it here */
 .prose ol.footnotes,.prose ol.qa-steps{counter-reset:none}
 .prose ol.footnotes>li::before,.prose ol.qa-steps>li::before{content:none}
 .prose blockquote{border-left:3px solid var(--deep);background:var(--band);margin-top:0;margin-bottom:1.2em;margin-left:0;margin-right:0;border-radius:0 4px 4px 0;padding-top:12px;padding-bottom:12px;padding-left:16px;padding-right:16px;font-style:italic}
