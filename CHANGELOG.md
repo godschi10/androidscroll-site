@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.7 — 2026-09-11 — TOC clarity
+- Mobile TOC read as a bare grey bar the user couldn't identify. Now a labeled disclosure card: "In this guide (N)" with § marker + rotating chevron, paper bg + deep left rule, distinct from body.
+- Widget TOC (`.toc-side`) hard-hidden below 1024 via CSS `display:none` — JS can no longer leak a stray aside onto mobile; desktop sticky aside keeps `display:block` at ≥1024.
+
 ## 0.4.6 — 2026-09-11 — real hero art, placeholder band killed
 - The hero placeholder band (bordered box + accent bar + centered caps) read as a dead CTA to the King and two vision passes — frame tweaks couldn't save it. Deleted: all 13 articles now carry real field-manual SVG hero illustrations mapped per topic (storage/unknown-sources/toast/success/terminal), eager + captioned. Device shots replace them with the body port.
 

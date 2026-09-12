@@ -471,7 +471,7 @@ html[data-theme=dark] .notify .btn-deep{color:var(--mint)}
 .art-hero-soon{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--muted);opacity:.75}
 .art-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:0;min-width:0}
 .art-main{min-width:0}
-@media (min-width:1024px){.art-layout{grid-template-columns:minmax(0,1fr) 250px;column-gap:44px;align-items:start}.toc-side{position:sticky;top:72px;max-height:calc(100dvh - 96px);overflow:auto}}
+@media (min-width:1024px){.art-layout{grid-template-columns:minmax(0,1fr) 250px;column-gap:44px;align-items:start}.toc-side{position:sticky;top:72px;max-height:calc(100dvh - 96px);overflow:auto;display:block}}
 /* quick-answer box: verdict first, King's voice, above the mobile TOC */
 .qa-box{border:1px solid var(--line-2);border-left:4px solid var(--verdict);background:var(--paper);border-radius:4px;margin-top:24px;padding-top:16px;padding-bottom:16px;padding-left:18px;padding-right:18px}
 .qa-kicker{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--deep);font-weight:600;margin-top:0;margin-bottom:6px}
@@ -482,10 +482,16 @@ html[data-theme=dark] .notify .btn-deep{color:var(--mint)}
 .qa-meta{font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--muted);margin-top:0;margin-bottom:10px}
 .qa-jump{display:inline-flex;align-items:center;min-height:44px;font-weight:800;font-size:14.5px;color:var(--deep)}
 /* dual TOC: native details on mobile, sticky aside on desktop, >2-H2 gate in JS */
-.toc-mobile{border:1px solid var(--line-2);background:var(--band);border-radius:4px;margin-top:18px;padding-top:10px;padding-bottom:10px;padding-left:14px;padding-right:14px}
-.toc-mobile summary{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink);cursor:pointer;min-height:44px;display:flex;align-items:center}
+.toc-mobile{border:1px solid var(--line-2);border-left:3px solid var(--deep);background:var(--paper);border-radius:4px;margin-top:18px;padding:0}
+.toc-mobile summary{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--ink);cursor:pointer;min-height:48px;display:flex;align-items:center;gap:10px;padding:0 16px;list-style:none}
+.toc-mobile summary::-webkit-details-marker{display:none}
+.toc-mobile summary::before{content:"§";color:var(--deep);font-weight:600}
+.toc-mobile summary::after{content:"▾";margin-left:auto;color:var(--muted);transition:transform .18s ease}
+.toc-mobile[open] summary::after{transform:rotate(180deg)}
+.toc-mobile summary .toc-count{font-size:10px;letter-spacing:.06em;color:var(--muted);font-weight:400;margin-left:2px}
+.toc-mobile nav{padding:2px 16px 14px}
 .toc-mobile[hidden],.toc-side[hidden]{display:none}
-.toc-side{font-size:13.5px;min-width:0}
+.toc-side{font-size:13.5px;min-width:0;display:none} /* v0.4.7 King: widget TOC is a DESKTOP-only thing — hard-hidden below 1024, JS can't leak it onto mobile */
 .toc-side .toc-k{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--deep);font-weight:600;margin-top:24px;margin-bottom:8px}
 .toc-list{list-style:none;margin:0;padding-left:0;padding-right:0}
 .toc-list li{margin-top:2px}
