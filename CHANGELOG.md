@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.18 — 2026-09-12 — embed cards: right-edge bleed fix
+- King's shot: YouTube/Vimeo cards bled to the right screen edge (cut-off corners) while TikTok stayed fine. Root cause, proven in-DOM: `aspect-ratio:16/9` + `min-height:200px` makes the engine compute card width as 200×16/9 = **356px** regardless of container — fits at 390 (358) but overflows 360/320 viewports. Worse: phone engines **ignore `max-width` against ratio-transferred width** (even an inline `288px` didn't clamp it). Fix: dropped `aspect-ratio` from the cards (min-height + vertical padding carry the frame; poster is `cover` so nothing distorts) — width is always the container now. Verified: 320 → all cards 16-304, 360 → 16-344, docW clean at every width; vision-confirmed equal gutters + rounded corners both sides. Standing law: never pair `aspect-ratio` with `min-height` on full-bleed-width elements — and never trust `max-width` to save it.
+
 ## 0.4.17 — 2026-09-12 — media embeds: styled facade cards for 6 providers
 - King's shot: video placeholder + audio player read as "not styled or working" — a bare `▶` text line in an empty dark box, and a stock native audio widget.
 - Replaced with a full embed system, privacy-first (zero third-party JS until play): styled facade cards — poster art, scrim, provider badge with brand icon, round teal play button (64px, hover scale), title + caption. Click swaps the provider iframe into the card shell. Providers wired: **YouTube** (nocookie), **Vimeo**, **TikTok** (portrait 9/16 card), **Spotify**, **Apple Music**. All embed endpoints verified 200 live before wiring.

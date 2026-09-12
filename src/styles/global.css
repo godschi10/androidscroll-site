@@ -577,14 +577,14 @@ html[data-theme=dark] .notify .btn-deep{color:var(--mint)}
 .prose .cover{position:relative;overflow:hidden;border-radius:4px;background-size:cover;background-position:center;min-height:260px;display:flex;align-items:center;justify-content:center;text-align:center;margin-top:0;margin-bottom:1.2em;padding-top:32px;padding-bottom:32px;padding-left:24px;padding-right:24px}
 .prose .cover p{position:relative;z-index:1;color:#FFF;font-family:var(--display);font-weight:800;font-size:clamp(19px,3vw,26px);letter-spacing:-.02em;margin:0;max-width:30ch}
 .prose .cover .cover-dim{position:absolute;inset:0;background:rgba(7,21,18,.55)}
-.prose .facade{position:relative;aspect-ratio:16/9;background:var(--verdict);border-radius:4px;overflow:hidden;margin-top:0;margin-bottom:1.2em;display:flex;align-items:center;justify-content:center}
+.prose .facade{position:relative;aspect-ratio:16/9;max-width:100%;background:var(--verdict);border-radius:4px;overflow:hidden;margin-top:0;margin-bottom:1.2em;display:flex;align-items:center;justify-content:center}
 .prose .facade button{display:inline-flex;align-items:center;gap:10px;min-height:48px;color:#FFF;font-weight:700;font-size:15px;border:1px solid var(--teal);border-radius:4px;padding-top:12px;padding-bottom:12px;padding-left:20px;padding-right:20px;background:rgba(7,21,18,.5)}
 .prose .facade button:hover{background:var(--teal);color:var(--verdict)}
 .prose .facade iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .prose .facade-note{font-family:var(--mono);font-size:11px;color:var(--mint);opacity:.85;margin-top:8px}
 /* v0.4.17 King: media embeds — styled facade cards (poster art + provider badge + real play button) */
-.facade-card{position:relative;aspect-ratio:16/9;min-height:200px;background:var(--verdict);border-radius:6px;overflow:hidden;margin-top:0;margin-bottom:1.2em;border:1px solid var(--line-2);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center} /* column discipline + min-height fallback where aspect-ratio drops */
-.facade-card.square{aspect-ratio:9/16;min-height:400px;max-width:320px;margin-left:auto;margin-right:auto}
+.facade-card{position:relative;min-height:200px;background:var(--verdict);border-radius:6px;overflow:hidden;margin-top:0;margin-bottom:1.2em;border:1px solid var(--line-2);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-top:28px;padding-bottom:28px} /* v0.4.18 King right-bleed: aspect-ratio+min-height FORCES width 356px and phone engines IGNORE max-width against it (proven: inline 288px also ignored). Ratio dropped — min-height carries the frame, poster is cover so nothing distorts; width always = container */
+.facade-card.square{min-height:400px;max-width:min(320px,100%);margin-left:auto;margin-right:auto}
 .facade-card .fc-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55;filter:saturate(.9)}
 .facade-card .fc-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,21,18,.1) 0%,rgba(7,21,18,.72) 100%)}
 .facade-card .fc-playwrap{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;flex:none;margin-bottom:6px} /* v0.4.17: button owns its row — never clipped by card edges */
