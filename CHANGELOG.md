@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.17 — 2026-09-12 — media embeds: styled facade cards for 6 providers
+- King's shot: video placeholder + audio player read as "not styled or working" — a bare `▶` text line in an empty dark box, and a stock native audio widget.
+- Replaced with a full embed system, privacy-first (zero third-party JS until play): styled facade cards — poster art, scrim, provider badge with brand icon, round teal play button (64px, hover scale), title + caption. Click swaps the provider iframe into the card shell. Providers wired: **YouTube** (nocookie), **Vimeo**, **TikTok** (portrait 9/16 card), **Spotify**, **Apple Music**. All embed endpoints verified 200 live before wiring.
+- Self-hosted audio: styled field-note row (badge + native control, brand-tinted) instead of a floating bare widget.
+- Card discipline: min-height fallback where aspect-ratio drops (200px 16/9, 400px 9/16); play button owns its flex row so it never clips. Verified at 390: all 6 badges render, 5 cards, swap works (iframe replaces innards, shell keeps frame), card 1 vision-passed complete circle + badge + no clipping.
+
 ## 0.4.16 — 2026-09-12 — ol pill-to-text breathing room
 - King's shot: pills sat too close to the text. Measured: 6px gap (pill right edge nearly touching the first character). Gutter widened 36→44px with the pill offset tracking it — now 14px breathing room, matching the bullet-list rhythm. Proven at 390: pill right 46 → text left 60 = 14px clean; vision-confirmed "comfortable breathing room, not cramped, not touching." Vertical centering from v0.4.15 preserved.
 

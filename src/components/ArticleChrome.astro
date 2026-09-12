@@ -305,7 +305,9 @@ const shareTg = `https://t.me/share/url?url=${enc(url)}&text=${enc(title)}`;
     });
   });
 
-  /* 7. embed facades: click swaps the nocookie/dnt iframe in (zero 3rd-party until play). */
+  /* 7. embed facades: click swaps the provider iframe in (zero 3rd-party until play).
+        v0.4.17: card facades (poster+badge+play) for YouTube/Vimeo/TikTok/Spotify/AppleMusic —
+        same swap-in, but the iframe REPLACES the card innards and the card keeps its frame. */
   document.querySelectorAll('[data-facade]').forEach(function (f) {
     var btn = f.querySelector('button');
     if (!btn) return;
@@ -319,12 +321,14 @@ const shareTg = `https://t.me/share/url?url=${enc(url)}&text=${enc(title)}`;
       }
       var ifr = document.createElement('iframe');
       ifr.src = src;
-      ifr.title = f.getAttribute('data-title') || 'Embedded video';
-      ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+      ifr.title = f.getAttribute('data-title') || 'Embedded media';
+      ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
       ifr.allowFullscreen = true;
       ifr.loading = 'lazy';
-      f.innerHTML = '';
+      /* wipe card innards, keep the card shell (its aspect-ratio/border carry the frame) */
+      while (f.firstChild) f.removeChild(f.firstChild);
       f.appendChild(ifr);
+      f.classList.add('fc-live');
     });
   });
 

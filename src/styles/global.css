@@ -582,6 +582,22 @@ html[data-theme=dark] .notify .btn-deep{color:var(--mint)}
 .prose .facade button:hover{background:var(--teal);color:var(--verdict)}
 .prose .facade iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .prose .facade-note{font-family:var(--mono);font-size:11px;color:var(--mint);opacity:.85;margin-top:8px}
+/* v0.4.17 King: media embeds — styled facade cards (poster art + provider badge + real play button) */
+.facade-card{position:relative;aspect-ratio:16/9;min-height:200px;background:var(--verdict);border-radius:6px;overflow:hidden;margin-top:0;margin-bottom:1.2em;border:1px solid var(--line-2);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center} /* column discipline + min-height fallback where aspect-ratio drops */
+.facade-card.square{aspect-ratio:9/16;min-height:400px;max-width:320px;margin-left:auto;margin-right:auto}
+.facade-card .fc-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55;filter:saturate(.9)}
+.facade-card .fc-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,21,18,.1) 0%,rgba(7,21,18,.72) 100%)}
+.facade-card .fc-playwrap{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;flex:none;margin-bottom:6px} /* v0.4.17: button owns its row — never clipped by card edges */
+.facade-card .fc-play{width:64px;height:64px;border-radius:999px;background:var(--teal);color:var(--verdict);border:0;display:inline-flex;align-items:center;justify-content:center;font-size:24px;line-height:1;box-shadow:0 2px 14px rgba(0,0,0,.4);cursor:pointer;transition:transform .15s ease,background .15s ease}
+.facade-card .fc-play:hover{transform:scale(1.08);background:#fff}
+.facade-card .fc-play:focus-visible{outline:3px solid var(--teal);outline-offset:3px}
+.facade-card .fc-label{position:relative;z-index:2;display:block;width:100%;color:#FFF;font-family:var(--sans);font-weight:700;font-size:14px;letter-spacing:.01em;padding-top:14px;padding-bottom:10px;padding-left:24px;padding-right:24px}
+.facade-card .fc-title{position:relative;z-index:2;display:block;color:var(--mint);font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding-bottom:22px;padding-left:24px;padding-right:24px}
+.facade-card .fc-badge{position:absolute;top:10px;left:10px;z-index:3;display:inline-flex;align-items:center;gap:6px;height:22px;border-radius:3px;background:rgba(7,21,18,.72);color:var(--mint);font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding-left:8px;padding-right:8px}
+.facade-card .fc-badge svg{width:14px;height:14px;fill:var(--mint)}
+.facade-card iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.facade-card .fc-audio-row{width:100%;display:flex;align-items:center;gap:12px;background:rgba(7,21,18,.5);border:1px solid var(--line-2);border-radius:6px;margin-top:14px;margin-bottom:0;padding-top:10px;padding-bottom:10px;padding-left:14px;padding-right:14px;text-align:left}
+.facade-card .fc-audio-row audio{flex:1;min-width:0;height:40px}
 .prose audio,.prose video{width:100%;border-radius:4px;display:block}
 .prose video{background:#000}
 .prose audio{color-scheme:light}
