@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.23 — 2026-09-12 — embed cards: no excessive space after play
+- King's shot: after clicking play, the card kept its poster min-height/padding while the live iframe (e.g. Spotify's 152px audio player) sat inside — leaving a big empty band under the player.
+- Fix: on play, `ArticleChrome` marks the card `.fc-live`; CSS sheds the poster box (`min-height:0`, padding `0`) and the iframe flows in normal layout sized to the **provider's intrinsic box** — `data-embed-height` px for audio players (Spotify 152, Apple Music 270, Audiomack 252), `data-embed-ratio` for portrait video (TikTok 9/16), CSS default 16/9 for plain video. Cards now shrink to fit the live player; no dead space below.
+
 ## 0.4.21 — 2026-09-12 — embed posters: REAL platform OG art, self-hosted
 - King's call: prefer each platform's **real cover/OG art** over hand-made SVGs; brand-color blanks only where no art exists. Fetched and self-hosted (no hotlinking) into `public/img/` as `og-*.jpg`: **YouTube** (aqz-KE-bpKQ maxresdefault 1280×720), **YouTube Music** (4NRXx6U8ABQ maxresdefault), **Spotify** (Blinding Lights album cover via scdn 300×300), **Apple Music** (Never Gonna Give You Up artwork via iTunes lookup API, 600×600 upscaled URL), **Audiomack** (Got It On Me og:image from the song page, 1200×1200 webp → jpg). **Real art: 5 of 7.**
 - Brand-color blanks (no usable art source): **Vimeo** — oEmbed for 76979871 returns 404 (video has no public embed art), plain `#1AB7EA` 1200×675; **TikTok** — no oEmbed artwork available, black 1200×1200 with white music-note glyphs.

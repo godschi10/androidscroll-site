@@ -325,6 +325,13 @@ const shareTg = `https://t.me/share/url?url=${enc(url)}&text=${enc(title)}`;
       ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
       ifr.allowFullscreen = true;
       ifr.loading = 'lazy';
+      /* v0.4.23 King: fix excessive space after play — provider intrinsic box wins:
+         data-embed-height = fixed px (audio players: Spotify 152, Apple 270, Audiomack 252),
+         data-embed-ratio = aspect (TikTok 9/16); plain video default 16/9 lives in CSS (.fc-live iframe). */
+      var eh = f.getAttribute('data-embed-height');
+      var er = f.getAttribute('data-embed-ratio');
+      if (eh) ifr.style.height = eh + 'px';
+      else if (er) ifr.style.aspectRatio = er;
       /* wipe card innards, keep the card shell (its aspect-ratio/border carry the frame) */
       while (f.firstChild) f.removeChild(f.firstChild);
       f.appendChild(ifr);
