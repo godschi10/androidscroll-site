@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.12 — 2026-09-12 — no Copy button on poems
+- King found a second Copy button and asked what it was: the decorative `.verse` stanza ("The toast says nothing...") in the kitchen-sink was caught by the copy-button loop that targeted ALL `pre` blocks. Poems are not code — verse now skips button, wrapper, and lang chip. Exactly one Copy per page region: the bash block.
+
 ## 0.4.11 — 2026-09-12 — bash block mobile wrap
 - King's shot: long command lines were clipped at the right edge on mobile (half-visible `adb install app-release…`). Touch widths now wrap code (pre-wrap + break-word, measured scrollW 358/358 — nothing truncated); desktop ≥1024 keeps the terminal x-scroll. Top padding reserved so lines clear the BASH chip.
 

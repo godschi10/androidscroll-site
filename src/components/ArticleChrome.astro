@@ -147,7 +147,7 @@ const shareTg = `https://t.me/share/url?url=${enc(url)}&text=${enc(title)}`;
     return out;
   }
   document.querySelectorAll('.prose pre').forEach(function (pre) {
-    if (pre.querySelector('.copy-btn')) return;
+    if (pre.classList.contains('verse')) return; /* v0.4.12 King: poems are not code — no copy button, no wrapper, no chip */
     var code = pre.querySelector('code');
     var lang = 'code';
     if (code) {
