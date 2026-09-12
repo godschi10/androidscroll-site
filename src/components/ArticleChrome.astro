@@ -325,13 +325,20 @@ const shareTg = `https://t.me/share/url?url=${enc(url)}&text=${enc(title)}`;
       ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
       ifr.allowFullscreen = true;
       ifr.loading = 'lazy';
-      /* v0.4.23 King: fix excessive space after play — provider intrinsic box wins:
-         data-embed-height = fixed px (audio players: Spotify 152, Apple 270, Audiomack 252),
-         data-embed-ratio = aspect (TikTok 9/16); plain video default 16/9 lives in CSS (.fc-live iframe). */
+      /* v0.4.27 King: v0.4.23 fix broke because .fc-live iframe CSS applied aspect-ratio:16/9
+         to ALL live iframes — audio players (Spotify 152, Apple 270, Audiomack 252) need the px
+         height, not a ratio box. Now the JS sets the exact sizing per card: data-embed-height =
+         px height + aspect-ratio:auto for audio players, data-embed-ratio (fallback 16/9) for
+         video. The blanket CSS ratio is gone. */
       var eh = f.getAttribute('data-embed-height');
       var er = f.getAttribute('data-embed-ratio');
-      if (eh) ifr.style.height = eh + 'px';
-      else if (er) ifr.style.aspectRatio = er;
+      if (eh) {
+        ifr.style.height = eh + 'px';
+        ifr.style.aspectRatio = 'auto'; /* explicit: no engine may re-apply a ratio to audio */
+      } else {
+        ifr.style.height = 'auto';
+        ifr.style.aspectRatio = er || '16/9'; /* TikTok 9/16, YouTube/Vimeo/YT-Music 16/9 */
+      }
       /* wipe card innards, keep the card shell (its aspect-ratio/border carry the frame) */
       while (f.firstChild) f.removeChild(f.firstChild);
       f.appendChild(ifr);

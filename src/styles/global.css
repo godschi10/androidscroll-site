@@ -596,9 +596,14 @@ html[data-theme=dark] .notify .btn-deep{color:var(--mint)}
 .facade-card .fc-badge{position:absolute;top:10px;left:10px;z-index:3;display:inline-flex;align-items:center;gap:6px;height:22px;border-radius:3px;background:rgba(7,21,18,.72);color:var(--mint);font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding-left:8px;padding-right:8px}
 .facade-card .fc-badge svg{width:14px;height:14px;fill:var(--mint)}
 .facade-card iframe{position:absolute;inset:0;width:100%;height:100%;border:0} /* v0.4.23: fc-live below overrides once the player goes live */
-/* v0.4.23 King: no empty space after play — once live, the card sheds its poster-min-height and the iframe sizes to the provider's intrinsic box (aspect-ratio for video, px height for audio; set by ArticleChrome from data-embed-* / hostname). Higher specificity than .facade-card iframe above. */
+/* v0.4.27 King: no empty space after play — once live, the card sheds its poster-min-height and the
+   iframe sizes to the provider's intrinsic box set by ArticleChrome JS: data-embed-height px +
+   aspect-ratio:auto for audio players (Spotify 152, Apple 270, Audiomack 252), data-embed-ratio for
+   video (TikTok 9/16, YouTube/Vimeo 16/9). The v0.4.23 blanket aspect-ratio:16/9 here stretched every
+   audio player to a 16/9 ratio box — the white space the King reported. JS owns sizing; CSS only
+   un-fits the poster-mode absolute layout. Higher specificity than .facade-card iframe above. */
 .facade-card.fc-live{min-height:0;padding-top:0;padding-bottom:0}
-.facade-card.fc-live iframe{position:relative;inset:auto;width:100%;height:auto;min-height:0;display:block;aspect-ratio:16/9}
+.facade-card.fc-live iframe{position:relative;inset:auto;width:100%;height:auto;min-height:0;display:block}
 .audio-fig .fc-audio-row{width:100%;display:flex;align-items:center;gap:12px;background-color:rgba(7,21,18,.5);background-image:url("/img/audio-note.svg");background-position:center;background-size:120px;background-repeat:no-repeat;border:1px solid var(--line-2);border-radius:6px;margin-top:0;margin-bottom:0;padding-top:10px;padding-bottom:10px;padding-left:14px;padding-right:14px;text-align:left} /* v0.4.24: re-scoped from .facade-card — the row is the card now */
 .audio-fig .fc-audio-row audio{flex:1;min-width:0;height:40px}
 .audio-fig .fc-badge{display:inline-flex;align-items:center;gap:6px;height:22px;border-radius:3px;background:rgba(7,21,18,.72);color:var(--mint);font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding-left:8px;padding-right:8px;flex:none} /* v0.4.24: same look the .facade-card .fc-badge gave with position:static */

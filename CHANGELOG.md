@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.28 — 2026-09-12 — embed cards: added X (Twitter) embed
+- 8th provider on the style-test article: X (Twitter) facade card after YouTube Music. Embed URL `https://platform.twitter.com/embed/Tweet.html?id=20` — jack's "just setting up my twttr", the most famous public tweet; oEmbed (publish.x.com) confirms it's live; the embed endpoint returns 200 (curl, mobile UA) and is the exact frame `widgets.js` uses, so zero third-party JS until play is preserved.
+- `data-embed-ratio="16/9"` per brief (landscape card shell; the tweet frame itself centers inside).
+- `public/img/og-x.jpg`: 1200×675 poster, X brand blue `#1DA1F2` with the official white X glyph (real 24×24 logo path), rendered via `scripts/gen-x-poster.py` (SVG→cairosvg→PIL, ink-bbox auto-centering recipe from v0.4.25).
+- Badge carries the official X logo SVG; label/title follow the card discipline (`just setting up my twttr — @jack` / `Post · X embed`).
+- Also carries the uncommitted v0.4.27 working-tree change: explicit `data-embed-ratio="16/9"` on the YouTube/Vimeo/YouTube-Music cards so all three video cards declare their ratio the way TikTok declares 9/16.
+
 ## 0.4.26 — 2026-09-12 — audio player: centered music-note background illustration
 - King's ask: the self-hosted audio row (`field note` player) should carry a subtle music-note illustration centered behind the player, like an engraved watermark on the card.
 - `public/img/audio-note.svg`: beamed eighth notes over five faint staff lines, mint `#D9F2E8` at 0.18 opacity — colors baked as literals (CSS `var()`/`currentColor` don't cascade into `background-image` SVGs; the first cut rendered black-on-black). Ink recentered in the viewBox (`translate(4 23)`) so the note sits dead-center when the image is placed `center`.

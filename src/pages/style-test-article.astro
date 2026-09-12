@@ -220,7 +220,7 @@ Read it first.</pre>
           <p>Every embed is a styled facade — poster art, provider badge, real play button. Zero third-party JS until you press play (privacy-first, no trackers pre-click):</p>
 
           {/* YouTube */}
-          <div class="facade-card" data-facade data-src="https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ?autoplay=1" data-title="Fix in 3 minutes — Galaxy A14 (YouTube)">
+          <div class="facade-card" data-facade data-src="https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ?autoplay=1" data-embed-ratio="16/9" data-title="Fix in 3 minutes — Galaxy A14 (YouTube)">
             <img class="fc-poster" src="/img/og-youtube.jpg" alt="" aria-hidden="true" loading="lazy" decoding="async" />
             <span class="fc-scrim" aria-hidden="true"></span>
             <span class="fc-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.5 15.5v-7l6.3 3.5-6.3 3.5z"/></svg> YouTube</span>
@@ -230,7 +230,7 @@ Read it first.</pre>
           </div>
 
           {/* Vimeo */}
-          <div class="facade-card" data-facade data-src="https://player.vimeo.com/video/76979871?autoplay=1" data-title="The Dockumentary (Vimeo)">
+          <div class="facade-card" data-facade data-src="https://player.vimeo.com/video/76979871?autoplay=1" data-embed-ratio="16/9" data-title="The Dockumentary (Vimeo)">
             <img class="fc-poster" src="/img/og-vimeo.jpg" alt="" aria-hidden="true" loading="lazy" decoding="async" />
             <span class="fc-scrim" aria-hidden="true"></span>
             <span class="fc-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M23.9 7.2c-.3-1.2-1.1-2-2.3-2.3C19.5 4.4 12 4.4 12 4.4s-7.5 0-9.6.5C1.2 5.2.4 6 .1 7.2.0 8.9 0 10.6 0 12s0 3.1.1 4.8c.3 1.2 1.1 2 2.3 2.3 2.1.5 9.6.5 9.6.5s7.5 0 9.6-.5c1.2-.3 2-1.1 2.3-2.3.1-1.7.1-3.4.1-4.8s0-3.1-.1-4.8zM9.6 15.6V8.4L15.8 12l-6.2 3.6z" transform="translate(0 -.5)"/></svg> Vimeo</span>
@@ -280,13 +280,23 @@ Read it first.</pre>
           </div>
 
           {/* YouTube Music */}
-          <div class="facade-card" data-facade data-src="https://music.youtube.com/embed/4NRXx6U8ABQ?autoplay=1" data-title="Blinding Lights (Official Video) — YouTube Music">
+          <div class="facade-card" data-facade data-src="https://music.youtube.com/embed/4NRXx6U8ABQ?autoplay=1" data-embed-ratio="16/9" data-title="Blinding Lights (Official Video) — YouTube Music">
             <img class="fc-poster" src="/img/og-youtubemusic.jpg" alt="" aria-hidden="true" loading="lazy" decoding="async" />
             <span class="fc-scrim" aria-hidden="true"></span>
             <span class="fc-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm-1.5-5.5 5-2.5-5-2.5z"/></svg> YouTube&nbsp;Music</span>
             <span class="fc-playwrap"><button class="fc-play" type="button" aria-label="Play video: Blinding Lights Official Video">▶</button></span>
             <span class="fc-label">Blinding Lights — Official Video</span>
             <span class="fc-title">Video · music embed</span>
+          </div>
+
+          {/* X (Twitter) */}
+          <div class="facade-card" data-facade data-src="https://platform.twitter.com/embed/Tweet.html?id=20" data-embed-ratio="16/9" data-title="just setting up my twttr — @jack (X)">
+            <img class="fc-poster" src="/img/og-x.jpg" alt="" aria-hidden="true" loading="lazy" decoding="async" />
+            <span class="fc-scrim" aria-hidden="true"></span>
+            <span class="fc-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932zM17.61 20.644h2.039L6.486 3.24H4.298z" fill-rule="evenodd"/></svg> X</span>
+            <span class="fc-playwrap"><button class="fc-play" type="button" aria-label="Load post: just setting up my twttr by @jack">▶</button></span>
+            <span class="fc-label">just setting up my twttr — @jack</span>
+            <span class="fc-title">Post · X embed</span>
           </div>
 
           {/* Self-hosted audio — styled row */}
