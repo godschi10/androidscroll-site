@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.26 — 2026-09-12 — audio player: centered music-note background illustration
+- King's ask: the self-hosted audio row (`field note` player) should carry a subtle music-note illustration centered behind the player, like an engraved watermark on the card.
+- `public/img/audio-note.svg`: beamed eighth notes over five faint staff lines, mint `#D9F2E8` at 0.18 opacity — colors baked as literals (CSS `var()`/`currentColor` don't cascade into `background-image` SVGs; the first cut rendered black-on-black). Ink recentered in the viewBox (`translate(4 23)`) so the note sits dead-center when the image is placed `center`.
+- Wired on `.audio-fig .fc-audio-row` as `background-image: url('/img/audio-note.svg')` + `center/120px no-repeat` longhands — the single `background:` shorthand left `background-image` unparsed in Obscura (CSSOM had the rule, pixels had none); longhands render correctly on the King's acceptance browser.
+- Proof (Obscura, 390px, dark theme): note ink + staff pixels measured centered at (178,30) vs row center (179,31); zoomed crop shows the note fully inside the row's visible band, no clipping.
+- Also ships the v0.4.25 TikTok poster fix (regenerated, auto-centered `og-tiktok.jpg` + `scripts/gen-tiktok-poster.py`) whose CHANGELOG entry was left uncommitted; version bumped 0.4.25→0.4.26 with it.
+
+## 0.4.25 — 2026-09-12 — TikTok poster: properly drawn, centered music-note art
+- King's shot: the TikTok card (ADB quick tip) background showed an off-center, malformed gray note — stems sliced behind the play button, heads clipped at the card bottom, nothing that read as music. Root cause: the v0.4.21 brand-blank `og-tiktok.jpg` was hand-drawn with the glyph ink-center ~165px right of canvas center (measured: bbox x 540–990 of 1200) and unequal noteheads.
+- Fix: `scripts/gen-tiktok-poster.py` regenerates the poster deterministically — clean engraving geometry (two equal 95×70 tilted-ellipse heads, vertical stems fused into one slanted beam), TikTok chromatic split (cyan lower-left / red upper-right behind white) for platform context, and measure→translate→re-render auto-centering verified in pixels (final ink center 601,600 of 1200×1200, symmetric 322px margins). Replaces the old jpg in place — no markup change needed; `fc-poster` object-fit:cover keeps it centered on the card.
+
 ## 0.4.24 — 2026-09-12 — self-hosted audio figure: dropped the oversized facade-card wrapper
 - King's call: the field-note audio row was buried inside a hollow `.facade-card` (min-height 200px, 28px padding, flex-centered) whose poster/scrim/play/title children don't exist for self-hosted audio — a big stretched empty box around one slim row.
 - Fix: removed the wrapper in `style-test-article.astro` — `figure.audio-fig` now contains just `.fc-audio-row` + `figcaption`. Re-scoped the row's CSS from `.facade-card .fc-audio-row` to `.audio-fig .fc-audio-row` (margin-top 14→0 — no more padded parent to clear) and gave `.audio-fig .fc-badge` the same static-badge look it had via the old `.facade-card .fc-badge`+`position:static` override. The row's own border/background/radius is now the visible card; `figure` keeps `.prose figure` spacing.
