@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" role="img" aria-label="Unknown sources prompt placeholder">
+<rect width="800" height="450" fill="#EDF6F3"/>
+<rect x="200" y="110" width="400" height="230" rx="8" fill="#FFFFFF" stroke="#B9CCC6" stroke-width="2"/>
+<g font-family="monospace" font-size="19" fill="#10231F">
+<text x="230" y="165">Install unknown apps</text>
+</g>
+<g font-family="monospace" font-size="16" fill="#52635F">
+<text x="230" y="200">Allow only your</text>
+<text x="230" y="226">file manager.</text>
+</g>
+<rect x="230" y="256" width="150" height="44" fill="#EDF6F3" stroke="#006E5E" stroke-width="2"/>
+<rect x="400" y="256" width="150" height="44" fill="#006E5E"/>
+<g font-family="monospace" font-size="17" text-anchor="middle">
+<text x="305" y="284" fill="#006E5E">Deny</text>
+<text x="475" y="284" fill="#ffffff">Allow</text>
+</g>
+</svg>

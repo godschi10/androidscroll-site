@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" role="img" aria-label="App not installed toast placeholder">
+<rect width="800" height="450" fill="#EDF6F3"/>
+<rect x="250" y="40" width="300" height="370" rx="18" fill="#10231F"/>
+<rect x="270" y="90" width="260" height="200" fill="#0B241D"/>
+<g font-family="monospace" font-size="20" fill="#D9F2E8" text-anchor="middle">
+<text x="400" y="180">App not</text>
+<text x="400" y="210">installed</text>
+</g>
+<rect x="310" y="330" width="180" height="40" rx="4" fill="#00A88F"/>
+<g font-family="monospace" font-size="18" fill="#ffffff" text-anchor="middle">
+<text x="400" y="357">OK</text>
+</g>
+</svg>
