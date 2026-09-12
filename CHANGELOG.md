@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.16 — 2026-09-12 — ol pill-to-text breathing room
+- King's shot: pills sat too close to the text. Measured: 6px gap (pill right edge nearly touching the first character). Gutter widened 36→44px with the pill offset tracking it — now 14px breathing room, matching the bullet-list rhythm. Proven at 390: pill right 46 → text left 60 = 14px clean; vision-confirmed "comfortable breathing room, not cramped, not touching." Vertical centering from v0.4.15 preserved.
+
 ## 0.4.15 — 2026-09-12 — ol number pills: optical centering
 - King's shot: numbered-list pills floated ABOVE the text line. Root cause chain: (1) `top:.15em` anchored the pill to the li box top, not the text band; (2) my first fix used the `1lh` unit, which phone-class engines drop as invalid — the pill never moved (two identical pixel measurements exposed it). Final: `top:calc(.875em - 5px)` — em-based, engine-safe, pixel-measured at 390 to land the pill center within 1.5px of the first line's glyph band center; vision-confirmed "centered on the first line." Lesson recorded: never use `1lh` in this codebase.
 
