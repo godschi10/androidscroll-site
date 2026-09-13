@@ -54,6 +54,15 @@ const hasCount = typeof initialCount === 'number' && initialCount > 0;
     <div id="comments-form" hidden>
       <div class="c-form-card">
         <div class="kicker-h">Leave a comment</div>
+        <!-- v0.5.2 reply banner: sits ABOVE the fields so the context is seen
+             the instant Reply is tapped (focus law: banner + textarea in view).
+             role=status announces "Replying to {name}" to SRs. Cancel × restores
+             top-level and returns focus to the originating Reply button. -->
+        <div id="reply-indicator" hidden role="status">
+          <span class="c-re-mark" aria-hidden="true">↳</span>
+          <span class="c-reply-txt">Replying to <strong id="reply-name"></strong></span>
+          <button type="button" id="cancel-reply">Cancel <span aria-hidden="true">×</span></button>
+        </div>
         <form id="comment-form">
           <div class="comment-form-grid">
             <div class="c-field">
@@ -75,10 +84,9 @@ const hasCount = typeof initialCount === 'number' && initialCount > 0;
             <span id="c-count" class="c-count" aria-live="polite"></span>
           </div>
           <input id="c-parent" name="parent" type="hidden" value="0" />
-          <div id="reply-indicator" hidden>
-            <span class="c-re-mark" aria-hidden="true">↳</span> replying to <strong id="reply-name"></strong>
-            <button type="button" id="cancel-reply">cancel</button>
-          </div>
+          <!-- v0.5.2: old in-form reply indicator REMOVED — it duplicated the
+               banner IDs above the fields (getElementById hit the banner first,
+               this block was dead markup). Single source: the banner. -->
           <!-- honeypot: bots fill it, humans never see it (mirrors vibe_hp) -->
           <div class="c-hp" aria-hidden="true"><label for="c-hp">Leave this empty</label><input id="c-hp" name="honeypot" type="text" tabindex="-1" autocomplete="off" /></div>
           <!-- v0.5.1 (3b.3): NO required attr — the JS guard owns feedback so the
@@ -186,12 +194,14 @@ const REACTIONS = [['like', 'Like'], ['heart', 'Heart'], ['fire', 'Fire'], ['lau
 const REACT_SVG: Record<string, string> = {
   // thumbs-up: straight-line palm + cuff (site idiom, no curves but the shoulder arc)
   like: '<path d="M8.6 20.4V11l5-8.2c2 0 3.2 1.2 3.2 3.2l-.6 3.4h4c1.6 0 2.6 1.2 2.4 2.6l-1.2 6.4c-.2 1.2-1.2 2-2.4 2H8.6Z"/><path d="M3.6 11.6h5v8.8h-5z"/>',
-  // heart built from straight facets — geometric, not the rounded blob
-  heart: '<path d="M12 20.4 4.8 12.6 8.4 5.4 12 9l3.6-3.6 3.6 7.2Z"/>',
+  // heart: classic symmetric silhouette — two semicircular arcs (r=6.3) meeting
+  // in a top cleft and a sharp bottom point; same stroke weight as like/fire
+  heart: '<path d="M12 20.2 5.7 13.5a6.3 6.3 0 0 1 12.6 0Z"/>',
   // flame: angular outline + diamond core
   fire: '<path d="M12 2.8 16.2 9.4l1.6-1.6c1.6 2 2.6 4 2.6 6.2a8.4 8.4 0 1 1-16.8 0c0-2.2 1-4.2 2.6-6.2l1.6 1.6L12 2.8Z"/><path d="M12 11.4 14.8 15.4 12 19.4 9.2 15.4Z"/>',
-  // laugh: house sun/moon circle + slit eyes + solid open mouth
-  laugh: '<circle cx="12" cy="12" r="8.6"/><path d="M8.8 9.8v2M15.2 9.8v2" stroke-width="2"/><path d="M7.9 13.8h8.2a4.1 4.1 0 0 1-8.2 0Z" fill="currentColor" stroke="none"/>',
+  // laugh: grinning face — squint-eye chevrons (∧ ∧, the laughing read) + wide
+  // filled open-grin; fewer strokes than slit-eyes version = crisper at 13-14px
+  laugh: '<circle cx="12" cy="12" r="8.6"/><path d="M7.2 10.4 9.3 8.6l2.1 1.8M12.6 10.4l2.1-1.8 2.1 1.8"/><path d="M7.6 13.6h8.8a4.4 4.4 0 0 1-8.8 0Z" fill="currentColor" stroke="none"/>',
 };
 const reactIcon = (k: string) =>
   '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + (REACT_SVG[k] || '') + '</svg>';
