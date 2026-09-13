@@ -7,6 +7,7 @@
 import Base from '../layouts/Base.astro';
 import AdSlot from '../components/AdSlot.astro';
 import ArticleChrome from '../components/ArticleChrome.astro';
+import Comments from '../components/Comments.astro';
 import { SITE, POSTS, byPath, postsIn, fmtDate } from '../data/site';
 
 export function getStaticPaths() {
@@ -156,5 +157,8 @@ const breadcrumbLD = {
         ))}
       </div>
     </section>
+
+    <Comments postId={p.id} postSlug={p.slug} initialCount={p.comments}
+      authorName="G-will Chijioke" />
   </article>
 </Base>

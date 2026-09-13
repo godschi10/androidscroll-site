@@ -1,0 +1,438 @@
+---
+// Comments — click-to-load, zero third-party JS, Worker rail (brief §4).
+// States: idle → loading (skeleton) → empty | list | error (retry).
+// King's additions: author badge (display-only) + reactions like/heart/fire/laugh.
+interface Props {
+  postId: number;            // REQUIRED — WP post id
+  postSlug?: string;         // analytics/moderation context
+  authorName?: string;       // post author display name → is_author badge match
+  initialCount?: number;     // build-time count, rendered in the button label
+  policyUrl?: string;        // default '/comments-policy'
+  apiBase?: string;          // Worker origin — one constant to roll back
+}
+const {
+  postId,
+  postSlug = '',
+  authorName = '',
+  initialCount,
+  policyUrl = '/comments-policy',
+  apiBase = 'https://androidscroll-comments.gwill.workers.dev',
+} = Astro.props;
+const countLabel = typeof initialCount === 'number' && initialCount > 0
+  ? ` (${initialCount})` : '';
+---
+
+<div id="comments-section" data-post-id={postId} data-post-slug={postSlug}
+     data-author={authorName} data-api={apiBase}>
+  <button id="load-comments-btn" type="button">
+    💬 Load Comments{countLabel}
+  </button>
+  <noscript><p class="c-noscript">Comments require JavaScript — read our
+    <a href={policyUrl}>comments policy</a>.</p></noscript>
+
+  <div id="comments-inner" hidden>
+    <div id="comments-loading" aria-busy="true">
+      <div class="c-skel"></div><div class="c-skel"></div><div class="c-skel"></div>
+    </div>
+    <div id="comments-error" hidden>
+      <p class="c-err-msg" role="alert">Couldn't load comments.</p>
+      <button id="retry-comments" type="button">Retry</button>
+    </div>
+    <div id="comments-list" hidden></div>
+    <div id="comments-form" hidden>
+      <h3 class="c-h3">Leave a Comment</h3>
+      <form id="comment-form">
+        <div class="comment-form-grid">
+          <div class="c-field">
+            <label for="c-name">Name <span class="c-req">*</span></label>
+            <input id="c-name" name="name" type="text" required minlength="2" maxlength="100" autocomplete="name" />
+          </div>
+          <div class="c-field">
+            <label for="c-email">Email <span class="c-opt">(optional — needed only for reply notices)</span></label>
+            <input id="c-email" name="email" type="email" maxlength="254" autocomplete="email" />
+          </div>
+        </div>
+        <div class="c-field">
+          <label for="c-url">Website <span class="c-opt">(optional)</span></label>
+          <input id="c-url" name="url" type="url" maxlength="200" inputmode="url" autocomplete="url" placeholder="https://…" />
+        </div>
+        <div class="c-field">
+          <label for="c-content">Comment <span class="c-req">*</span></label>
+          <textarea id="c-content" name="content" rows="4" required maxlength="5000" aria-describedby="c-count"></textarea>
+          <span id="c-count" class="c-count" aria-live="polite"></span>
+        </div>
+        <input id="c-parent" name="parent" type="hidden" value="0" />
+        <div id="reply-indicator" hidden>
+          Replying to <strong id="reply-name"></strong>
+          <button type="button" id="cancel-reply">✕ Cancel</button>
+        </div>
+        <!-- honeypot: bots fill it, humans never see it (mirrors vibe_hp) -->
+        <div class="c-hp" aria-hidden="true"><label for="c-hp">Leave this empty</label><input id="c-hp" name="honeypot" type="text" tabindex="-1" autocomplete="off" /></div>
+        <p class="c-check"><label><input id="c-consent" name="consent" type="checkbox" required /> I agree to the <a href={policyUrl} target="_blank" rel="noopener">comments policy</a>. <span class="c-req">*</span></label></p>
+        <p class="c-check"><label><input id="c-notify" name="notify" type="checkbox" /> Email me when someone replies.</label></p>
+        <button type="submit" id="c-submit">Post Comment</button>
+        <p id="form-msg" aria-live="polite" role="status"></p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+const section = document.getElementById('comments-section') as HTMLElement;
+const postId  = section?.dataset.postId || '';
+const API     = (section?.dataset.api || '') + '/api/comments';
+
+const ALLOWED_COMMENT_TAGS = new Set([
+  'a','b','strong','i','em','u','s','p','br','ul','ol','li',
+  'blockquote','pre','code','span','del','ins'
+]);
+
+const ALLOWED_COMMENT_ATTRS: Record<string, Set<string>> = {
+  'a':   new Set(['href', 'title', 'rel', 'target']),
+  '*':   new Set(['class']),
+};
+
+function sanitizeCommentHtml(html: string): string {
+  const tpl = document.createElement('template');
+  tpl.innerHTML = html;
+  sanitizeNode(tpl.content);
+  return tpl.innerHTML;
+}
+
+function sanitizeNode(node: Node): void {
+  const remove: Node[] = [];
+  node.childNodes.forEach(child => {
+    if (child.nodeType === Node.ELEMENT_NODE) {
+      const el = child as Element;
+      const tag = el.tagName.toLowerCase();
+      if (!ALLOWED_COMMENT_TAGS.has(tag)) {
+        node.insertBefore(document.createTextNode(el.textContent || ''), child);
+        remove.push(child);
+        return;
+      }
+      const drop: string[] = [];
+      for (const attr of Array.from(el.attributes)) {
+        const n = attr.name.toLowerCase();
+        const tagAllowed  = ALLOWED_COMMENT_ATTRS[tag] ?? new Set<string>();
+        const globAllowed = ALLOWED_COMMENT_ATTRS['*'] ?? new Set<string>();
+        if (!tagAllowed.has(n) && !globAllowed.has(n)) { drop.push(attr.name); continue; }
+        if (/^on/i.test(n)) { drop.push(attr.name); continue; }
+        if (n === 'href' && /^\s*(javascript|data|vbscript):/i.test(attr.value)) {
+          drop.push(attr.name); continue;
+        }
+      }
+      drop.forEach(a => el.removeAttribute(a));
+      if (tag === 'a') {
+        el.setAttribute('rel', 'noopener noreferrer nofollow');
+        if (/^https?:/i.test(el.getAttribute('href') || '')) el.setAttribute('target', '_blank');
+      }
+      sanitizeNode(el);
+    } else if (child.nodeType === Node.COMMENT_NODE) {
+      remove.push(child);
+    }
+  });
+  remove.forEach(n => node.removeChild(n));
+}
+
+function esc(str: string): string {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+
+const $ = (id: string) => document.getElementById(id);
+const show = (el: HTMLElement | null, on = true) => { if (el) el.hidden = !on; };
+
+// ── reactions (King's addition — display + toggle, counts from the thread) ──
+const EMOJI = [['like','👍'],['heart','❤️'],['fire','🔥'],['laugh','😂']] as const;
+const emojiCh = (k: string) => EMOJI.find(e => e[0] === k)?.[1] || k;
+
+function reactionBar(c: any): string {
+  const r = c.reactions || {};
+  return `<div class="c-reactions">` + EMOJI.map(([k, ch]) => {
+    const n = r[k] || 0;
+    return `<button type="button" class="c-react" data-id="${esc(String(c.id))}" data-emoji="${k}"`
+      + ` aria-pressed="false" aria-label="${k}${n ? ', ' + n + ' so far' : ''}">`
+      + `<span aria-hidden="true">${ch}</span><span class="c-react-n">${n || ''}</span></button>`;
+  }).join('') + `</div>`;
+}
+
+async function toggleReact(btn: HTMLElement) {
+  if (btn.dataset.busy) return;
+  btn.dataset.busy = '1';
+  try {
+    const res = await fetch(`${API}/${encodeURIComponent(btn.dataset.id || '')}/react`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ emoji: btn.dataset.emoji, postId: Number(postId) }),
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const bar = btn.parentElement as HTMLElement;
+    bar.querySelectorAll('.c-react').forEach(b => {
+      const el = b as HTMLElement, n = el.querySelector('.c-react-n');
+      const count = (data.counts && data.counts[el.dataset.emoji || '']) || 0;
+      el.setAttribute('aria-pressed', String(b === btn ? !!data.active : false));
+      if (n) n.textContent = count ? String(count) : '';
+    });
+  } catch { /* counts stay as loaded — never block the reader */ }
+  finally { delete btn.dataset.busy; }
+}
+
+// ── render: flat list + parent → tree (top/replies kept per brief) ──
+function renderThread(comments: any[], authorName: string): string {
+  const top     = comments.filter((c: any) => !c.parent);
+  const replies = comments.filter((c: any) => c.parent);
+
+  const badgeSVG = `<span class="avatar-badge" role="img" aria-label="Post author"><svg viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg"><path d="M20.396 11c-.018-.646-.215-1.275-.57-1.816-.354-.54-.852-.972-1.438-1.246.223-.607.27-1.264.14-1.897-.131-.634-.437-1.218-.882-1.687-.47-.445-1.053-.75-1.687-.882-.633-.13-1.29-.083-1.897.14-.273-.587-.704-1.086-1.245-1.44S11.647 1.62 11 1.604c-.646.017-1.273.213-1.813.568s-.969.854-1.24 1.44c-.608-.223-1.267-.272-1.902-.14-.635.13-1.22.436-1.69.882-.445.47-.749 1.055-.878 1.688-.13.633-.08 1.29.144 1.896-.587.274-1.087.705-1.443 1.245-.356.54-.555 1.17-.574 1.817.02.647.218 1.276.574 1.817.356.54.856.972 1.443 1.245-.224.606-.274 1.263-.144 1.896.13.634.433 1.218.877 1.688.47.443 1.054.747 1.687.878.633.132 1.29.084 1.897-.136.274.586.705 1.084 1.246 1.439.54.354 1.17.551 1.816.569.647-.016 1.276-.213 1.817-.567s.972-.854 1.245-1.44c.604.239 1.266.296 1.903.164.636-.132 1.22-.447 1.68-.907.46-.46.776-1.044.908-1.681s.075-1.299-.165-1.903c.586-.274 1.084-.705 1.439-1.246.354-.54.551-1.17.569-1.816zM9.662 14.85l-3.429-3.428 1.293-1.302 2.072 2.072 4.4-4.794 1.347 1.246z"/></svg></span>`;
+
+  const renderComment = (c: any, isReply = false): string => {
+    const safeName = esc(c.name || 'Anonymous');
+    const safeDate = esc(new Date(c.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }));
+    const linkOpen = c.url ? `<a href="${esc(c.url)}" rel="nofollow noopener noreferrer" target="_blank">` : '';
+    const linkClose = c.url ? '</a>' : '';
+    const childReplies = replies.filter((r: any) => r.parent === c.id);
+    return `
+      <div class="c-item${isReply ? ' c-reply' : ''}">
+        <div class="c-meta">
+          ${linkOpen}<span class="c-name">${safeName}</span>${linkClose}
+          ${c.is_author ? badgeSVG : ''}
+          <time class="c-date" datetime="${esc(String(c.created_at || ''))}">${safeDate}</time>
+        </div>
+        <div class="c-body">${sanitizeCommentHtml(String(c.content || ''))}</div>
+        ${reactionBar(c)}
+        <button class="reply-btn" data-id="${esc(String(c.id))}" data-name="${safeName}" type="button">↩ Reply</button>
+      </div>
+      ${childReplies.map((r: any) => renderComment(r, true)).join('')}
+    `;
+  };
+
+  return `<h3 class="c-h3">${esc(String(comments.length))} Comment${comments.length !== 1 ? 's' : ''}</h3>`
+    + top.map((c: any) => renderComment(c)).join('');
+}
+
+function bindThread(list: HTMLElement, authorName: string) {
+  list.querySelectorAll('.reply-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id   = (btn as HTMLElement).dataset.id;
+      const name = (btn as HTMLElement).dataset.name;
+      const parent = $('c-parent') as HTMLInputElement;
+      if (parent) parent.value = id || '0';
+      const indicator = $('reply-indicator');
+      const replyName = $('reply-name');
+      if (indicator && replyName) {
+        replyName.textContent = name || '';
+        indicator.hidden = false;
+      }
+      (window as any).__replyBtn = btn;
+      ($('c-content') as HTMLTextAreaElement)?.focus();
+    });
+  });
+  list.querySelectorAll('.c-react').forEach(b =>
+    b.addEventListener('click', () => toggleReact(b as HTMLElement)));
+}
+
+// ── states: loading → empty | list | error(retry) ──
+let lastComments: any[] | null = null;
+
+async function loadComments() {
+  const list = $('comments-list'), loading = $('comments-loading'), err = $('comments-error');
+  show(loading); if (loading) loading.setAttribute('aria-busy', 'true');
+  show(err, false); show(list, false);
+  try {
+    const author = section?.dataset.author || '';
+    const qs = `?post=${encodeURIComponent(postId)}${author ? '&author=' + encodeURIComponent(author) : ''}`;
+    const res = await fetch(API + qs, { headers: { accept: 'application/json' } });
+    if (!res.ok) throw new Error(String(res.status));
+    const data = await res.json();
+    const comments = Array.isArray(data) ? data : (data.comments || []);
+    lastComments = comments;
+    show(loading, false); if (loading) loading.setAttribute('aria-busy', 'false');
+    if (!comments.length) {
+      if (list) list.innerHTML = '<p class="c-empty">No comments yet. Be the first!</p>';
+      show(list);
+    } else {
+      if (list) {
+        list.innerHTML = renderThread(comments, author);
+        bindThread(list, author);
+        show(list);
+      }
+    }
+    show($('comments-form'));
+  } catch {
+    show(loading, false); if (loading) loading.setAttribute('aria-busy', 'false');
+    show(err);
+    ($('retry-comments') as HTMLButtonElement | null)?.focus();
+  }
+}
+
+// ── form: validate → POST → per-code handling (brief §4.3) ──
+function setMsg(text: string, ok = false, field?: HTMLElement | null) {
+  const msg = $('form-msg');
+  if (msg) {
+    msg.textContent = text;
+    msg.style.color = ok ? 'var(--ok, green)' : 'var(--err, #c00)';
+  }
+  if (field) field.focus();
+}
+
+function countdown(btn: HTMLButtonElement, secs: number) {
+  btn.disabled = true;
+  btn.dataset.cd = '1';
+  let left = secs;
+  const label = 'Post Comment';
+  const tick = () => {
+    if (left > 0) { btn.textContent = `Wait ${left}s`; left--; setTimeout(tick, 1000); }
+    else { btn.textContent = label; btn.disabled = false; delete btn.dataset.cd; }
+  };
+  tick();
+}
+
+function clearReply() {
+  const parent = $('c-parent') as HTMLInputElement;
+  if (parent) parent.value = '0';
+  show($('reply-indicator'), false);
+}
+
+function updateCount() {
+  const ta = $('c-content') as HTMLTextAreaElement | null;
+  const el = $('c-count');
+  if (!ta || !el) return;
+  const n = ta.value.length;
+  el.textContent = n >= 3500 ? `${n} / 5000` : '';
+  if (el) el.style.color = n > 4900 ? 'var(--err, #c00)' : '';
+}
+
+document.getElementById('comment-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form    = e.target as HTMLFormElement;
+  const name    = ($('c-name')    as HTMLInputElement).value.trim();
+  const email   = ($('c-email')   as HTMLInputElement).value.trim();
+  const url     = ($('c-url')     as HTMLInputElement).value.trim();
+  const content = ($('c-content') as HTMLTextAreaElement).value.trim();
+  const parent  = ($('c-parent')  as HTMLInputElement).value;
+  const hp      = ($('c-hp')      as HTMLInputElement).value;
+  const consent = ($('c-consent') as HTMLInputElement).checked;
+  const notify  = ($('c-notify')  as HTMLInputElement).checked;
+
+  if (hp) { setMsg('Submission failed.', false, null); form.reset(); return; } // bot: silent discard
+  if (!name || name.length < 2 || name.length > 100) { setMsg('Name is required (2–100 characters).', false, $('c-name')); return; }
+  if (url && !/^https?:\/\//i.test(url)) { setMsg('Website must start with http:// or https://', false, $('c-url')); return; }
+  if (!content || content.length > 5000) { setMsg('Comment must be between 1 and 5000 characters.', false, $('c-content')); return; }
+  if (!consent) { setMsg('Please tick the comments-policy box first.', false, $('c-consent')); return; }
+  if (notify && !email) { setMsg('Add your email to receive reply notices.', false, $('c-email')); return; }
+
+  setMsg('Posting...', true);
+  const submitBtn = $('c-submit') as HTMLButtonElement;
+  if (submitBtn) submitBtn.disabled = true;
+
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        postId: Number(postId), postSlug: section?.dataset.postSlug || '',
+        name, email, url, content, parent,
+        honeypot: hp, consent, notify,
+      }),
+    });
+    const data = await res.json().catch(() => ({} as any));
+
+    if (res.status === 201) {
+      form.reset();
+      clearReply();
+      updateCount();
+      if (data.status === 'approved') {
+        // refresh just this post's thread (brief §4.2.5 — no whole-page reload, no polling)
+        loadComments();
+        setMsg('✓ Comment posted.', true);
+      } else {
+        setMsg('Thanks — your comment is awaiting moderation.', true);
+      }
+    } else if (res.status === 400) {
+      const field = /name/i.test(data.message || '') ? $('c-name')
+        : /url|website/i.test(data.message || '') ? $('c-url')
+        : /comment|content/i.test(data.message || '') ? $('c-content') : null;
+      setMsg(data.message || 'Please check the highlighted field.', false, field as HTMLElement);
+    } else if (res.status === 429) {
+      const ra = Number(res.headers.get('retry-after') || data.retryAfter || 60);
+      setMsg(data.message || 'Too many comments — try again shortly.', false);
+      if (submitBtn) countdown(submitBtn, Math.min(300, Math.max(1, ra)));
+    } else {
+      // keep the typed draft — never lose a reader's text
+      setMsg(data.message || 'Failed to post comment.', false, submitBtn);
+    }
+  } catch {
+    setMsg('Network error — your text is kept, please try again.', false, $('c-submit'));
+  } finally {
+    if (submitBtn && !submitBtn.dataset.cd) submitBtn.disabled = false;
+  }
+});
+
+document.getElementById('cancel-reply')?.addEventListener('click', () => {
+  clearReply();
+  const btn = (window as any).__replyBtn as HTMLElement | null;
+  if (btn) btn.focus(); // return focus to the Reply button (WCAG 2.4.3)
+});
+
+$('c-content')?.addEventListener('input', updateCount);
+
+// ── idle → first click only. Zero requests until intent, no polling. ──
+const loadBtn = $('load-comments-btn');
+const inner   = $('comments-inner');
+if (loadBtn && inner) {
+  loadBtn.addEventListener('click', () => {
+    loadBtn.hidden = true;
+    inner.hidden = false;
+    loadComments();
+  });
+}
+$('retry-comments')?.addEventListener('click', () => loadComments());
+</script>
+
+<style is:global>
+#comments-section { margin-top: 30px; }
+#load-comments-btn { background:none; border:1.5px solid var(--border-light); padding:10px 20px; min-height:44px; border-radius:var(--radius-main); cursor:pointer; font-family:var(--font-body); font-size:14px; font-weight:600; color:var(--brand-primary); margin-bottom:20px; }
+.c-noscript { font-size:14px; color:var(--text-muted); }
+#comments-loading { color:var(--text-muted); font-size:14px; }
+.c-skel { height:56px; border-radius:var(--radius-main); background:var(--bg-surface-2, #eee); margin-bottom:12px; animation:c-pulse 1.2s ease-in-out infinite; }
+@keyframes c-pulse { 50% { opacity:.5; } }
+@media (prefers-reduced-motion: reduce) { .c-skel { animation:none; } }
+.c-err-msg { color:var(--err, #c00); font-size:14px; margin:0 0 8px; }
+#retry-comments, #c-submit { background:var(--brand-primary); color:#fff; font-weight:700; border:none; border-radius:var(--radius-main); cursor:pointer; font-family:var(--font-body); font-size:14px; }
+#retry-comments { padding:8px 18px; min-height:44px; }
+#c-submit { margin-top:4px; align-self:flex-start; padding:10px 24px; min-height:44px; }
+#comment-form { display:flex; flex-direction:column; gap:12px; }
+.c-h3 { font-size:1.1rem; font-weight:800; margin:30px 0 16px; }
+.c-field label { display:block; font-size:13px; font-weight:600; margin-bottom:4px; color:var(--text-main); }
+.c-req { color:var(--err, #c00); }
+.c-opt { font-weight:400; color:var(--text-muted); }
+#comment-form input[type="text"], #comment-form input[type="email"], #comment-form input[type="url"], #comment-form textarea {
+  width:100%; box-sizing:border-box; padding:10px 14px; border:1.5px solid var(--border-light); border-radius:var(--radius-main); font-family:var(--font-body); font-size:14px; background:var(--bg-surface); color:var(--text-main);
+}
+#comment-form textarea { resize:vertical; }
+.c-count { font-size:12px; color:var(--text-muted); }
+.c-hp { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+.c-check { font-size:13px; margin:0; color:var(--text-main); }
+.c-check input { width:18px; height:18px; margin-right:6px; vertical-align:middle; }
+#reply-indicator { font-size:13px; color:var(--brand-primary); }
+#cancel-reply { margin-left:8px; background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:12px; }
+#form-msg { font-size:13px; margin:0; min-height:1em; }
+.c-item { margin-bottom:20px; }
+.c-reply { margin-left:44px; }
+.c-meta { display:flex; align-items:center; gap:10px; margin-bottom:4px; }
+.c-name { font-weight:700; font-size:14px; color:var(--text-dark); }
+.c-date { font-size:12px; color:var(--text-muted); }
+.c-body { font-size:14px; line-height:1.6; color:var(--text-main); }
+.c-reactions { display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
+.c-react { background:none; border:1.5px solid var(--border-light); border-radius:999px; padding:2px 9px; min-height:30px; cursor:pointer; font-size:13px; line-height:1.4; color:var(--text-muted); display:inline-flex; align-items:center; gap:4px; }
+.c-react[aria-pressed="true"] { border-color:var(--brand-primary); background:var(--bg-surface-2, #f3f3f3); }
+.c-react-n { font-size:12px; font-weight:600; }
+.reply-btn { margin-top:6px; background:none; border:none; cursor:pointer; font-size:12px; color:var(--brand-primary); font-weight:600; padding:6px 0; min-height:30px; }
+.avatar-badge-wrap { position:relative; display:inline-block; flex-shrink:0; width:38px; height:38px; }
+.avatar-badge { display:inline-flex; width:16px; height:16px; border-radius:50%; background:var(--bg-surface); padding:1px; box-sizing:border-box; vertical-align:middle; }
+.avatar-badge svg { width:100%; height:100%; fill:#1D9BF0; }
+.comment-form-grid { display:grid; grid-template-columns:1fr; gap:12px; }
+@media (min-width:600px) { .comment-form-grid { grid-template-columns:1fr 1fr; } }
+</style>
