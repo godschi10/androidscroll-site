@@ -1,7 +1,11 @@
 ---
 // Comments — click-to-load, zero third-party JS, Worker rail (brief §4).
+// v0.5.1: full "terminal editorial" blend per DESIGN-RESEARCH.md PART 4.
+//   section.comments.col mount · rule-s divider · qa-box card anatomy ·
+//   t-mono-av monograms (deterministic brand-green bg) · SVG reaction pills
+//   (bespoke geometry — no emoji chrome, no third-party icons) · notify-form
+//   fields (mint dark-mode) · btn-deep submit · .term honest moderation strip.
 // States: idle → loading (skeleton) → empty | list | error (retry).
-// King's additions: author badge (display-only) + reactions like/heart/fire/laugh.
 interface Props {
   postId: number;            // REQUIRED — WP post id
   postSlug?: string;         // analytics/moderation context
@@ -18,14 +22,21 @@ const {
   policyUrl = '/comments-policy',
   apiBase = 'https://androidscroll-comments.gwill.workers.dev',
 } = Astro.props;
-const countLabel = typeof initialCount === 'number' && initialCount > 0
-  ? ` (${initialCount})` : '';
+const hasCount = typeof initialCount === 'number' && initialCount > 0;
 ---
 
-<div id="comments-section" data-post-id={postId} data-post-slug={postSlug}
-     data-author={authorName} data-api={apiBase}>
+<section class="comments col" id="comments-section" data-post-id={postId} data-post-slug={postSlug}
+  data-author={authorName} data-api={apiBase} aria-labelledby="comments-h">
+  <div class="rule-s">
+    <span class="s-no">§</span>
+    <h2 id="comments-h">Comments</h2>
+    <span class="s-side">{hasCount ? `${initialCount} approved · new posts held for review` : 'New posts held for review'}</span>
+  </div>
+
   <button id="load-comments-btn" type="button">
-    💬 Load Comments{countLabel}
+    {hasCount
+      ? <>Read the <span class="cnt">{initialCount}</span>&nbsp;comments</>
+      : <>Be the first to comment</>}
   </button>
   <noscript><p class="c-noscript">Comments require JavaScript — read our
     <a href={policyUrl}>comments policy</a>.</p></noscript>
@@ -35,47 +46,53 @@ const countLabel = typeof initialCount === 'number' && initialCount > 0
       <div class="c-skel"></div><div class="c-skel"></div><div class="c-skel"></div>
     </div>
     <div id="comments-error" hidden>
-      <p class="c-err-msg" role="alert">Couldn't load comments.</p>
+      <p class="c-err-msg" role="alert">Couldn't load comments — the thread service didn't answer.</p>
       <button id="retry-comments" type="button">Retry</button>
     </div>
     <div id="comments-list" hidden></div>
+
     <div id="comments-form" hidden>
-      <h3 class="c-h3">Leave a Comment</h3>
-      <form id="comment-form">
-        <div class="comment-form-grid">
-          <div class="c-field">
-            <label for="c-name">Name <span class="c-req">*</span></label>
-            <input id="c-name" name="name" type="text" required minlength="2" maxlength="100" autocomplete="name" />
+      <div class="c-form-card">
+        <div class="kicker-h">Leave a comment</div>
+        <form id="comment-form">
+          <div class="comment-form-grid">
+            <div class="c-field">
+              <label for="c-name">Name <span class="c-req">*</span></label>
+              <input id="c-name" name="name" type="text" required minlength="2" maxlength="100" autocomplete="name" />
+            </div>
+            <div class="c-field">
+              <label for="c-email">Email <span class="c-opt">(optional — needed only for reply notices)</span></label>
+              <input id="c-email" name="email" type="email" maxlength="254" autocomplete="email" />
+            </div>
           </div>
           <div class="c-field">
-            <label for="c-email">Email <span class="c-opt">(optional — needed only for reply notices)</span></label>
-            <input id="c-email" name="email" type="email" maxlength="254" autocomplete="email" />
+            <label for="c-url">Website <span class="c-opt">(optional)</span></label>
+            <input id="c-url" name="url" type="url" maxlength="200" inputmode="url" autocomplete="url" placeholder="https://…" />
           </div>
-        </div>
-        <div class="c-field">
-          <label for="c-url">Website <span class="c-opt">(optional)</span></label>
-          <input id="c-url" name="url" type="url" maxlength="200" inputmode="url" autocomplete="url" placeholder="https://…" />
-        </div>
-        <div class="c-field">
-          <label for="c-content">Comment <span class="c-req">*</span></label>
-          <textarea id="c-content" name="content" rows="4" required maxlength="5000" aria-describedby="c-count"></textarea>
-          <span id="c-count" class="c-count" aria-live="polite"></span>
-        </div>
-        <input id="c-parent" name="parent" type="hidden" value="0" />
-        <div id="reply-indicator" hidden>
-          Replying to <strong id="reply-name"></strong>
-          <button type="button" id="cancel-reply">✕ Cancel</button>
-        </div>
-        <!-- honeypot: bots fill it, humans never see it (mirrors vibe_hp) -->
-        <div class="c-hp" aria-hidden="true"><label for="c-hp">Leave this empty</label><input id="c-hp" name="honeypot" type="text" tabindex="-1" autocomplete="off" /></div>
-        <p class="c-check"><label><input id="c-consent" name="consent" type="checkbox" required /> I agree to the <a href={policyUrl} target="_blank" rel="noopener">comments policy</a>. <span class="c-req">*</span></label></p>
-        <p class="c-check"><label><input id="c-notify" name="notify" type="checkbox" /> Email me when someone replies.</label></p>
-        <button type="submit" id="c-submit">Post Comment</button>
-        <p id="form-msg" aria-live="polite" role="status"></p>
-      </form>
+          <div class="c-field">
+            <label for="c-content">Comment <span class="c-req">*</span></label>
+            <textarea id="c-content" name="content" rows="4" required maxlength="5000" aria-describedby="c-count"></textarea>
+            <span id="c-count" class="c-count" aria-live="polite"></span>
+          </div>
+          <input id="c-parent" name="parent" type="hidden" value="0" />
+          <div id="reply-indicator" hidden>
+            <span class="c-re-mark" aria-hidden="true">↳</span> replying to <strong id="reply-name"></strong>
+            <button type="button" id="cancel-reply">cancel</button>
+          </div>
+          <!-- honeypot: bots fill it, humans never see it (mirrors vibe_hp) -->
+          <div class="c-hp" aria-hidden="true"><label for="c-hp">Leave this empty</label><input id="c-hp" name="honeypot" type="text" tabindex="-1" autocomplete="off" /></div>
+          <!-- v0.5.1 (3b.3): NO required attr — the JS guard owns feedback so the
+               inline .c-err message always shows (Safari's bubble blocked submit silently). -->
+          <p class="c-check"><label><input id="c-consent" name="consent" type="checkbox" /> I agree to the <a href={policyUrl} target="_blank" rel="noopener">comments policy</a>. <span class="c-req">*</span></label></p>
+          <p class="c-check"><label><input id="c-notify" name="notify" type="checkbox" /> Email me when someone replies.</label></p>
+          <button type="submit" id="c-submit" class="btn-deep">Post Comment</button>
+          <p id="form-msg" aria-live="polite" role="status"></p>
+          <p class="n-note">Held for review first — approved comments appear here and by email reply notices go to the thread followers.</p>
+        </form>
+      </div>
     </div>
   </div>
-</div>
+</section>
 
 <script>
 const section = document.getElementById('comments-section') as HTMLElement;
@@ -92,6 +109,7 @@ const ALLOWED_COMMENT_ATTRS: Record<string, Set<string>> = {
   '*':   new Set(['class']),
 };
 
+// XSS boundary — unchanged (DESIGN-RESEARCH §4.12.4): template round-trip.
 function sanitizeCommentHtml(html: string): string {
   const tpl = document.createElement('template');
   tpl.innerHTML = html;
@@ -144,17 +162,47 @@ function esc(str: string): string {
 const $ = (id: string) => document.getElementById(id);
 const show = (el: HTMLElement | null, on = true) => { if (el) el.hidden = !on; };
 
-// ── reactions (King's addition — display + toggle, counts from the thread) ──
-const EMOJI = [['like','👍'],['heart','❤️'],['fire','🔥'],['laugh','😂']] as const;
-const emojiCh = (k: string) => EMOJI.find(e => e[0] === k)?.[1] || k;
+// ── monogram avatar (t-mono-av house component — §4.3) ──
+// Deterministic bg among the 4 brand greens only: deep, teal, deeper, verdict.
+const AV_BG = ['var(--deep)', 'var(--teal)', 'var(--deeper)', 'var(--verdict)'];
+function avHash(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h;
+}
+function avatarBg(c: any): string {
+  return c.is_author ? AV_BG[0] : AV_BG[avHash(String(c.name || '')) % AV_BG.length];
+}
+function initials(name: string): string {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return 'A';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+// ── reactions: BESPOKE inline SVG (King law: geometry, not emoji; zero DNA ──
+// ── from vibe-comments; house line idiom = stroke currentColor, square caps ──
+const REACTIONS = [['like', 'Like'], ['heart', 'Heart'], ['fire', 'Fire'], ['laugh', 'Laugh']] as const;
+const REACT_SVG: Record<string, string> = {
+  // thumbs-up: straight-line palm + cuff (site idiom, no curves but the shoulder arc)
+  like: '<path d="M8.6 20.4V11l5-8.2c2 0 3.2 1.2 3.2 3.2l-.6 3.4h4c1.6 0 2.6 1.2 2.4 2.6l-1.2 6.4c-.2 1.2-1.2 2-2.4 2H8.6Z"/><path d="M3.6 11.6h5v8.8h-5z"/>',
+  // heart built from straight facets — geometric, not the rounded blob
+  heart: '<path d="M12 20.4 4.8 12.6 8.4 5.4 12 9l3.6-3.6 3.6 7.2Z"/>',
+  // flame: angular outline + diamond core
+  fire: '<path d="M12 2.8 16.2 9.4l1.6-1.6c1.6 2 2.6 4 2.6 6.2a8.4 8.4 0 1 1-16.8 0c0-2.2 1-4.2 2.6-6.2l1.6 1.6L12 2.8Z"/><path d="M12 11.4 14.8 15.4 12 19.4 9.2 15.4Z"/>',
+  // laugh: house sun/moon circle + slit eyes + solid open mouth
+  laugh: '<circle cx="12" cy="12" r="8.6"/><path d="M8.8 9.8v2M15.2 9.8v2" stroke-width="2"/><path d="M7.9 13.8h8.2a4.1 4.1 0 0 1-8.2 0Z" fill="currentColor" stroke="none"/>',
+};
+const reactIcon = (k: string) =>
+  '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + (REACT_SVG[k] || '') + '</svg>';
 
 function reactionBar(c: any): string {
   const r = c.reactions || {};
-  return `<div class="c-reactions">` + EMOJI.map(([k, ch]) => {
+  return `<div class="c-reactions">` + REACTIONS.map(([k, label]) => {
     const n = r[k] || 0;
     return `<button type="button" class="c-react" data-id="${esc(String(c.id))}" data-emoji="${k}"`
-      + ` aria-pressed="false" aria-label="${k}${n ? ', ' + n + ' so far' : ''}">`
-      + `<span aria-hidden="true">${ch}</span><span class="c-react-n">${n || ''}</span></button>`;
+      + ` aria-pressed="false" aria-label="${label}${n ? ', ' + n + ' so far' : ''}">`
+      + reactIcon(k) + `<span class="c-react-n">${n || ''}</span></button>`;
   }).join('') + `</div>`;
 }
 
@@ -180,39 +228,47 @@ async function toggleReact(btn: HTMLElement) {
   finally { delete btn.dataset.busy; }
 }
 
-// ── render: flat list + parent → tree (top/replies kept per brief) ──
-function renderThread(comments: any[], authorName: string): string {
+// ── render: 1-level threading (CodingHorror law — §4.6) ──
+function renderThread(comments: any[]): string {
   const top     = comments.filter((c: any) => !c.parent);
   const replies = comments.filter((c: any) => c.parent);
 
-  const badgeSVG = `<span class="avatar-badge" role="img" aria-label="Post author"><svg viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg"><path d="M20.396 11c-.018-.646-.215-1.275-.57-1.816-.354-.54-.852-.972-1.438-1.246.223-.607.27-1.264.14-1.897-.131-.634-.437-1.218-.882-1.687-.47-.445-1.053-.75-1.687-.882-.633-.13-1.29-.083-1.897.14-.273-.587-.704-1.086-1.245-1.44S11.647 1.62 11 1.604c-.646.017-1.273.213-1.813.568s-.969.854-1.24 1.44c-.608-.223-1.267-.272-1.902-.14-.635.13-1.22.436-1.69.882-.445.47-.749 1.055-.878 1.688-.13.633-.08 1.29.144 1.896-.587.274-1.087.705-1.443 1.245-.356.54-.555 1.17-.574 1.817.02.647.218 1.276.574 1.817.356.54.856.972 1.443 1.245-.224.606-.274 1.263-.144 1.896.13.634.433 1.218.877 1.688.47.443 1.054.747 1.687.878.633.132 1.29.084 1.897-.136.274.586.705 1.084 1.246 1.439.54.354 1.17.551 1.816.569.647-.016 1.276-.213 1.817-.567s.972-.854 1.245-1.44c.604.239 1.266.296 1.903.164.636-.132 1.22-.447 1.68-.907.46-.46.776-1.044.908-1.681s.075-1.299-.165-1.903c.586-.274 1.084-.705 1.439-1.246.354-.54.551-1.17.569-1.816zM9.662 14.85l-3.429-3.428 1.293-1.302 2.072 2.072 4.4-4.794 1.347 1.246z"/></svg></span>`;
-
-  const renderComment = (c: any, isReply = false): string => {
+  const renderComment = (c: any, replyToName = ''): string => {
     const safeName = esc(c.name || 'Anonymous');
     const safeDate = esc(new Date(c.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }));
-    const linkOpen = c.url ? `<a href="${esc(c.url)}" rel="nofollow noopener noreferrer" target="_blank">` : '';
+    const linkOpen  = c.url ? `<a href="${esc(c.url)}" rel="nofollow noopener noreferrer" target="_blank">` : '';
     const linkClose = c.url ? '</a>' : '';
     const childReplies = replies.filter((r: any) => r.parent === c.id);
+    const replyMark = replyToName
+      ? `<div class="c-re-line"><span class="c-re-mark" aria-hidden="true">↳</span> re: ${esc(replyToName)}</div>`
+      : '';
     return `
-      <div class="c-item${isReply ? ' c-reply' : ''}">
+      <div class="c-item${replyToName ? ' c-reply' : ''}${c.is_author ? ' c-by-author' : ''}">
+        ${replyMark}
         <div class="c-meta">
-          ${linkOpen}<span class="c-name">${safeName}</span>${linkClose}
-          ${c.is_author ? badgeSVG : ''}
-          <time class="c-date" datetime="${esc(String(c.created_at || ''))}">${safeDate}</time>
+          <span class="c-avatar" aria-hidden="true" style="background:${avatarBg(c)}">${esc(initials(c.name || 'Anonymous'))}</span>
+          <span class="c-headline">
+            <span class="c-name-wrap">${linkOpen}<span class="c-name">${safeName}</span>${linkClose}</span>
+            <span class="c-sub">
+              ${c.is_author ? '<span class="c-badge">★ AUTHOR</span>' : ''}
+              <time class="c-date" datetime="${esc(String(c.created_at || ''))}">${safeDate}</time>
+            </span>
+          </span>
         </div>
         <div class="c-body">${sanitizeCommentHtml(String(c.content || ''))}</div>
         ${reactionBar(c)}
-        <button class="reply-btn" data-id="${esc(String(c.id))}" data-name="${safeName}" type="button">↩ Reply</button>
+        <button class="reply-btn" data-id="${esc(String(c.id))}" data-name="${safeName}" type="button">Reply</button>
       </div>
-      ${childReplies.map((r: any) => renderComment(r, true)).join('')}
+      ${childReplies.length
+        ? `<div class="c-kids">${childReplies.map((r: any) => renderComment(r, c.name || 'Anonymous')).join('')}</div>`
+        : ''}
     `;
   };
 
-  return `<h3 class="c-h3">${esc(String(comments.length))} Comment${comments.length !== 1 ? 's' : ''}</h3>`
-    + top.map((c: any) => renderComment(c)).join('');
+  return top.map((c: any) => renderComment(c)).join('');
 }
 
-function bindThread(list: HTMLElement, authorName: string) {
+function bindThread(list: HTMLElement) {
   list.querySelectorAll('.reply-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const id   = (btn as HTMLElement).dataset.id;
@@ -250,12 +306,12 @@ async function loadComments() {
     lastComments = comments;
     show(loading, false); if (loading) loading.setAttribute('aria-busy', 'false');
     if (!comments.length) {
-      if (list) list.innerHTML = '<p class="c-empty">No comments yet. Be the first!</p>';
+      if (list) list.innerHTML = '<p class="c-empty">No comments yet — the first one is yours. New posts are held for review before they appear.</p>';
       show(list);
     } else {
       if (list) {
-        list.innerHTML = renderThread(comments, author);
-        bindThread(list, author);
+        list.innerHTML = renderThread(comments);
+        bindThread(list);
         show(list);
       }
     }
@@ -272,7 +328,7 @@ function setMsg(text: string, ok = false, field?: HTMLElement | null) {
   const msg = $('form-msg');
   if (msg) {
     msg.textContent = text;
-    msg.style.color = ok ? 'var(--ok, green)' : 'var(--err, #c00)';
+    msg.className = ok ? 'c-msg-ok' : 'c-err'; // term strip vs mono-deep error (v0.5.1 §4.8)
   }
   if (field) field.focus();
 }
@@ -301,7 +357,6 @@ function updateCount() {
   if (!ta || !el) return;
   const n = ta.value.length;
   el.textContent = n >= 3500 ? `${n} / 5000` : '';
-  if (el) el.style.color = n > 4900 ? 'var(--err, #c00)' : '';
 }
 
 document.getElementById('comment-form')?.addEventListener('submit', async (e) => {
@@ -346,9 +401,9 @@ document.getElementById('comment-form')?.addEventListener('submit', async (e) =>
       if (data.status === 'approved') {
         // refresh just this post's thread (brief §4.2.5 — no whole-page reload, no polling)
         loadComments();
-        setMsg('✓ Comment posted.', true);
+        setMsg('Posted — live in the thread above.', true);
       } else {
-        setMsg('Thanks — your comment is awaiting moderation.', true);
+        setMsg('Posted — awaiting moderation. It’ll appear once the editor approves.', true);
       }
     } else if (res.status === 400) {
       const field = /name/i.test(data.message || '') ? $('c-name')
@@ -392,47 +447,117 @@ $('retry-comments')?.addEventListener('click', () => loadComments());
 </script>
 
 <style is:global>
-#comments-section { margin-top: 30px; }
-#load-comments-btn { background:none; border:1.5px solid var(--border-light); padding:10px 20px; min-height:44px; border-radius:var(--radius-main); cursor:pointer; font-family:var(--font-body); font-size:14px; font-weight:600; color:var(--brand-primary); margin-bottom:20px; }
-.c-noscript { font-size:14px; color:var(--text-muted); }
-#comments-loading { color:var(--text-muted); font-size:14px; }
-.c-skel { height:56px; border-radius:var(--radius-main); background:var(--bg-surface-2, #eee); margin-bottom:12px; animation:c-pulse 1.2s ease-in-out infinite; }
-@keyframes c-pulse { 50% { opacity:.5; } }
-@media (prefers-reduced-motion: reduce) { .c-skel { animation:none; } }
-.c-err-msg { color:var(--err, #c00); font-size:14px; margin:0 0 8px; }
-#retry-comments, #c-submit { background:var(--brand-primary); color:#fff; font-weight:700; border:none; border-radius:var(--radius-main); cursor:pointer; font-family:var(--font-body); font-size:14px; }
-#retry-comments { padding:8px 18px; min-height:44px; }
-#c-submit { margin-top:4px; align-self:flex-start; padding:10px 24px; min-height:44px; }
-#comment-form { display:flex; flex-direction:column; gap:12px; }
-.c-h3 { font-size:1.1rem; font-weight:800; margin:30px 0 16px; }
-.c-field label { display:block; font-size:13px; font-weight:600; margin-bottom:4px; color:var(--text-main); }
-.c-req { color:var(--err, #c00); }
-.c-opt { font-weight:400; color:var(--text-muted); }
-#comment-form input[type="text"], #comment-form input[type="email"], #comment-form input[type="url"], #comment-form textarea {
-  width:100%; box-sizing:border-box; padding:10px 14px; border:1.5px solid var(--border-light); border-radius:var(--radius-main); font-family:var(--font-body); font-size:14px; background:var(--bg-surface); color:var(--text-main);
-}
-#comment-form textarea { resize:vertical; }
-.c-count { font-size:12px; color:var(--text-muted); }
-.c-hp { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
-.c-check { font-size:13px; margin:0; color:var(--text-main); }
-.c-check input { width:18px; height:18px; margin-right:6px; vertical-align:middle; }
-#reply-indicator { font-size:13px; color:var(--brand-primary); }
-#cancel-reply { margin-left:8px; background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:12px; }
-#form-msg { font-size:13px; margin:0; min-height:1em; }
-.c-item { margin-bottom:20px; }
-.c-reply { margin-left:44px; }
-.c-meta { display:flex; align-items:center; gap:10px; margin-bottom:4px; }
-.c-name { font-weight:700; font-size:14px; color:var(--text-dark); }
-.c-date { font-size:12px; color:var(--text-muted); }
-.c-body { font-size:14px; line-height:1.6; color:var(--text-main); }
-.c-reactions { display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
-.c-react { background:none; border:1.5px solid var(--border-light); border-radius:999px; padding:2px 9px; min-height:30px; cursor:pointer; font-size:13px; line-height:1.4; color:var(--text-muted); display:inline-flex; align-items:center; gap:4px; }
-.c-react[aria-pressed="true"] { border-color:var(--brand-primary); background:var(--bg-surface-2, #f3f3f3); }
-.c-react-n { font-size:12px; font-weight:600; }
-.reply-btn { margin-top:6px; background:none; border:none; cursor:pointer; font-size:12px; color:var(--brand-primary); font-weight:600; padding:6px 0; min-height:30px; }
-.avatar-badge-wrap { position:relative; display:inline-block; flex-shrink:0; width:38px; height:38px; }
-.avatar-badge { display:inline-flex; width:16px; height:16px; border-radius:50%; background:var(--bg-surface); padding:1px; box-sizing:border-box; vertical-align:middle; }
-.avatar-badge svg { width:100%; height:100%; fill:#1D9BF0; }
-.comment-form-grid { display:grid; grid-template-columns:1fr; gap:12px; }
-@media (min-width:600px) { .comment-form-grid { grid-template-columns:1fr 1fr; } }
+/* v0.5.1 — terminal-editorial blend. Every selector namespaced under .comments;
+   brand tokens only (DESIGN-RESEARCH PART 1:20-39). The old alien-token block
+   (--border-light/--brand-primary/--radius-main/...) is dead — no UA fallbacks left. */
+.comments{margin-top:clamp(28px,5vh,44px)}
+.comments .c-noscript{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.comments .c-noscript a{color:var(--deep)}
+
+/* load control — .launch/.btn-ghost voice (§4.10/:670) */
+.comments #load-comments-btn{display:flex;width:fit-content;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--deep);background:var(--paper);border:1px solid var(--deep);padding:11px 16px;border-radius:2px;min-height:44px;cursor:pointer;margin:2px 0 18px;transition:background-color .16s ease-out}
+.comments #load-comments-btn:hover{background:var(--band);text-decoration:none}
+.comments #load-comments-btn .cnt{margin:0 2px}
+.comments #comments-inner{margin-top:4px}
+
+/* skeleton — .slot-frame dashed idiom (§4.9/:238) */
+.comments .c-skel{height:72px;border:1px dashed var(--line-2);background:var(--band);border-radius:4px;margin-bottom:12px;animation:c-pulse 1.2s ease-in-out infinite}
+@keyframes c-pulse{50%{opacity:.5}}
+@media (prefers-reduced-motion: reduce){.comments .c-skel{animation:none}}
+
+/* error/retry — .term box + .btn-ghost (§4.9) */
+.comments #comments-error{background:var(--band);border:1px solid var(--line-2);border-left:3px solid var(--deep);padding:11px 14px;margin-bottom:16px}
+.comments .c-err-msg{font-family:var(--mono);font-size:12px;color:var(--ink-2);margin:0 0 10px;line-height:1.5}
+.comments #retry-comments{display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:var(--deep);background:var(--paper);border:1px solid var(--deep);border-radius:2px;padding:0 16px;min-height:44px;cursor:pointer;transition:background-color .16s ease-out}
+.comments #retry-comments:hover{background:var(--band);text-decoration:none}
+
+/* comment card — .qa-box anatomy (§4.2/:484) */
+.comments .c-item{position:relative;background:var(--paper);border:1px solid var(--line-2);border-left:4px solid var(--line-2);border-radius:4px;padding:16px 18px;margin-bottom:12px;transition:border-left-color .16s ease-out}
+.comments .c-item:hover{border-left-color:var(--deep)}
+.comments .c-by-author{border-left-color:var(--verdict);background:var(--band)}
+.comments .c-by-author:hover{border-left-color:var(--deep)}
+
+/* threading — 1 level, left rail by wrapper (§4.6/:179 b-kids idiom) */
+.comments .c-kids{margin:0 0 12px clamp(16px,4vw,32px);padding-left:clamp(10px,2vw,16px);border-left:2px solid var(--line);display:flex;flex-direction:column;gap:12px}
+.comments .c-kids:hover{border-left-color:var(--line-2)}
+.comments .c-reply{margin-bottom:0}
+.comments .c-re-line{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.03em;margin-bottom:8px}
+.comments .c-re-mark{color:var(--deep)}
+
+/* meta row (§4.3/§4.4) */
+.comments .c-meta{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.comments .c-avatar{flex:none;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:-.02em;color:var(--on-deep);background:var(--deep);border-radius:2px}
+.comments .c-headline{min-width:0}
+.comments .c-name{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:-.01em;color:var(--ink)}
+.comments .c-name-wrap a{color:var(--deep);text-decoration:none}
+.comments .c-name-wrap a .c-name{text-decoration:underline;text-underline-offset:3px}
+.comments .c-sub{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:2px}
+.comments .c-badge{border:1px solid var(--deep);color:var(--deep);padding:2px 7px;font-family:var(--mono);font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:9.5px;border-radius:2px} /* .upd anatomy :438 */
+.comments .c-date{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em;font-variant-numeric:tabular-nums}
+
+/* body (§4.5) */
+.comments .c-body{font-size:15px;line-height:1.65;color:var(--ink-2);overflow-wrap:break-word}
+.comments .c-body p{margin:0 0 .7em}
+.comments .c-body p:last-child{margin-bottom:0}
+.comments .c-body a{color:var(--deep);text-decoration:underline;text-underline-offset:3px}
+.comments .c-body blockquote{border-left:3px solid var(--deep);background:var(--band);border-radius:0 4px 4px 0;margin:10px 0;padding:10px 14px}
+.comments .c-body code{font-family:var(--mono);font-size:.9em;background:var(--band);border:1px solid var(--line);border-radius:2px;padding:1px 5px}
+.comments .c-body pre{background:var(--band);border:1px solid var(--line-2);border-radius:4px;padding:10px 12px;overflow-x:auto}
+.comments .c-body ul,.comments .c-body ol{margin:8px 0;padding-left:22px}
+
+/* reaction pills (§4.7 — post-tags skeleton :632, shrunk) */
+.comments .c-reactions{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.comments .c-react{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line-2);border-radius:999px;background:var(--paper);padding:4px 10px;min-height:32px;font-family:var(--mono);font-size:12px;color:var(--muted);cursor:pointer;transition:border-color .14s ease-out,color .14s ease-out,background-color .14s ease-out}
+.comments .c-react svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:square;stroke-linejoin:miter;flex:none}
+.comments .c-react:hover{border-color:var(--deep);color:var(--deep);text-decoration:none}
+.comments .c-react[aria-pressed="true"]{background:var(--mint);border-color:var(--deep);color:var(--deep)}
+html[data-theme=dark] .comments .c-react[aria-pressed="true"]{background:transparent;border-color:var(--teal);color:var(--teal)}
+.comments .c-react-n{color:var(--deep);font-weight:600;font-variant-numeric:tabular-nums}
+.comments .c-react[aria-pressed="true"] .c-react-n{color:inherit}
+.comments .reply-btn{margin-top:10px;background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--deep);padding:6px 2px;min-height:32px;display:inline-flex;align-items:center}
+.comments .reply-btn:hover{text-decoration:underline;text-underline-offset:3px}
+@media (hover:none),(max-width:1023px){.comments .c-react,.comments .reply-btn{min-height:44px}} /* 44px touch law :739 */
+
+/* empty — sheet-note voice (§4.9/:182) */
+.comments .c-empty{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.03em;border-left:3px solid var(--deep);background:var(--band);padding:14px 18px;line-height:1.6;margin:4px 0 16px}
+
+/* form card (§4.8 — qa-box wrapper :484, kicker-h header :447) */
+.comments .c-form-card{border:1px solid var(--line-2);border-left:4px solid var(--verdict);background:var(--paper);border-radius:4px;margin-top:24px;padding:16px 18px 18px}
+.comments .c-form-card .kicker-h{margin:0 0 14px}
+.comments #comment-form{display:flex;flex-direction:column;gap:12px}
+.comments .c-field{min-width:0}
+.comments .c-field label{display:block;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px} /* .st-kicker :164 */
+.comments .c-req{color:var(--deep)} /* required star = deep, never red (site law) */
+.comments .c-opt{font-weight:400;letter-spacing:.03em;text-transform:none;font-size:10px}
+/* fields — verbatim .notify input :409; dark = mint v3.3 King ruling :411 */
+.comments #comment-form input[type="text"],.comments #comment-form input[type="email"],.comments #comment-form input[type="url"],.comments #comment-form textarea{width:100%;box-sizing:border-box;border:1px solid var(--line-2);border-bottom-width:2px;background:var(--paper);padding:12px 14px;border-radius:2px;font-size:15px;font-weight:500;font-family:var(--sans);color:var(--ink)}
+.comments #comment-form input::placeholder{color:var(--muted)}
+html[data-theme=dark] .comments #comment-form input[type="text"],html[data-theme=dark] .comments #comment-form input[type="email"],html[data-theme=dark] .comments #comment-form input[type="url"],html[data-theme=dark] .comments #comment-form textarea{background:var(--mint);border-color:var(--mint);color:#10231F}
+html[data-theme=dark] .comments #comment-form input::placeholder{color:#2C4640}
+.comments #comment-form textarea{resize:vertical;min-height:110px}
+.comments #comment-form :is(input,textarea):focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.comments .c-count{display:block;font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:4px;text-align:right}
+.comments .c-hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.comments .c-check{font-family:var(--sans);font-size:13px;margin:0;color:var(--ink-2);line-height:1.5}
+.comments .c-check label{display:inline-flex;align-items:flex-start;gap:8px;cursor:pointer}
+.comments .c-check input{width:18px;height:18px;margin-top:2px;flex:none;accent-color:var(--deep)} /* :189 */
+.comments .c-check a{color:var(--deep)}
+.comments .n-note{margin:6px 0 0;font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.03em;line-height:1.6} /* :417 */
+/* submit — btn-deep verbatim :363 (+ dark mint text :414 precedent) */
+.comments #c-submit{display:inline-flex;align-items:center;justify-content:center;gap:10px;background:var(--deep);color:var(--on-deep);font-weight:800;font-size:14.5px;font-family:var(--sans);padding:13px 20px;border-radius:2px;border:0;border-top:2px solid var(--teal);min-height:44px;width:fit-content;cursor:pointer;margin-top:2px;transition:background-color .16s ease-out}
+.comments #c-submit:hover{background:var(--deeper);color:var(--on-deep);text-decoration:none}
+html[data-theme=dark] .comments #c-submit{color:var(--mint)}
+.comments #c-submit:disabled{background:var(--verdict);color:var(--mint);cursor:not-allowed;border-top-color:var(--deep)}
+.comments #c-submit:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+/* reply indicator */
+.comments #reply-indicator{font-family:var(--mono);font-size:11px;color:var(--deep);letter-spacing:.03em;background:var(--band);border:1px dashed var(--line-2);border-radius:2px;padding:8px 12px}
+.comments #cancel-reply{margin-left:10px;background:none;border:none;cursor:pointer;color:var(--muted);font-family:var(--mono);font-size:11px;text-decoration:underline;text-underline-offset:2px;padding:2px}
+.comments #cancel-reply:hover{color:var(--deep)}
+/* messages — success = .term strip :292; error = .c-err mono 12 deep (§4.8) */
+.comments #form-msg{font-size:13px;margin:0;min-height:1em}
+.comments #form-msg.c-msg-ok{font-family:var(--mono);font-size:12px;line-height:1.6;color:var(--ink-2);background:var(--band);border:1px solid var(--line-2);border-left:3px solid var(--deep);padding:11px 14px}
+.comments #form-msg.c-err{font-family:var(--mono);font-size:12px;color:var(--deep);line-height:1.5}
+/* mobile form grid stays single-column (§ house :443 breakpoint) */
+.comments .comment-form-grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:600px){.comments .comment-form-grid{grid-template-columns:1fr 1fr}}
 </style>

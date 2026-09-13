@@ -1,15 +1,60 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Logcat install failure placeholder art">
-<rect width="1200" height="675" fill="#0A332C"/>
-<rect y="0" width="1200" height="6" fill="#00A88F"/>
-<g font-family="monospace" font-size="30" fill="#D9F2E8">
-<text x="60" y="140">$ adb install app-release.apk</text>
-<text x="60" y="220" fill="#5EEAD4">Failure [INSTALL_FAILED_UPDATE_INCOMPATIBLE:</text>
-<text x="60" y="265" fill="#5EEAD4">Package com.example.app signatures do not match]</text>
-<text x="60" y="360" fill="#8FA9A2">$ adb uninstall -k com.example.app</text>
-<text x="60" y="410" fill="#ffffff">Success — data kept. Reinstall clean.</text>
-</g>
-<rect x="60" y="480" width="16" height="28" fill="#00A88F"/>
-<g font-family="monospace" font-size="22" fill="#8FA9A2">
-<text x="60" y="580">ANDROIDSCROLL · FIELD NOTE · STYLE-TEST PLACEHOLDER</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Logcat failure screen read line by line, with an error-cause panel and an uninstall-then-reinstall arrow leading to a clean install badge">
+<defs>
+<pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="#123430"/></pattern>
+</defs>
+<g transform="scale(1.5)">
+<rect width="800" height="450" fill="#0A332C"/>
+<rect width="800" height="450" fill="url(#dots)"/>
+<rect width="800" height="6" fill="#00A88F"/>
+
+<!-- logcat window -->
+<rect x="28" y="32" width="470" height="326" fill="#071512" stroke="#123430"/>
+<rect x="28" y="32" width="470" height="32" fill="#0E2A23"/>
+<rect x="42" y="43" width="10" height="10" fill="#00A88F"/>
+<rect x="58" y="43" width="10" height="10" fill="#14BFA4"/>
+<rect x="74" y="43" width="10" height="10" fill="#014F44"/>
+<text x="98" y="53" font-family="'IBM Plex Mono',monospace" font-size="11" letter-spacing="1" fill="#8FA9A2">adb logcat -d · INSTALL</text>
+<text x="46" y="92" font-family="'IBM Plex Mono',monospace" font-size="14" fill="#00A88F">$</text>
+<text x="60" y="92" font-family="'IBM Plex Mono',monospace" font-size="14" fill="#D9F2E8">adb install app-release.apk</text>
+<text x="46" y="122" font-family="'IBM Plex Mono',monospace" font-size="12" fill="#8FA9A2">Performing push install...</text>
+<text x="46" y="152" font-family="'IBM Plex Mono',monospace" font-size="13" fill="#00C896">Failure [INSTALL_FAILED_UPDATE_INCOMPATIBLE:</text>
+<text x="60" y="176" font-family="'IBM Plex Mono',monospace" font-size="13" fill="#00C896">signatures do not match]</text>
+<rect x="40" y="140" width="440" height="44" fill="none" stroke="#123430"/>
+<rect x="46" y="204" width="434" height="1" fill="#123430"/>
+<text x="46" y="228" font-family="'IBM Plex Mono',monospace" font-size="12" fill="#D9F2E8">01-01 07:14:02 PackageManager: verifying</text>
+<text x="46" y="250" font-family="'IBM Plex Mono',monospace" font-size="12" fill="#8FA9A2">01-01 07:14:02 v2 signature: <tspan fill="#00C896">mismatch</tspan></text>
+<text x="46" y="272" font-family="'IBM Plex Mono',monospace" font-size="12" fill="#8FA9A2">01-01 07:14:02 abort install — rollback ok</text>
+<text x="46" y="306" font-family="'IBM Plex Mono',monospace" font-size="13" fill="#00A88F">$ adb uninstall -k com.example.app</text>
+<text x="46" y="330" font-family="'IBM Plex Mono',monospace" font-size="13" fill="#5EEAD4">Success — data kept. Reinstall clean.</text>
+<rect x="46" y="338" width="9" height="14" fill="#00A88F"/>
+
+<!-- cause panel -->
+<rect x="518" y="32" width="254" height="200" fill="#0E2A23" stroke="#123430"/>
+<text x="536" y="60" font-family="'IBM Plex Mono',monospace" font-size="11" letter-spacing="2" fill="#8FA9A2">WHY IT FAILS</text>
+<rect x="536" y="68" width="218" height="1" fill="#123430"/>
+<rect x="536" y="86" width="8" height="8" fill="#00A88F"/>
+<text x="554" y="94" font-family="'IBM Plex Mono',monospace" font-size="11.5" fill="#D9F2E8">Store build ≠ APKMirror build</text>
+<rect x="536" y="114" width="8" height="8" fill="#00A88F"/>
+<text x="554" y="122" font-family="'IBM Plex Mono',monospace" font-size="11.5" fill="#D9F2E8">Same package, other key</text>
+<rect x="536" y="142" width="8" height="8" fill="#00A88F"/>
+<text x="554" y="150" font-family="'IBM Plex Mono',monospace" font-size="11.5" fill="#D9F2E8">Rooted ROM re-signs apps</text>
+<rect x="536" y="170" width="8" height="8" fill="#5EEAD4"/>
+<text x="554" y="178" font-family="'IBM Plex Mono',monospace" font-size="11.5" fill="#5EEAD4">Fix: uninstall -k, then install</text>
+<text x="536" y="212" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#8FA9A2">-k keeps app data — nothing is lost</text>
+
+<!-- clean-install badge -->
+<rect x="518" y="248" width="254" height="110" fill="#071512" stroke="#123430"/>
+<path d="M560 303 h100 m-14 -14 l14 14 l-14 14" fill="none" stroke="#00A88F" stroke-width="4" stroke-linecap="square"/>
+<rect x="686" y="270" width="66" height="66" fill="#00A88F"/>
+<path d="M700 303 l10 11 l22 -24" fill="none" stroke="#071512" stroke-width="8" stroke-linecap="square"/>
+<text x="645" y="266" font-family="'IBM Plex Mono',monospace" font-size="10" letter-spacing="1.5" fill="#8FA9A2">RETRY AFTER CLEAN</text>
+<text x="645" y="346" font-family="'IBM Plex Mono',monospace" font-size="10" letter-spacing="1.5" fill="#5EEAD4">EXIT 0</text>
+
+<!-- footer strip -->
+<rect x="0" y="390" width="800" height="60" fill="#050F0D"/>
+<rect x="0" y="390" width="800" height="1" fill="#123430"/>
+<text x="28" y="418" font-family="'IBM Plex Mono',monospace" font-size="11" letter-spacing="2" fill="#D9F2E8">ANDROIDSCROLL · FIELD NOTE</text>
+<text x="28" y="436" font-family="'IBM Plex Mono',monospace" font-size="10" letter-spacing="1" fill="#8FA9A2">INSTALL_FAILED_UPDATE_INCOMPATIBLE · TECNO SPARK 10 · ANDROID 13</text>
+<text x="772" y="428" font-family="'IBM Plex Mono',monospace" font-size="13" fill="#5EEAD4" text-anchor="end">3-MIN FIX</text>
 </g>
 </svg>

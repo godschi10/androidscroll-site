@@ -2,6 +2,6 @@
 import StaticPage from '../layouts/StaticPage.astro';
 import { TOTALS } from '../data/site';
 ---
-<StaticPage title="Comments policy" desc="Held for review, honeypot-trapped, no spam — all 52 keep their Gravatars." kicker="Community">
+<StaticPage title="Comments policy" desc="Held for review, honeypot-trapped, no spam — every reader shows as a monogram, never a Gravatar." kicker="Community">
   <p style='max-width:60ch'>Comments run through a Cloudflare Worker with a moderation queue: honeypot, per-IP rate limit, Turnstile. Passing submissions show a held-for-review notice; failures sink silently. The existing 52-thread archive imports as-is.</p>
 </StaticPage>

@@ -435,10 +435,10 @@ html[data-theme=dark] .notify .btn-deep{color:var(--mint)}
 .meta-bar a{color:var(--deep);font-weight:500}
 .meta-who{display:inline-flex;align-items:center;gap:10px} /* v0.4.14 King: avatar + byline on one centered row — no more hanging author */
 .meta-bar .t-mono-av{width:32px;height:32px;font-size:13px} /* hero avatar steps down from the 40px author-box block */
-.meta-bar .upd{border:1px solid var(--deep);color:var(--deep);padding:2px 7px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:9.5px}
+.meta-bar .upd{border:1px solid var(--deep);color:var(--deep);padding:2px 7px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:9.5px;margin-left:10px} /* v0.5.1 King: pill needs clean separation from whatever precedes it (year on desktop, first element on mobile) */
 /* v0.4.3 King: meta is TWO deliberate lines, never wrap-shrapnel — author line + middot facts line */
 .meta-facts{display:flex;flex-wrap:wrap;gap:8px 0;align-items:center}
-.meta-facts span + span::before{content:"·";margin:0 10px;color:var(--muted)}
+.meta-facts span + span:not(.upd)::before{content:"·";margin:0 10px;color:var(--muted)} /* v0.5.1 King: :not(.upd) — the middot was painting TRAPPED INSIDE the pill border */
 @media (max-width:899px){.meta-bar{flex-direction:column;align-items:flex-start;gap:8px}} /* v0.4.5 King landscape: the row wraps ragged at 640-899 — column discipline until desktop */
 @media (max-width:639px){.meta-bar .meta-who{font-size:12px}.meta-facts{gap:6px 0;font-size:10px}.meta-facts span + span::before{margin:0 7px}.meta-facts .f-lbl{display:none}.meta-facts:has(.upd) .f-pub{display:none}} /* v0.4.4 King: facts diet — updated pill carries recency on mobile, published date rests on desktop+markup */
 .art-body{padding-top:26px;padding-bottom:10px}
