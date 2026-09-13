@@ -1,0 +1,351 @@
+---
+/* MOD-DESK (COMMENTSUX brief §4 / leg 3) — private token-gated moderation desk.
+   - Base layout + robots noindex,nofollow (Head renders the meta; no nav/footer
+     link ever points here — it's unlisted by design).
+   - ZERO third-party JS: plain DOM, one bundled module, Worker rail only.
+   - Brand: var() tokens from global.css ONLY (mono labels, --paper cards w/
+     1px --line-2 radius 4, --band tint band, btn-deep/btn-ghost per house,
+     44px touch, focus-visible, reduced-motion). No new fonts.
+   - Token: localStorage 'androidscroll:modtok' (try/catch), auto-filled next
+     visit; Sign-out clears it. The token never touches the repo or logs. */
+import Base from '../layouts/Base.astro';
+import { POSTS } from '../data/site';
+
+/* Build-time post_id → local URL map (13 posts, tiny — no fetch needed).
+   Unknown ids render as bare "POST <id>" mono text. */
+const postMap: Record<number, string> = {};
+for (const p of POSTS) postMap[p.id] = p.url;
+---
+<Base title="Moderation desk" desc="Private moderation queue — held comments, approve, spam, trash." robots="noindex, nofollow">
+  <div class="mod-scoped" id="mod-desk" data-post-map={JSON.stringify(postMap)}>
+    <section class="mod-band">
+      <div class="wrap mod-band-in">
+        <p class="mod-kicker">Moderation Desk</p>
+        <div class="mod-band-actions">
+          <button id="mod-refresh" class="btn-ghost" type="button" hidden>Refresh</button>
+          <button id="mod-signout" class="btn-ghost" type="button" hidden>Sign out</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="col mod-main">
+      <form id="mod-lock" class="mod-card mod-lock" autocomplete="off">
+        <p class="mod-label" id="mod-token-label">Access token</p>
+        <input id="mod-token" type="password" aria-labelledby="mod-token-label"
+               placeholder="Paste the desk token" />
+        <p id="mod-lock-msg" class="mod-result" role="status" aria-live="polite"></p>
+        <div class="mod-act-row">
+          <button class="btn-deep" type="submit">Unlock</button>
+        </div>
+      </form>
+
+      <section id="mod-queue" hidden aria-label="Pending queue">
+        <p id="mod-note" class="mod-result" role="status" aria-live="polite"></p>
+        <div id="mod-list"></div>
+        <p id="mod-empty" class="mod-empty" hidden>Nothing waiting.</p>
+        <div id="mod-error" class="mod-card" hidden>
+          <p class="mod-label">Network</p>
+          <p class="mod-err-msg">Could not reach the queue.</p>
+          <div class="mod-act-row">
+            <button id="mod-retry" class="btn-ghost" type="button">Retry</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</Base>
+
+<style is:global>
+/* .mod-scoped — all rules namespaced under the desk root. var() tokens ONLY. */
+.mod-scoped .mod-band{background:var(--band);border-bottom:1px solid var(--line-2);padding-top:18px;padding-bottom:16px}
+.mod-scoped .mod-band-in{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.mod-scoped .mod-kicker{margin:0;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--deep)}
+.mod-scoped .mod-band-actions{margin-left:auto;display:flex;gap:10px}
+.mod-scoped .mod-main{padding-top:22px;padding-bottom:var(--sp-e)}
+
+.mod-scoped .mod-label{margin:0 0 8px;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.mod-scoped .mod-card{background:var(--paper);border:1px solid var(--line-2);border-left:4px solid var(--verdict);border-radius:4px;margin-top:16px;padding:16px 18px}
+.mod-scoped .mod-lock .mod-card,.mod-scoped .mod-card{margin-top:16px}
+
+.mod-scoped .btn-deep{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--deep);color:var(--on-deep);font-weight:800;font-size:14.5px;padding:11px 20px;min-height:44px;border-radius:2px;border-top:2px solid var(--teal)}
+.mod-scoped .btn-deep:hover{background:var(--deeper);color:var(--on-deep);text-decoration:none}
+.mod-scoped .btn-ghost{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border:1px solid var(--deep);color:var(--deep);font-weight:800;font-size:14.5px;padding:11px 22px;min-height:44px;border-radius:2px;background:transparent}
+.mod-scoped .btn-ghost:hover{background:var(--band);text-decoration:none}
+.mod-scoped button:disabled{opacity:.5;cursor:not-allowed}
+
+.mod-scoped .mod-token{width:100%;max-width:420px;background:var(--paper);border:1px solid var(--line-2);border-radius:2px;color:var(--ink);font-family:var(--mono);font-size:14px;padding:10px 12px;min-height:44px}
+.mod-scoped .mod-act-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+
+.mod-scoped .mod-result{margin:10px 0 0;font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--deep);font-variant-numeric:tabular-nums}
+.mod-scoped .mod-result.is-bad{color:var(--ink)}
+.mod-scoped #mod-note{margin-top:14px;min-height:16px}
+
+.mod-scoped .mod-item-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+.mod-scoped .mod-name{font-family:var(--display);font-weight:800;font-size:16px;letter-spacing:-.01em;color:var(--ink)}
+.mod-scoped .mod-meta{font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.mod-scoped .mod-meta a{color:var(--deep)}
+.mod-scoped .mod-meta a:hover{text-decoration:underline}
+.mod-scoped .mod-score{margin-left:auto;border:1px solid var(--line-2);border-radius:2px;padding:2px 8px;color:var(--ink-2)}
+.mod-scoped .mod-ex{margin:10px 0 0;font-size:15px;line-height:1.6;color:var(--ink-2);overflow-wrap:anywhere}
+.mod-scoped .mod-linkbtn{display:inline-flex;align-items:center;min-height:44px;font-family:var(--mono);font-size:11.5px;font-weight:500;letter-spacing:.04em;color:var(--deep);background:none;border:0;padding:0 2px;margin-top:2px}
+.mod-scoped .mod-linkbtn:hover{text-decoration:underline}
+.mod-scoped .mod-reply{margin-top:10px}
+.mod-scoped .mod-ta{width:100%;min-height:96px;background:var(--paper);border:1px solid var(--line-2);border-radius:2px;color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;padding:10px 12px;resize:vertical}
+.mod-scoped .mod-reply-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px}
+.mod-scoped .mod-reply-msg{font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--deep);margin:8px 0 0}
+
+.mod-scoped .mod-empty{margin:26px 2px;font-family:var(--mono);font-size:12px;letter-spacing:.05em;color:var(--muted)}
+.mod-scoped .mod-err-msg{margin:0;font-size:14.5px;color:var(--ink)}
+
+.mod-scoped .btn-deep:focus-visible,.mod-scoped .btn-ghost:focus-visible,
+.mod-scoped .mod-token:focus-visible,.mod-scoped .mod-ta:focus-visible,
+.mod-scoped .mod-linkbtn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+@media (max-width:639px){
+  .mod-scoped .mod-score{margin-left:0}
+  .mod-scoped .btn-deep,.mod-scoped .btn-ghost{flex:1 1 auto}
+}
+@media (prefers-reduced-motion:reduce){.mod-scoped *,.mod-scoped *::before,.mod-scoped *::after{transition:none!important;animation:none!important}}
+</style>
+
+<script>
+/* Desk client — zero third-party. Bearer queue + moderation actions +
+   reply-as-author. API base: absolute Worker rail in prod; on 127.0.0.1/
+   localhost (dist e2e preview) we use the SAME-ORIGIN /api path so the
+   local e2e proxy (repo scripts live in /tmp, never shipped) can bridge —
+   the Worker CORS allow-list is exact-match and excludes dev origins. */
+const ROOT = document.getElementById('mod-desk') as HTMLElement;
+
+interface QueueItem {
+  id: number; post_id: number; author_name: string; excerpt: string;
+  spam_score: number; spam_reasons: string | null; created_at: string;
+}
+
+const PROD_API = 'https://androidscroll-comments.gwill.workers.dev';
+const IS_LOCAL = ['127.0.0.1', 'localhost'].includes(location.hostname);
+const API = IS_LOCAL ? '/api' : PROD_API + '/api';
+
+const TOK_KEY = 'androidscroll:modtok';
+const POST_MAP: Record<string, string> = (() => {
+  try { return JSON.parse(ROOT?.dataset.postMap || '{}'); } catch { return {}; }
+})();
+
+const $ = (id: string) => document.getElementById(id) as HTMLElement | null;
+const lock      = $('mod-lock') as HTMLFormElement | null;
+const tokInp    = $('mod-token') as HTMLInputElement | null;
+const lockMsg   = $('mod-lock-msg') as HTMLElement | null;
+const queue     = $('mod-queue') as HTMLElement | null;
+const list      = $('mod-list') as HTMLElement | null;
+const empty     = $('mod-empty') as HTMLElement | null;
+const note      = $('mod-note') as HTMLElement | null;
+const errBox    = $('mod-error') as HTMLElement | null;
+const refreshB  = $('mod-refresh') as HTMLButtonElement | null;
+const signoutB  = $('mod-signout') as HTMLButtonElement | null;
+const retryB    = $('mod-retry') as HTMLButtonElement | null;
+
+let token = '';
+try { token = localStorage.getItem(TOK_KEY) || ''; } catch { /* private mode: session-only */ }
+function saveTok(v: string) {
+  token = v;
+  try { v ? localStorage.setItem(TOK_KEY, v) : localStorage.removeItem(TOK_KEY); } catch { /* ok */ }
+}
+if (token && tokInp) tokInp.value = token; // auto-filled next visit
+
+function show(el: HTMLElement | null, on: boolean) { if (el) el.hidden = !on; }
+function setLocked(on: boolean) {
+  show(lock, on); show(queue, !on);
+  show(refreshB, !on); show(signoutB, !on);
+}
+function setNote(msg: string, bad = false) {
+  if (!note) return;
+  note.textContent = msg;
+  note.classList.toggle('is-bad', bad);
+}
+
+function timeAgo(iso: string): string {
+  const t = Date.parse(iso);
+  if (isNaN(t)) return iso;
+  const s = Math.max(0, (Date.now() - t) / 1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s / 60) + 'm ago';
+  if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+  if (s < 604800) return Math.floor(s / 86400) + 'd ago';
+  return iso.slice(0, 10);
+}
+function stripHtml(s: string): string {
+  return s.replace(/<[^>]*>/g, ' ').replace(/&#?\w+;/g, ' ')
+          .replace(/\s+/g, ' ').trim().slice(0, 160);
+}
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string): HTMLElementTagNameMap[K] {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  return e;
+}
+
+async function api(path: string, opts: RequestInit = {}): Promise<Response> {
+  const headers = new Headers(opts.headers || {});
+  headers.set('authorization', 'Bearer ' + token);
+  if (opts.body && !headers.has('content-type')) headers.set('content-type', 'application/json');
+  return fetch(API + path, { ...opts, headers });
+}
+
+async function loadQueue(): Promise<void> {
+  if (!token) return;
+  setNote('');
+  show(errBox, false);
+  let res: Response;
+  try { res = await api('/moderation/queue?status=pending'); }
+  catch { setLocked(false); show(errBox, true); show(empty, false); if (list) list.textContent = ''; return; }
+  if (res.status === 401) {
+    if (lockMsg) lockMsg.textContent = 'Wrong token';
+    lockMsg?.classList.add('is-bad');
+    setLocked(true);
+    return;
+  }
+  if (!res.ok) { show(errBox, true); setLocked(true); return; }
+  let data: { items?: QueueItem[] };
+  try { data = await res.json(); } catch { show(errBox, true); return; }
+  show(lock, false); show(queue, true);
+  renderList(data.items || []);
+}
+
+function renderList(items: QueueItem[]): void {
+  if (!list) return;
+  list.textContent = '';
+  show(empty, items.length === 0);
+  if (!items.length) { show(errBox, false); return; }
+  show(errBox, false);
+  for (const it of items) list.appendChild(card(it));
+}
+
+function card(it: QueueItem): HTMLElement {
+  const box = el('article', 'mod-card');
+  box.dataset.id = String(it.id);
+
+  const head = el('div', 'mod-item-head');
+  const name = el('span', 'mod-name'); name.textContent = it.author_name || 'Anonymous';
+  const post = el('span', 'mod-meta');
+  const slug = POST_MAP[String(it.post_id)];
+  if (slug) {
+    const a = el('a'); a.href = slug; a.textContent = 'Post ' + it.post_id;
+    post.append(a);
+  } else {
+    post.textContent = 'Post ' + it.post_id;
+  }
+  const time = el('span', 'mod-meta'); time.textContent = timeAgo(it.created_at);
+  const score = el('span', 'mod-meta mod-score');
+  score.textContent = 'Spam ' + (Number.isFinite(it.spam_score) ? it.spam_score : '?');
+  head.append(name, post, time, score);
+  box.appendChild(head);
+
+  const ex = el('p', 'mod-ex'); ex.textContent = stripHtml(it.excerpt || '');
+  box.appendChild(ex);
+
+  // Action row — btn-deep Approve, btn-ghost Spam, btn-ghost Trash.
+  const row = el('div', 'mod-act-row');
+  const result = el('span', 'mod-result');
+  const mk = (label: string, cls: string, action: string) => {
+    const b = el('button', cls); b.type = 'button'; b.textContent = label;
+    b.addEventListener('click', () => moderate(it.id, action, b, result));
+    return b;
+  };
+  row.append(mk('Approve', 'btn-deep', 'approve'), mk('Spam', 'btn-ghost', 'spam'), mk('Trash', 'btn-ghost', 'trash'));
+  box.appendChild(row);
+  box.appendChild(result);
+
+  // Reply as author — toggle → textarea → submit (lands pending in queue).
+  const toggle = el('button', 'mod-linkbtn'); toggle.type = 'button'; toggle.textContent = 'Reply as author';
+  const rep = el('div', 'mod-reply'); rep.hidden = true;
+  const ta = el('textarea', 'mod-ta'); ta.placeholder = 'Your reply as G-will Chijioke…';
+  const rRow = el('div', 'mod-reply-row');
+  const send = el('button', 'btn-deep'); send.type = 'button'; send.textContent = 'Send reply';
+  const cancel = el('button', 'btn-ghost'); cancel.type = 'button'; cancel.textContent = 'Cancel';
+  const rMsg = el('p', 'mod-reply-msg');
+  rRow.append(send, cancel);
+  rep.append(ta, rRow, rMsg);
+  toggle.addEventListener('click', () => {
+    rep.hidden = !rep.hidden;
+    toggle.textContent = rep.hidden ? 'Reply as author' : 'Hide reply';
+    if (!rep.hidden) ta.focus();
+  });
+  cancel.addEventListener('click', () => { rep.hidden = true; toggle.textContent = 'Reply as author'; });
+  send.addEventListener('click', () => sendReply(it, ta, send, rMsg));
+  box.appendChild(toggle);
+  box.appendChild(rep);
+  return box;
+}
+
+async function moderate(id: number, action: string, btn: HTMLButtonElement, result: HTMLElement): Promise<void> {
+  btn.disabled = true;
+  setNote('');
+  try {
+    const res = await api('/moderation/' + id, { method: 'POST', body: JSON.stringify({ action }) });
+    const data = await res.json().catch(() => ({} as Record<string, unknown>));
+    if (res.status === 401) { await loadQueue(); return; }
+    if (res.ok) {
+      result.textContent = '#' + id + ' ' + action + 'd';
+      setNote('#' + id + ' ' + action + (data && (data as {status?: string}).status ? ' → ' + (data as {status: string}).status : ''));
+      await loadQueue(); // pending row leaves the queue
+    } else {
+      result.textContent = '#' + id + ' ' + String((data as {message?: string}).message || res.status);
+      await loadQueue();
+    }
+  } catch {
+    show(errBox, true);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function sendReply(it: QueueItem, ta: HTMLTextAreaElement, btn: HTMLButtonElement, msg: HTMLElement): Promise<void> {
+  const content = ta.value.trim();
+  if (!content) { msg.textContent = 'Write something first.'; return; }
+  btn.disabled = true; msg.textContent = '';
+  try {
+    const res = await fetch(API + '/comments', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        postId: it.post_id,
+        name: 'G-will Chijioke',
+        content,
+        parent: it.id,
+        consent: true,
+      }),
+    });
+    const data = await res.json().catch(() => ({} as Record<string, unknown>));
+    if (res.ok && (data as {ok?: boolean}).ok) {
+      msg.textContent = 'Reply queued as #' + String((data as {id?: number}).id ?? '?') + ' — approve it below.';
+      ta.value = '';
+      await loadQueue();
+    } else {
+      msg.textContent = String((data as {message?: string}).message || ('HTTP ' + res.status));
+    }
+  } catch {
+    msg.textContent = 'Could not reach the queue — retry.';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+lock?.addEventListener('submit', (ev) => {
+  ev.preventDefault();
+  lockMsg?.classList.remove('is-bad');
+  if (lockMsg) lockMsg.textContent = '';
+  saveTok((tokInp?.value || '').trim());
+  if (!token) { if (lockMsg) lockMsg.textContent = 'Paste the desk token first.'; return; }
+  void loadQueue();
+});
+
+refreshB?.addEventListener('click', () => void loadQueue());
+retryB?.addEventListener('click', () => void loadQueue());
+signoutB?.addEventListener('click', () => {
+  saveTok('');
+  if (tokInp) tokInp.value = '';
+  if (lockMsg) { lockMsg.textContent = 'Signed out.'; lockMsg.classList.remove('is-bad'); }
+  setLocked(true);
+});
+
+setLocked(true);
+if (token) void loadQueue(); // saved token → desk opens straight onto the queue
+</script>

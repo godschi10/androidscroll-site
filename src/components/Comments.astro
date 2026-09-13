@@ -1,11 +1,12 @@
 ---
 // Comments — click-to-load, zero third-party JS, Worker rail (brief §4).
-// v0.5.1: full "terminal editorial" blend per DESIGN-RESEARCH.md PART 4.
-//   section.comments.col mount · rule-s divider · qa-box card anatomy ·
-//   t-mono-av monograms (deterministic brand-green bg) · SVG reaction pills
-//   (bespoke geometry — no emoji chrome, no third-party icons) · notify-form
-//   fields (mint dark-mode) · btn-deep submit · .term honest moderation strip.
-// States: idle → loading (skeleton) → empty | list | error (retry).
+// v0.5.3 (COMMENTSUX-BRIEF Leg A+B): optimistic reactions (§3a.3), heart geometry
+//   candidate B + fill-on-active + non-scaling stroke (§3c), relative time + 60 s
+//   refresh (D1), live count probe via IntersectionObserver (D6), localStorage
+//   own-reaction mirror (§3a.3-i), ONE summary pill → picker (D2), single action
+//   footer row: reactions · Reply · Share · Report (D4/D9/D10), inline reply moves
+//   the form (D8), one thread rail + tightened rhythm (D5/D15), pending ghost row
+//   + structured skeleton (D13/D12). Sanitizer path untouched. No spinners.
 interface Props {
   postId: number;            // REQUIRED — WP post id
   postSlug?: string;         // analytics/moderation context
@@ -42,8 +43,10 @@ const hasCount = typeof initialCount === 'number' && initialCount > 0;
     <a href={policyUrl}>comments policy</a>.</p></noscript>
 
   <div id="comments-inner" hidden>
+    <!-- structured 2-row skeleton — avatar square + 2 bars (brief §4.7 / D12) -->
     <div id="comments-loading" aria-busy="true">
-      <div class="c-skel"></div><div class="c-skel"></div><div class="c-skel"></div>
+      <div class="c-skel-row"><span class="sk-av" aria-hidden="true"></span><span class="sk-lines"><span class="sk-bar"></span><span class="sk-bar sk-bar-s"></span></span></div>
+      <div class="c-skel-row"><span class="sk-av" aria-hidden="true"></span><span class="sk-lines"><span class="sk-bar"></span><span class="sk-bar sk-bar-s"></span></span></div>
     </div>
     <div id="comments-error" hidden>
       <p class="c-err-msg" role="alert">Couldn't load comments — the thread service didn't answer.</p>
@@ -54,10 +57,9 @@ const hasCount = typeof initialCount === 'number' && initialCount > 0;
     <div id="comments-form" hidden>
       <div class="c-form-card">
         <div class="kicker-h">Leave a comment</div>
-        <!-- v0.5.2 reply banner: sits ABOVE the fields so the context is seen
-             the instant Reply is tapped (focus law: banner + textarea in view).
-             role=status announces "Replying to {name}" to SRs. Cancel × restores
-             top-level and returns focus to the originating Reply button. -->
+        <!-- reply strip: sits ABOVE the fields; moves WITH the form card when
+             Reply is tapped (§4.6). role=status announces "Replying to {name}".
+             Cancel returns focus to the originating Reply button (WCAG 2.4.3). -->
         <div id="reply-indicator" hidden role="status">
           <span class="c-re-mark" aria-hidden="true">↳</span>
           <span class="c-reply-txt">Replying to <strong id="reply-name"></strong></span>
@@ -84,13 +86,9 @@ const hasCount = typeof initialCount === 'number' && initialCount > 0;
             <span id="c-count" class="c-count" aria-live="polite"></span>
           </div>
           <input id="c-parent" name="parent" type="hidden" value="0" />
-          <!-- v0.5.2: old in-form reply indicator REMOVED — it duplicated the
-               banner IDs above the fields (getElementById hit the banner first,
-               this block was dead markup). Single source: the banner. -->
-          <!-- honeypot: bots fill it, humans never see it (mirrors vibe_hp) -->
+          <!-- honeypot: bots fill it, humans never see it -->
           <div class="c-hp" aria-hidden="true"><label for="c-hp">Leave this empty</label><input id="c-hp" name="honeypot" type="text" tabindex="-1" autocomplete="off" /></div>
-          <!-- v0.5.1 (3b.3): NO required attr — the JS guard owns feedback so the
-               inline .c-err message always shows (Safari's bubble blocked submit silently). -->
+          <!-- JS guard owns consent feedback (Safari bubble blocked submit silently) -->
           <p class="c-check"><label><input id="c-consent" name="consent" type="checkbox" /> I agree to the <a href={policyUrl} target="_blank" rel="noopener">comments policy</a>. <span class="c-req">*</span></label></p>
           <p class="c-check"><label><input id="c-notify" name="notify" type="checkbox" /> Email me when someone replies.</label></p>
           <button type="submit" id="c-submit" class="btn-deep">Post Comment</button>
@@ -169,6 +167,7 @@ function esc(str: string): string {
 
 const $ = (id: string) => document.getElementById(id);
 const show = (el: HTMLElement | null, on = true) => { if (el) el.hidden = !on; };
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 // ── monogram avatar (t-mono-av house component — §4.3) ──
 // Deterministic bg among the 4 brand greens only: deep, teal, deeper, verdict.
@@ -188,72 +187,344 @@ function initials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
+// ── relative time (brief D1 / §3a P2 — vanilla, no time lib) ──
+function timeAgo(iso: string): string {
+  const t = Date.parse(iso);
+  if (!t) return '';
+  const s = Math.max(0, (Date.now() - t) / 1000);
+  if (s < 45) return 'just now';
+  if (s < 3600) return `${Math.round(s / 60)}m ago`;
+  if (s < 86400) return `${Math.round(s / 3600)}h ago`;
+  if (s < 604800) return `${Math.round(s / 86400)}d ago`;
+  if (s < 2592000) return `${Math.round(s / 604800)}w ago`;
+  if (s < 31536000) return `${Math.round(s / 2592000)}mo ago`;
+  return `${Math.round(s / 31536000)}y ago`;
+}
+function absDate(iso: string): string {
+  const t = Date.parse(iso);
+  if (!t) return '';
+  return new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+function stampTimes(root: ParentNode) {
+  root.querySelectorAll('time.c-date[data-ts]').forEach(el => {
+    const iso = (el as HTMLElement).dataset.ts || '';
+    el.setAttribute('title', absDate(iso)); // honest absolute date on hover/SR
+    el.textContent = timeAgo(iso);
+  });
+}
+// 60 s refresh — skips work while the tab is hidden (plugin-proven guard)
+setInterval(() => { if (!document.hidden) stampTimes(document); }, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) stampTimes(document); });
+
 // ── reactions: BESPOKE inline SVG (King law: geometry, not emoji; zero DNA ──
-// ── from vibe-comments; house line idiom = stroke currentColor, square caps ──
+// ── from vibe-comments; non-scaling stroke keeps hairlines true at 14-18px ──
+// heart = brief §3c.2 CANDIDATE B (two-cubic classic): off-centre lobes + cleft
+// at x=12 — the shipped dome (semicircle apex at centre) is retired for good.
 const REACTIONS = [['like', 'Like'], ['heart', 'Heart'], ['fire', 'Fire'], ['laugh', 'Laugh']] as const;
+const VE = ' vector-effect="non-scaling-stroke"';
 const REACT_SVG: Record<string, string> = {
-  // thumbs-up: straight-line palm + cuff (site idiom, no curves but the shoulder arc)
-  like: '<path d="M8.6 20.4V11l5-8.2c2 0 3.2 1.2 3.2 3.2l-.6 3.4h4c1.6 0 2.6 1.2 2.4 2.6l-1.2 6.4c-.2 1.2-1.2 2-2.4 2H8.6Z"/><path d="M3.6 11.6h5v8.8h-5z"/>',
-  // heart: classic symmetric silhouette — two semicircular arcs (r=6.3) meeting
-  // in a top cleft and a sharp bottom point; same stroke weight as like/fire
-  heart: '<path d="M12 20.2 5.7 13.5a6.3 6.3 0 0 1 12.6 0Z"/>',
-  // flame: angular outline + diamond core
-  fire: '<path d="M12 2.8 16.2 9.4l1.6-1.6c1.6 2 2.6 4 2.6 6.2a8.4 8.4 0 1 1-16.8 0c0-2.2 1-4.2 2.6-6.2l1.6 1.6L12 2.8Z"/><path d="M12 11.4 14.8 15.4 12 19.4 9.2 15.4Z"/>',
-  // laugh: grinning face — squint-eye chevrons (∧ ∧, the laughing read) + wide
-  // filled open-grin; fewer strokes than slit-eyes version = crisper at 13-14px
-  laugh: '<circle cx="12" cy="12" r="8.6"/><path d="M7.2 10.4 9.3 8.6l2.1 1.8M12.6 10.4l2.1-1.8 2.1 1.8"/><path d="M7.6 13.6h8.8a4.4 4.4 0 0 1-8.8 0Z" fill="currentColor" stroke="none"/>',
+  // thumbs-up: straight-line palm + cuff (fills solid when reacted)
+  like: `<path class="fl"${VE} d="M8.6 20.4V11l5-8.2c2 0 3.2 1.2 3.2 3.2l-.6 3.4h4c1.6 0 2.6 1.2 2.4 2.6l-1.2 6.4c-.2 1.2-1.2 2-2.4 2H8.6Z"/><path class="fl"${VE} d="M3.6 11.6h5v8.8h-5z"/>`,
+  // heart: candidate B — two-cubic classic silhouette (brief §3c.2)
+  heart: `<path class="fl"${VE} d="M12 20.8C12 20.8 3.2 15 3.2 9.4 3.2 6.4 5.5 4.3 8.2 4.3c1.8 0 3.1 1 3.8 2.3.7-1.3 2-2.3 3.8-2.3 2.7 0 5 2.1 5 5.1 0 5.6-8.8 11.4-8.8 11.4Z"/>`,
+  // flame: angular outline + diamond core (core fills when reacted)
+  fire: `<path${VE} d="M12 2.8 16.2 9.4l1.6-1.6c1.6 2 2.6 4 2.6 6.2a8.4 8.4 0 1 1-16.8 0c0-2.2 1-4.2 2.6-6.2l1.6 1.6L12 2.8Z"/><path class="fl"${VE} d="M12 11.4 14.8 15.4 12 19.4 9.2 15.4Z"/>`,
+  // laugh: grinning face — squint-eye chevrons + wide filled open-grin
+  laugh: `<circle${VE} cx="12" cy="12" r="8.6"/><path${VE} d="M7.2 10.4 9.3 8.6l2.1 1.8M12.6 10.4l2.1-1.8 2.1 1.8"/><path d="M7.6 13.6h8.8a4.4 4.4 0 0 1-8.8 0Z" fill="currentColor" stroke="none"/>`,
 };
 const reactIcon = (k: string) =>
   '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + (REACT_SVG[k] || '') + '</svg>';
 
-function reactionBar(c: any): string {
-  const r = c.reactions || {};
-  return `<div class="c-reactions">` + REACTIONS.map(([k, label]) => {
-    const n = r[k] || 0;
-    return `<button type="button" class="c-react" data-id="${esc(String(c.id))}" data-emoji="${k}"`
-      + ` aria-pressed="false" aria-label="${label}${n ? ', ' + n + ' so far' : ''}">`
-      + reactIcon(k) + `<span class="c-react-n">${n || ''}</span></button>`;
-  }).join('') + `</div>`;
+// ── own-reaction mirror (brief §3a.3 option i) — localStorage, try/catch ──
+const RX_KEY = 'androidscroll:rx:' + postId;
+function readMirror(): Record<string, string[]> {
+  try {
+    const raw = localStorage.getItem(RX_KEY);
+    const o = raw ? JSON.parse(raw) : {};
+    return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {};
+  } catch { return {}; } // private browsing / disabled storage → degrade silently
+}
+function writeMirror(o: Record<string, string[]>) {
+  try { localStorage.setItem(RX_KEY, JSON.stringify(o)); } catch { /* non-fatal */ }
 }
 
+// ── per-comment reaction state (optimistic source of truth) ──
+const CSTATE = new Map<string, { counts: Record<string, number>; mine: Set<string>; err?: string }>();
+
+function stateFor(c: any) {
+  const id = String(c.id);
+  const counts: Record<string, number> = {};
+  for (const [k] of REACTIONS) counts[k] = Number((c.reactions && c.reactions[k]) || 0);
+  const mine = new Set<string>();
+  const stored = readMirror()[id];
+  if (Array.isArray(stored)) for (const k of REACTIONS) if (stored.includes(k[0])) mine.add(k[0]);
+  const st = { counts, mine };
+  CSTATE.set(id, st);
+  return st;
+}
+function persistMine(id: string, st: { mine: Set<string> }) {
+  const m = readMirror();
+  if (st.mine.size) m[id] = Array.from(st.mine); else delete m[id];
+  writeMirror(m);
+}
+
+function total(st: { counts: Record<string, number> }): number {
+  return REACTIONS.reduce((n, [k]) => n + (st.counts[k] || 0), 0);
+}
+
+// ONE summary pill (P3): overlapping 18px glyph bubbles (top 3 types) + aggregate
+// total; zero-state = dashed '+ React' slot-frame idiom. Tap → picker.
+function sumInner(st: { counts: Record<string, number>; mine: Set<string> }): string {
+  const t = total(st);
+  if (!t) return `<span class="rx-add" aria-hidden="true">+</span>React`;
+  const top = REACTIONS.map(([k]) => k)
+    .filter(k => (st.counts[k] || 0) > 0)
+    .sort((a, b) => st.counts[b] - st.counts[a])
+    .slice(0, 3)
+    .map(k => `<span class="rx-bub${st.mine.has(k) ? ' is-mine' : ''}" data-emoji="${k}">${reactIcon(k)}</span>`)
+    .join('');
+  return `<span class="rx-stack" aria-hidden="true">${top}</span><span class="rx-total">${t}</span>`;
+}
+
+function reactionWrap(c: any, st: any): string {
+  const id = esc(String(c.id));
+  const opts = REACTIONS.map(([k, label]) =>
+    `<button type="button" class="c-react" data-id="${id}" data-emoji="${k}" aria-pressed="${st.mine.has(k)}"` +
+    ` aria-label="${label} reaction">${reactIcon(k)}<span class="c-react-n">${st.counts[k] || ''}</span></button>`).join('');
+  return `<span class="c-rx" data-cid="${id}">` +
+    `<button type="button" class="c-react-sum${total(st) ? '' : ' is-zero'}" data-cid="${id}" aria-expanded="false" aria-haspopup="true"` +
+    ` aria-label="Reactions — open picker">${sumInner(st)}</button>` +
+    `<span class="c-react-picker" hidden role="group" aria-label="Choose a reaction">${opts}</span>` +
+    `<span class="c-rx-err" role="status" hidden></span></span>`;
+}
+
+function renderRx(id: string) {
+  const st = CSTATE.get(id); if (!st) return;
+  const wrap = document.querySelector(`.c-rx[data-cid="${id}"]`); if (!wrap) return;
+  const sum = wrap.querySelector('.c-react-sum');
+  if (sum) {
+    (sum as HTMLElement).innerHTML = sumInner(st);
+    sum.classList.toggle('is-zero', total(st) === 0);
+    sum.setAttribute('aria-label', total(st) ? `${total(st)} reactions — open picker` : 'React — open picker');
+  }
+  wrap.querySelectorAll('.c-react').forEach(b => {
+    const el = b as HTMLElement, k = el.dataset.emoji || '';
+    el.setAttribute('aria-pressed', String(st.mine.has(k)));
+    const n = el.querySelector('.c-react-n');
+    if (n) n.textContent = st.counts[k] ? String(st.counts[k]) : '';
+    el.classList.toggle('is-error', !!st.err);
+  });
+  const errEl = wrap.querySelector('.c-rx-err');
+  if (errEl) {
+    errEl.textContent = st.err || '';
+    (errEl as HTMLElement).hidden = !st.err;
+  }
+}
+
+// 240 ms spring pulse (§4.8) — the only acknowledgement a tap ever gets. No spinner.
+function pop(el: HTMLElement) {
+  if (REDUCED.matches) return;
+  el.classList.remove('c-rx-pop');
+  void (el as HTMLElement).offsetWidth; // restart the keyframe
+  el.classList.add('c-rx-pop');
+}
+
+// ── optimistic state machine (brief §3a.3) — kills the silent return at old :228 ──
 async function toggleReact(btn: HTMLElement) {
-  if (btn.dataset.busy) return;
-  btn.dataset.busy = '1';
+  if (btn.classList.contains('is-syncing')) return; // tap-block while syncing
+  const cid = btn.dataset.id || '', emoji = btn.dataset.emoji || '';
+  const st = CSTATE.get(cid); if (!st || !(emoji in st.counts)) return;
+  st.err = undefined;
+
+  // PENDING (local): instant flip + count delta (never below 0) + pulse
+  const was = st.mine.has(emoji);
+  const delta = was ? -1 : 1;
+  if (was) st.mine.delete(emoji); else st.mine.add(emoji);
+  st.counts[emoji] = Math.max(0, (st.counts[emoji] || 0) + delta);
+  btn.classList.add('is-syncing');
+  pop(btn);
+  renderRx(cid);
+
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 5000); // 5 s abort → rollback path
   try {
-    const res = await fetch(`${API}/${encodeURIComponent(btn.dataset.id || '')}/react`, {
+    const res = await fetch(`${API}/${encodeURIComponent(cid)}/react`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ emoji: btn.dataset.emoji, postId: Number(postId) }),
+      body: JSON.stringify({ emoji, postId: Number(postId) }),
+      signal: ctl.signal,
     });
-    if (!res.ok) return;
+    clearTimeout(timer);
+    if (!res.ok) { let msg = ''; try { msg = (await res.json()).message || ''; } catch {} throw new Error(msg || String(res.status)); }
     const data = await res.json();
-    const bar = btn.parentElement as HTMLElement;
-    bar.querySelectorAll('.c-react').forEach(b => {
-      const el = b as HTMLElement, n = el.querySelector('.c-react-n');
-      const count = (data.counts && data.counts[el.dataset.emoji || '']) || 0;
-      el.setAttribute('aria-pressed', String(b === btn ? !!data.active : false));
-      if (n) n.textContent = count ? String(count) : '';
-    });
-  } catch { /* counts stay as loaded — never block the reader */ }
-  finally { delete btn.dataset.busy; }
+    // CONFIRMED: adopt the server's counts; mirror survives reload (§3a.3-i)
+    if (data && data.counts) for (const [k] of REACTIONS) if (typeof data.counts[k] === 'number') st.counts[k] = data.counts[k];
+    if (data && typeof data.active === 'boolean') { if (data.active) st.mine.add(emoji); else st.mine.delete(emoji); }
+    persistMine(cid, st);
+  } catch (e: any) {
+    // ROLLED BACK: revert the flip + delta, surface it — never silent
+    if (was) st.mine.add(emoji); else st.mine.delete(emoji);
+    st.counts[emoji] = Math.max(0, (st.counts[emoji] || 0) - delta);
+    persistMine(cid, st);
+    st.err = e && e.name === 'AbortError'
+      ? 'Reaction timed out — tap to retry.'
+      : "Couldn't save that reaction — tap to retry.";
+    pop(btn);
+  } finally {
+    btn.classList.remove('is-syncing');
+    renderRx(cid);
+  }
 }
 
-// ── render: 1-level threading (CodingHorror law — §4.6) ──
+// ── summary ⇄ picker ──
+function closePickers(except?: HTMLElement) {
+  document.querySelectorAll('.comments .c-react-picker').forEach(p => {
+    if (p === except) return;
+    (p as HTMLElement).hidden = true;
+    const w = p.closest('.c-rx');
+    const sum = w && w.querySelector('.c-react-sum');
+    if (sum) sum.setAttribute('aria-expanded', 'false');
+  });
+}
+function togglePicker(sum: HTMLElement) {
+  const wrap = sum.closest('.c-rx'); if (!wrap) return;
+  const picker = wrap.querySelector('.c-react-picker') as HTMLElement | null; if (!picker) return;
+  const open = picker.hidden;
+  closePickers(open ? picker : undefined);
+  picker.hidden = !open;
+  sum.setAttribute('aria-expanded', String(open));
+}
+document.addEventListener('click', (e) => {
+  const t = e.target as Element;
+  if (!t.closest || !t.closest('.c-rx')) closePickers();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closePickers();
+});
+
+// ── share: perma-link comment-{id} + copy + 'Copied' flash (§4.4) ──
+function copyText(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text).then(() => true, () => legacyCopy(text));
+    }
+  } catch { /* fall through */ }
+  return Promise.resolve(legacyCopy(text));
+}
+function legacyCopy(text: string): boolean {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;left:-9999px;top:0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch { return false; }
+}
+function flash(btn: HTMLElement, label: string, ms: number, onDone?: () => void) {
+  const keep = btn.textContent || '';
+  btn.textContent = label;
+  btn.classList.add('is-flash');
+  setTimeout(() => { btn.textContent = keep; btn.classList.remove('is-flash'); if (onDone) onDone(); }, ms);
+}
+
+// ── report: existing worker endpoint (brief D10) — minimal reason select ──
+function reportPanel(id: string): string {
+  return `<span class="c-report" hidden><label class="sr-only" for="c-rep-sel-${id}">Reason</label>` +
+    `<select id="c-rep-sel-${id}" class="c-rep-sel">` +
+    `<option value="spam">Spam</option><option value="abusive">Abusive</option><option value="off-topic">Off topic</option></select>` +
+    `<button type="button" class="c-rep-go" data-id="${id}">Send</button>` +
+    `<button type="button" class="c-rep-x" data-id="${id}">Cancel</button></span>`;
+}
+async function sendReport(btn: HTMLElement) {
+  const id = btn.dataset.id || '';
+  const panel = btn.closest('.c-report');
+  const sel = panel && (panel.querySelector('select') as HTMLSelectElement | null);
+  const reason = (sel && sel.value) || 'unspecified';
+  btn.disabled = true;
+  try {
+    const res = await fetch(`${API}/${encodeURIComponent(id)}/report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason, postId: Number(postId) }),
+    });
+    if (res.ok || res.status === 202) {
+      if (panel) panel.innerHTML = `<span class="c-rep-done" role="status">Reported — thank you.</span>`;
+    } else {
+      const d = await res.json().catch(() => ({} as any));
+      if (panel) panel.innerHTML = `<span class="c-rep-err" role="status">${esc(d && d.message ? d.message : 'Could not send the report — try again shortly.')}</span>`;
+    }
+  } catch {
+    if (panel) panel.innerHTML = `<span class="c-rep-err" role="status">Network error — the report was not sent.</span>`;
+  }
+}
+
+// ── inline reply: the form MOVES into the comment (§4.6 / P6) ──
+let formHome: HTMLElement | null = null;
+let movedCard: HTMLElement | null = null;
+function restoreFormHome() {
+  const card = movedCard || (document.querySelector('.comments .c-form-card') as HTMLElement | null);
+  if (card && formHome && card.parentElement !== formHome) formHome.appendChild(card);
+}
+function openReply(btn: HTMLElement) {
+  const card = document.querySelector('.comments .c-form-card') as HTMLElement | null;
+  const item = btn.closest('.c-item') as HTMLElement | null;
+  if (!card || !item) return;
+  if (!formHome) formHome = card.parentElement;
+  let slot = null;
+  for (const ch of Array.from(item.children)) {
+    if ((ch as HTMLElement).classList && (ch as HTMLElement).classList.contains('c-reply-slot')) { slot = ch as HTMLElement; break; }
+  } // :scope avoided — child scan is portable
+  if (!slot) { slot = document.createElement('div'); slot.className = 'c-reply-slot'; item.appendChild(slot); }
+  slot.appendChild(card); // SAME node moves — focus/values survive
+  movedCard = card;
+  item.classList.add('has-form');
+  const parent = $('c-parent') as HTMLInputElement;
+  if (parent) parent.value = btn.dataset.id || '0';
+  const indicator = $('reply-indicator');
+  const replyName = $('reply-name');
+  if (indicator && replyName) { replyName.textContent = btn.dataset.name || ''; indicator.hidden = false; }
+  (window as any).__replyBtn = btn;
+  const ta = $('c-content') as HTMLTextAreaElement | null;
+  if (ta) ta.focus();
+  try { card.scrollIntoView({ block: 'nearest' }); } catch { card.scrollIntoView(); }
+}
+document.getElementById('cancel-reply')?.addEventListener('click', () => {
+  const btn = (window as any).__replyBtn as HTMLElement | null;
+  clearReply();
+  if (btn) btn.focus(); // return focus to the originating Reply (WCAG 2.4.3)
+});
+
+// ── render: 1-level threading, ONE thread rail, single footer row ──
 function renderThread(comments: any[]): string {
   const top     = comments.filter((c: any) => !c.parent);
   const replies = comments.filter((c: any) => c.parent);
 
   const renderComment = (c: any, replyToName = ''): string => {
     const safeName = esc(c.name || 'Anonymous');
-    const safeDate = esc(new Date(c.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }));
+    const iso = String(c.created_at || '');
+    const id = esc(String(c.id));
     const linkOpen  = c.url ? `<a href="${esc(c.url)}" rel="nofollow noopener noreferrer" target="_blank">` : '';
     const linkClose = c.url ? '</a>' : '';
     const childReplies = replies.filter((r: any) => r.parent === c.id);
     const replyMark = replyToName
       ? `<div class="c-re-line"><span class="c-re-mark" aria-hidden="true">↳</span> re: ${esc(replyToName)}</div>`
       : '';
+    const st = stateFor(c);
+    const foot = `<div class="c-foot">` +
+      reactionWrap(c, st) +
+      `<span class="c-actions">` +
+        `<button class="reply-btn" data-id="${id}" data-name="${safeName}" type="button">Reply</button>` +
+        `<button class="c-share" data-id="${id}" type="button">Share</button>` +
+        `<button class="c-report-btn" data-id="${id}" type="button" aria-expanded="false">Report</button>` +
+      `</span>` +
+      reportPanel(id) +
+      `</div>`;
     return `
-      <div class="c-item${replyToName ? ' c-reply' : ''}${c.is_author ? ' c-by-author' : ''}">
+      <div class="c-item${replyToName ? ' c-reply' : ''}${c.is_author ? ' c-by-author' : ''}" id="comment-${id}">
         ${replyMark}
         <div class="c-meta">
           <span class="c-avatar" aria-hidden="true" style="background:${avatarBg(c)}">${esc(initials(c.name || 'Anonymous'))}</span>
@@ -261,13 +532,12 @@ function renderThread(comments: any[]): string {
             <span class="c-name-wrap">${linkOpen}<span class="c-name">${safeName}</span>${linkClose}</span>
             <span class="c-sub">
               ${c.is_author ? '<span class="c-badge">★ AUTHOR</span>' : ''}
-              <time class="c-date" datetime="${esc(String(c.created_at || ''))}">${safeDate}</time>
+              <time class="c-date" data-ts="${esc(iso)}" datetime="${esc(iso)}">${esc(absDate(iso))}</time>
             </span>
           </span>
         </div>
         <div class="c-body">${sanitizeCommentHtml(String(c.content || ''))}</div>
-        ${reactionBar(c)}
-        <button class="reply-btn" data-id="${esc(String(c.id))}" data-name="${safeName}" type="button">Reply</button>
+        ${foot}
       </div>
       ${childReplies.length
         ? `<div class="c-kids">${childReplies.map((r: any) => renderComment(r, c.name || 'Anonymous')).join('')}</div>`
@@ -275,28 +545,68 @@ function renderThread(comments: any[]): string {
     `;
   };
 
-  return top.map((c: any) => renderComment(c)).join('');
+  return `<div class="c-thread">${top.map((c: any) => renderComment(c)).join('')}</div>`;
 }
 
+// ── delegated thread interactions (bind once, survive re-render) ──
 function bindThread(list: HTMLElement) {
-  list.querySelectorAll('.reply-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id   = (btn as HTMLElement).dataset.id;
-      const name = (btn as HTMLElement).dataset.name;
-      const parent = $('c-parent') as HTMLInputElement;
-      if (parent) parent.value = id || '0';
-      const indicator = $('reply-indicator');
-      const replyName = $('reply-name');
-      if (indicator && replyName) {
-        replyName.textContent = name || '';
-        indicator.hidden = false;
-      }
-      (window as any).__replyBtn = btn;
-      ($('c-content') as HTMLTextAreaElement)?.focus();
-    });
+  if (list.dataset.bound) return;
+  list.dataset.bound = '1';
+  list.addEventListener('click', (e) => {
+    const t = e.target as Element;
+    const b = t.closest && t.closest('button') as HTMLElement | null;
+    if (!b || !list.contains(b)) return;
+    if (b.classList.contains('c-react')) { toggleReact(b); return; }
+    if (b.classList.contains('c-react-sum')) { togglePicker(b); return; }
+    if (b.classList.contains('reply-btn')) { openReply(b); return; }
+    if (b.classList.contains('c-share')) {
+      const id = b.dataset.id || '';
+      const url = `${location.origin}${location.pathname}#comment-${id}`;
+      copyText(url).then(ok => flash(b as HTMLElement, ok ? 'Copied' : 'Copy failed', 1600));
+      return;
+    }
+    if (b.classList.contains('c-report-btn')) {
+      const item = b.closest('.c-item');
+      const panel = item && item.querySelector('.c-report') as HTMLElement | null;
+      if (panel) { panel.hidden = !panel.hidden; b.setAttribute('aria-expanded', String(!panel.hidden)); }
+      return;
+    }
+    if (b.classList.contains('c-rep-go')) { sendReport(b); return; }
+    if (b.classList.contains('c-rep-x')) {
+      const panel = b.closest('.c-report') as HTMLElement | null;
+      const item = b.closest('.c-item');
+      const rb = item && item.querySelector('.c-report-btn') as HTMLElement | null;
+      if (panel) panel.hidden = true;
+      if (rb) { rb.setAttribute('aria-expanded', 'false'); rb.focus(); }
+      return;
+    }
   });
-  list.querySelectorAll('.c-react').forEach(b =>
-    b.addEventListener('click', () => toggleReact(b as HTMLElement)));
+}
+
+// ── pending own-comment ghost row (D13 / P8) — session-only, honest ──
+function addPendingRow(name: string, content: string) {
+  const list = $('comments-list'); if (!list) return;
+  let thread = list.querySelector('.c-thread') as HTMLElement | null;
+  if (!thread) { // empty thread until now — seed the rail and drop the empty note
+    list.innerHTML = '';
+    thread = document.createElement('div');
+    thread.className = 'c-thread';
+    list.appendChild(thread);
+  }
+  const div = document.createElement('div');
+  div.className = 'c-item is-pending';
+  const safe = esc(name || 'Anonymous');
+  div.innerHTML =
+    `<div class="c-meta">` +
+      `<span class="c-avatar is-ghost" aria-hidden="true" style="background:${AV_BG[avHash(safe) % AV_BG.length]}">${esc(initials(name || 'Anonymous'))}</span>` +
+      `<span class="c-headline"><span class="c-name">${safe}</span>` +
+      `<span class="c-sub"><span class="c-badge c-pend-chip">AWAITING REVIEW</span>` +
+      `<time class="c-date" data-ts="${esc(new Date().toISOString())}" datetime="${esc(new Date().toISOString())}">just now</time></span></span>` +
+    `</div>` +
+    `<div class="c-body">${esc(content).replace(/\n/g, '<br>')}</div>`;
+  thread.appendChild(div);
+  stampTimes(div);
+  try { div.scrollIntoView({ block: 'nearest' }); } catch { div.scrollIntoView(); }
 }
 
 // ── states: loading → empty | list | error(retry) ──
@@ -320,8 +630,11 @@ async function loadComments() {
       show(list);
     } else {
       if (list) {
+        restoreFormHome();            // never strand the form in a re-rendered slot
+        document.querySelectorAll('.comments .c-item.has-form').forEach(el => el.classList.remove('has-form'));
         list.innerHTML = renderThread(comments);
         bindThread(list);
+        stampTimes(list);
         show(list);
       }
     }
@@ -333,12 +646,49 @@ async function loadComments() {
   }
 }
 
+// ── live count probe (brief §3b / P1) — one tiny GET, only when the reader ──
+// ── reaches the section (IntersectionObserver, 200px lead). Silent on fail. ──
+function patchCount(n: number) {
+  const btn = $('load-comments-btn');
+  if (btn && !btn.hidden) {
+    btn.innerHTML = n > 0
+      ? `Read the <span class="cnt">${n}</span>&nbsp;comments`
+      : `Be the first to comment`;
+  }
+  const side = section && section.querySelector('.s-side');
+  if (side) side.textContent = n > 0 ? `${n} approved · new posts held for review` : 'New posts held for review';
+  // article meta live-count hook (data-live-count added in [...slug].astro)
+  document.querySelectorAll(`[data-live-count="${postId}"]`).forEach(el => {
+    const num = el.querySelector('.lc-n'), lbl = el.querySelector('.lc-l');
+    if (num) num.textContent = String(n);
+    if (lbl) lbl.textContent = n === 1 ? 'comment' : 'comments';
+  });
+}
+function fetchCount() {
+  fetch(`${API}/count?post=${encodeURIComponent(postId)}`, { headers: { accept: 'application/json' } })
+    .then(r => (r.ok ? r.json() : null))
+    .then(d => { if (d && typeof d.count === 'number') patchCount(d.count); })
+    .catch(() => { /* baked value stays — never error for a cosmetic number */ });
+}
+if (section) {
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      for (const ent of entries) {
+        if (ent.isIntersecting) { io.disconnect(); fetchCount(); break; }
+      }
+    }, { rootMargin: '200px 0px' });
+    io.observe(section);
+  } else {
+    fetchCount();
+  }
+}
+
 // ── form: validate → POST → per-code handling (brief §4.3) ──
 function setMsg(text: string, ok = false, field?: HTMLElement | null) {
   const msg = $('form-msg');
   if (msg) {
     msg.textContent = text;
-    msg.className = ok ? 'c-msg-ok' : 'c-err'; // term strip vs mono-deep error (v0.5.1 §4.8)
+    msg.className = ok ? 'c-msg-ok' : 'c-err'; // term strip vs mono-deep error
   }
   if (field) field.focus();
 }
@@ -359,6 +709,10 @@ function clearReply() {
   const parent = $('c-parent') as HTMLInputElement;
   if (parent) parent.value = '0';
   show($('reply-indicator'), false);
+  restoreFormHome();
+  if (movedCard) movedCard.classList.remove('has-form');
+  document.querySelectorAll('.comments .c-item.has-form').forEach(el => el.classList.remove('has-form'));
+  movedCard = null;
 }
 
 function updateCount() {
@@ -405,14 +759,15 @@ document.getElementById('comment-form')?.addEventListener('submit', async (e) =>
     const data = await res.json().catch(() => ({} as any));
 
     if (res.status === 201) {
+      const wasPending = data.status !== 'approved';
       form.reset();
-      clearReply();
+      clearReply(); // restores the form to the bottom before anything re-renders
       updateCount();
-      if (data.status === 'approved') {
-        // refresh just this post's thread (brief §4.2.5 — no whole-page reload, no polling)
-        loadComments();
+      if (!wasPending) {
+        loadComments(); // refresh just this post's thread (no reload, no polling)
         setMsg('Posted — live in the thread above.', true);
       } else {
+        addPendingRow(name, content); // ghost row: your words are held, not lost
         setMsg('Posted — awaiting moderation. It’ll appear once the editor approves.', true);
       }
     } else if (res.status === 400) {
@@ -435,15 +790,9 @@ document.getElementById('comment-form')?.addEventListener('submit', async (e) =>
   }
 });
 
-document.getElementById('cancel-reply')?.addEventListener('click', () => {
-  clearReply();
-  const btn = (window as any).__replyBtn as HTMLElement | null;
-  if (btn) btn.focus(); // return focus to the Reply button (WCAG 2.4.3)
-});
-
 $('c-content')?.addEventListener('input', updateCount);
 
-// ── idle → first click only. Zero requests until intent, no polling. ──
+// ── idle → first click only. ONE count probe when the reader reaches us. ──
 const loadBtn = $('load-comments-btn');
 const inner   = $('comments-inner');
 if (loadBtn && inner) {
@@ -457,44 +806,61 @@ $('retry-comments')?.addEventListener('click', () => loadComments());
 </script>
 
 <style is:global>
-/* v0.5.1 — terminal-editorial blend. Every selector namespaced under .comments;
-   brand tokens only (DESIGN-RESEARCH PART 1:20-39). The old alien-token block
-   (--border-light/--brand-primary/--radius-main/...) is dead — no UA fallbacks left. */
+/* v0.5.3 — COMMENTSUX Leg A+B. Brand tokens only (global.css:23-38); radius
+   ladder 2/4 (+ 999 pill idiom); motion ≤240 ms, transform/opacity/border only,
+   all prefers-reduced-motion guarded; 44 px touch law on (hover:none). */
 .comments{margin-top:clamp(28px,5vh,44px)}
 .comments .c-noscript{font-family:var(--mono);font-size:11px;color:var(--muted)}
 .comments .c-noscript a{color:var(--deep)}
 
-/* load control — .launch/.btn-ghost voice (§4.10/:670) */
+/* screen-reader-only label helper (report select) */
+.comments .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* load control — .launch/.btn-ghost voice */
 .comments #load-comments-btn{display:flex;width:fit-content;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--deep);background:var(--paper);border:1px solid var(--deep);padding:11px 16px;border-radius:2px;min-height:44px;cursor:pointer;margin:2px 0 18px;transition:background-color .16s ease-out}
 .comments #load-comments-btn:hover{background:var(--band);text-decoration:none}
-.comments #load-comments-btn .cnt{margin:0 2px}
+.comments #load-comments-btn .cnt{margin:0 2px;font-variant-numeric:tabular-nums}
 .comments #comments-inner{margin-top:4px}
 
-/* skeleton — .slot-frame dashed idiom (§4.9/:238) */
-.comments .c-skel{height:72px;border:1px dashed var(--line-2);background:var(--band);border-radius:4px;margin-bottom:12px;animation:c-pulse 1.2s ease-in-out infinite}
+/* skeleton — structured 2 rows: 36px avatar square + 2 bars (§4.7 / D12) */
+.comments .c-skel-row{display:flex;gap:12px;align-items:flex-start;border:1px dashed var(--line-2);background:var(--band);border-radius:4px;padding:14px 16px;margin-bottom:10px;animation:c-pulse 1.2s ease-in-out infinite}
+.comments .sk-av{flex:none;width:36px;height:36px;background:var(--band-2);border-radius:2px}
+.comments .sk-lines{flex:1;display:flex;flex-direction:column;gap:8px;padding-top:4px}
+.comments .sk-bar{display:block;height:10px;width:78%;background:var(--band-2);border-radius:2px}
+.comments .sk-bar-s{width:52%}
 @keyframes c-pulse{50%{opacity:.5}}
-@media (prefers-reduced-motion: reduce){.comments .c-skel{animation:none}}
+@media (prefers-reduced-motion: reduce){.comments .c-skel-row{animation:none}}
 
-/* error/retry — .term box + .btn-ghost (§4.9) */
+/* error/retry — .term box + .btn-ghost */
 .comments #comments-error{background:var(--band);border:1px solid var(--line-2);border-left:3px solid var(--deep);padding:11px 14px;margin-bottom:16px}
 .comments .c-err-msg{font-family:var(--mono);font-size:12px;color:var(--ink-2);margin:0 0 10px;line-height:1.5}
 .comments #retry-comments{display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:var(--deep);background:var(--paper);border:1px solid var(--deep);border-radius:2px;padding:0 16px;min-height:44px;cursor:pointer;transition:background-color .16s ease-out}
 .comments #retry-comments:hover{background:var(--band);text-decoration:none}
 
-/* comment card — .qa-box anatomy (§4.2/:484) */
-.comments .c-item{position:relative;background:var(--paper);border:1px solid var(--line-2);border-left:4px solid var(--line-2);border-radius:4px;padding:16px 18px;margin-bottom:12px;transition:border-left-color .16s ease-out}
-.comments .c-item:hover{border-left-color:var(--deep)}
-.comments .c-by-author{border-left-color:var(--verdict);background:var(--band)}
+/* ONE rail for the whole thread (§4.1 / D5) — per-card rails are gone */
+.comments .c-thread{border-left:2px solid var(--line);padding-left:clamp(12px,3vw,22px);margin-left:2px}
+.comments .c-thread:hover{border-left-color:var(--line-2)}
+
+/* comment card — flat hairline box, tightened rhythm (§4.2: 14/16 pad, 10 gap) */
+.comments .c-item{position:relative;background:var(--paper);border:1px solid var(--line-2);border-radius:4px;padding:14px 16px;margin-bottom:10px;scroll-margin-top:84px}
+.comments .c-item:target{border-color:var(--deep)}
+.comments .c-by-author{border-left:4px solid var(--verdict);background:var(--band)} /* author = the ONE card with a solid rail */
 .comments .c-by-author:hover{border-left-color:var(--deep)}
 
-/* threading — 1 level, left rail by wrapper (§4.6/:179 b-kids idiom) */
-.comments .c-kids{margin:0 0 12px clamp(16px,4vw,32px);padding-left:clamp(10px,2vw,16px);border-left:2px solid var(--line);display:flex;flex-direction:column;gap:12px}
-.comments .c-kids:hover{border-left-color:var(--line-2)}
+/* pending ghost row (P8) — dashed rail, session-only */
+.comments .c-item.is-pending{border-left:2px dashed var(--line-2);background:var(--band)}
+.comments .c-item.is-pending .c-avatar{opacity:.6}
+.comments .c-item.is-pending .c-body{font-style:italic;color:var(--muted)}
+.comments .c-pend-chip{border-color:var(--deep);color:var(--deep)}
+html[data-theme=dark] .comments .c-pend-chip{border-color:var(--teal);color:var(--teal)} /* mint-on-dark-green fails contrast (§4.9.3) */
+
+/* threading — 1 level, sub-rail kept (§4.5) */
+.comments .c-kids{margin:0 0 10px clamp(14px,3.5vw,28px);padding-left:clamp(10px,2vw,16px);border-left:2px solid var(--line);display:flex;flex-direction:column;gap:10px}
 .comments .c-reply{margin-bottom:0}
 .comments .c-re-line{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.03em;margin-bottom:8px}
 .comments .c-re-mark{color:var(--deep)}
 
-/* meta row (§4.3/§4.4) */
+/* meta row */
 .comments .c-meta{display:flex;align-items:center;gap:12px;margin-bottom:10px}
 .comments .c-avatar{flex:none;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:-.02em;color:var(--on-deep);background:var(--deep);border-radius:2px}
 .comments .c-headline{min-width:0}
@@ -502,11 +868,11 @@ $('retry-comments')?.addEventListener('click', () => loadComments());
 .comments .c-name-wrap a{color:var(--deep);text-decoration:none}
 .comments .c-name-wrap a .c-name{text-decoration:underline;text-underline-offset:3px}
 .comments .c-sub{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:2px}
-.comments .c-badge{border:1px solid var(--deep);color:var(--deep);padding:2px 7px;font-family:var(--mono);font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:9.5px;border-radius:2px} /* .upd anatomy :438 */
-.comments .c-date{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.comments .c-badge{border:1px solid var(--deep);color:var(--deep);padding:2px 7px;font-family:var(--mono);font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:9.5px;border-radius:2px} /* .upd anatomy */
+.comments .c-date{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em;font-variant-numeric:tabular-nums} /* relative + title=absolute (D1) */
 
-/* body (§4.5) */
-.comments .c-body{font-size:15px;line-height:1.65;color:var(--ink-2);overflow-wrap:break-word}
+/* body (§4.2 — 15.5/1.62) */
+.comments .c-body{font-size:15.5px;line-height:1.62;color:var(--ink-2);overflow-wrap:break-word;max-width:68ch}
 .comments .c-body p{margin:0 0 .7em}
 .comments .c-body p:last-child{margin-bottom:0}
 .comments .c-body a{color:var(--deep);text-decoration:underline;text-underline-offset:3px}
@@ -515,59 +881,107 @@ $('retry-comments')?.addEventListener('click', () => loadComments());
 .comments .c-body pre{background:var(--band);border:1px solid var(--line-2);border-radius:4px;padding:10px 12px;overflow-x:auto}
 .comments .c-body ul,.comments .c-body ol{margin:8px 0;padding-left:22px}
 
-/* reaction pills (§4.7 — post-tags skeleton :632, shrunk) */
-.comments .c-reactions{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
-.comments .c-react{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line-2);border-radius:999px;background:var(--paper);padding:4px 10px;min-height:32px;font-family:var(--mono);font-size:12px;color:var(--muted);cursor:pointer;transition:border-color .14s ease-out,color .14s ease-out,background-color .14s ease-out}
-.comments .c-react svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:square;stroke-linejoin:miter;flex:none}
+/* single action footer row (§4.4): summary · Reply · Share · Report */
+.comments .c-foot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-top:1px solid var(--line);margin-top:12px;padding-top:10px}
+.comments .c-rx{position:relative;display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.comments .c-actions{margin-left:auto;display:flex;align-items:center;gap:14px}
+
+/* reaction summary pill (P3) — house pill skeleton (post-tags), one per comment */
+.comments .c-react-sum{display:inline-flex;gap:7px;align-items:center;border:1px solid var(--line-2);border-radius:999px;background:var(--paper);padding:4px 11px;min-height:32px;font-family:var(--mono);font-size:12px;color:var(--muted);cursor:pointer;transition:border-color .14s ease-out,color .14s ease-out}
+.comments .c-react-sum:hover{border-color:var(--deep);color:var(--deep);text-decoration:none}
+.comments .c-react-sum.is-zero{border-style:dashed} /* '+ React' slot-frame idiom */
+.comments .rx-add{color:var(--deep);font-weight:600}
+.comments .rx-stack{display:inline-flex;align-items:center}
+.comments .rx-bub{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:1px solid var(--line-2);border-radius:999px;background:var(--paper);color:var(--muted);margin-left:-6px}
+.comments .rx-bub:first-child{margin-left:0}
+.comments .rx-bub svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:square;stroke-linejoin:miter;flex:none}
+.comments .rx-bub.is-mine .fl{fill:currentColor}
+.comments .rx-total{font-family:var(--mono);font-weight:600;font-size:12px;color:var(--deep);font-variant-numeric:tabular-nums;margin-left:2px}
+
+/* picker row — 4 options, glyph + per-type count, 140 ms pop-in (§4.3/§4.8) */
+.comments .c-react-picker{display:flex;gap:6px;flex-wrap:wrap;align-items:stretch}
+.comments .c-react-picker[hidden]{display:none} /* display override must not beat [hidden] */
+.comments .c-react-picker:not([hidden]){animation:c-pick-in .14s cubic-bezier(.34,1.56,.64,1)}
+@keyframes c-pick-in{from{transform:scale(.86);opacity:0}to{transform:scale(1);opacity:1}}
+.comments .c-react{display:inline-flex;flex-direction:column;gap:2px;align-items:center;justify-content:center;border:1px solid var(--line-2);border-radius:4px;background:var(--paper);padding:3px 9px;min-height:34px;min-width:44px;font-family:var(--mono);font-size:12px;color:var(--muted);cursor:pointer;transition:border-color .14s ease-out,color .14s ease-out,background-color .14s ease-out}
+.comments .c-react svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:square;stroke-linejoin:miter;flex:none}
 .comments .c-react:hover{border-color:var(--deep);color:var(--deep);text-decoration:none}
 .comments .c-react[aria-pressed="true"]{background:var(--mint);border-color:var(--deep);color:var(--deep)}
 html[data-theme=dark] .comments .c-react[aria-pressed="true"]{background:transparent;border-color:var(--teal);color:var(--teal)}
-.comments .c-react-n{color:var(--deep);font-weight:600;font-variant-numeric:tabular-nums}
+.comments .c-react[aria-pressed="true"] .fl{fill:currentColor} /* fill-on-active (§3c.3.2) */
 .comments .c-react[aria-pressed="true"] .c-react-n{color:inherit}
-.comments .reply-btn{margin-top:10px;background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--deep);padding:6px 2px;min-height:32px;display:inline-flex;align-items:center}
-.comments .reply-btn:hover{text-decoration:underline;text-underline-offset:3px}
-@media (hover:none),(max-width:1023px){.comments .c-react,.comments .reply-btn{min-height:44px}} /* 44px touch law :739 */
+.comments .c-react-n{font-weight:600;font-size:10.5px;color:var(--deep);font-variant-numeric:tabular-nums;min-height:1em}
+.comments .c-react.is-syncing{pointer-events:none} /* tap-block — no spinner, no opacity change (§3a.3) */
+.comments .c-react.is-error{border-color:var(--deep);border-style:dashed}
+.comments .c-rx-pop{animation:c-rx-pop .24s cubic-bezier(.34,1.56,.64,1)}
+@keyframes c-rx-pop{0%{transform:scale(1)}35%{transform:scale(1.1)}70%{transform:scale(.97)}100%{transform:scale(1)}}
+.comments .c-rx-err{display:block;width:100%;font-family:var(--mono);font-size:11px;color:var(--deep);letter-spacing:.02em;line-height:1.5;padding-top:2px}
+.comments .c-rx-err[hidden]{display:none}
 
-/* empty — sheet-note voice (§4.9/:182) */
+/* footer actions — mono 11 deep */
+.comments .c-actions button{background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--deep);padding:6px 2px;min-height:34px;display:inline-flex;align-items:center}
+.comments .c-actions button:hover{text-decoration:underline;text-underline-offset:3px}
+.comments .c-share.is-flash{color:var(--teal);font-weight:600}
+.comments #comments-list :is(.c-react,.c-actions button){-webkit-tap-highlight-color:transparent}
+@media (hover:none),(max-width:1023px){.comments .c-react,.comments .c-react-sum,.comments .c-actions button{min-height:44px}} /* 44px touch law */
+
+/* report inline panel */
+.comments .c-report{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%;padding-top:2px;font-family:var(--mono);font-size:11px}
+.comments .c-report[hidden]{display:none}
+.comments .c-rep-sel{font-family:var(--mono);font-size:11px;color:var(--ink);background:var(--paper);border:1px solid var(--line-2);border-bottom-width:2px;border-radius:2px;padding:6px 8px;min-height:34px}
+.comments .c-report button{background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:11px;color:var(--deep);padding:6px 2px;min-height:34px}
+.comments .c-rep-x{color:var(--muted) !important;text-decoration:underline;text-underline-offset:2px}
+.comments .c-rep-done{color:var(--deep);font-weight:600}
+.comments .c-rep-err{color:var(--deep)}
+html[data-theme=dark] .comments .c-rep-sel{background:var(--mint);border-color:var(--mint);color:#10231F}
+
+/* empty — sheet-note voice */
 .comments .c-empty{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.03em;border-left:3px solid var(--deep);background:var(--band);padding:14px 18px;line-height:1.6;margin:4px 0 16px}
 
-/* form card (§4.8 — qa-box wrapper :484, kicker-h header :447) */
+/* form card — qa-box wrapper + kicker-h header; keeps the --verdict rail: the
+   form is not a comment, its rail is hierarchy, not noise */
 .comments .c-form-card{border:1px solid var(--line-2);border-left:4px solid var(--verdict);background:var(--paper);border-radius:4px;margin-top:24px;padding:16px 18px 18px}
+.comments .c-item .c-form-card{margin-top:12px} /* moved inline via .c-reply-slot (§4.6) */
+.comments .c-reply-slot:not(:empty){display:block;margin-top:12px}
 .comments .c-form-card .kicker-h{margin:0 0 14px}
 .comments #comment-form{display:flex;flex-direction:column;gap:12px}
 .comments .c-field{min-width:0}
-.comments .c-field label{display:block;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px} /* .st-kicker :164 */
+.comments .c-field label{display:block;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
 .comments .c-req{color:var(--deep)} /* required star = deep, never red (site law) */
 .comments .c-opt{font-weight:400;letter-spacing:.03em;text-transform:none;font-size:10px}
-/* fields — verbatim .notify input :409; dark = mint v3.3 King ruling :411 */
+/* fields — verbatim .notify input; dark = mint King ruling */
 .comments #comment-form input[type="text"],.comments #comment-form input[type="email"],.comments #comment-form input[type="url"],.comments #comment-form textarea{width:100%;box-sizing:border-box;border:1px solid var(--line-2);border-bottom-width:2px;background:var(--paper);padding:12px 14px;border-radius:2px;font-size:15px;font-weight:500;font-family:var(--sans);color:var(--ink)}
 .comments #comment-form input::placeholder{color:var(--muted)}
 html[data-theme=dark] .comments #comment-form input[type="text"],html[data-theme=dark] .comments #comment-form input[type="email"],html[data-theme=dark] .comments #comment-form input[type="url"],html[data-theme=dark] .comments #comment-form textarea{background:var(--mint);border-color:var(--mint);color:#10231F}
 html[data-theme=dark] .comments #comment-form input::placeholder{color:#2C4640}
 .comments #comment-form textarea{resize:vertical;min-height:110px}
-.comments #comment-form :is(input,textarea):focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.comments :is(button,input,textarea,select,a):focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .comments .c-count{display:block;font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:4px;text-align:right}
 .comments .c-hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 .comments .c-check{font-family:var(--sans);font-size:13px;margin:0;color:var(--ink-2);line-height:1.5}
 .comments .c-check label{display:inline-flex;align-items:flex-start;gap:8px;cursor:pointer}
-.comments .c-check input{width:18px;height:18px;margin-top:2px;flex:none;accent-color:var(--deep)} /* :189 */
+.comments .c-check input{width:18px;height:18px;margin-top:2px;flex:none;accent-color:var(--deep)}
 .comments .c-check a{color:var(--deep)}
-.comments .n-note{margin:6px 0 0;font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.03em;line-height:1.6} /* :417 */
-/* submit — btn-deep verbatim :363 (+ dark mint text :414 precedent) */
+.comments .n-note{margin:6px 0 0;font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.03em;line-height:1.6}
+/* submit — btn-deep */
 .comments #c-submit{display:inline-flex;align-items:center;justify-content:center;gap:10px;background:var(--deep);color:var(--on-deep);font-weight:800;font-size:14.5px;font-family:var(--sans);padding:13px 20px;border-radius:2px;border:0;border-top:2px solid var(--teal);min-height:44px;width:fit-content;cursor:pointer;margin-top:2px;transition:background-color .16s ease-out}
 .comments #c-submit:hover{background:var(--deeper);color:var(--on-deep);text-decoration:none}
 html[data-theme=dark] .comments #c-submit{color:var(--mint)}
 .comments #c-submit:disabled{background:var(--verdict);color:var(--mint);cursor:not-allowed;border-top-color:var(--deep)}
-.comments #c-submit:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-/* reply indicator */
+/* reply strip — rides the form card when it moves */
 .comments #reply-indicator{font-family:var(--mono);font-size:11px;color:var(--deep);letter-spacing:.03em;background:var(--band);border:1px dashed var(--line-2);border-radius:2px;padding:8px 12px}
 .comments #cancel-reply{margin-left:10px;background:none;border:none;cursor:pointer;color:var(--muted);font-family:var(--mono);font-size:11px;text-decoration:underline;text-underline-offset:2px;padding:2px}
 .comments #cancel-reply:hover{color:var(--deep)}
-/* messages — success = .term strip :292; error = .c-err mono 12 deep (§4.8) */
+/* messages — success = .term strip; error = mono 12 deep */
 .comments #form-msg{font-size:13px;margin:0;min-height:1em}
 .comments #form-msg.c-msg-ok{font-family:var(--mono);font-size:12px;line-height:1.6;color:var(--ink-2);background:var(--band);border:1px solid var(--line-2);border-left:3px solid var(--deep);padding:11px 14px}
 .comments #form-msg.c-err{font-family:var(--mono);font-size:12px;color:var(--deep);line-height:1.5}
-/* mobile form grid stays single-column (§ house :443 breakpoint) */
+/* mobile form grid stays single-column */
 .comments .comment-form-grid{display:grid;grid-template-columns:1fr;gap:12px}
 @media (min-width:600px){.comments .comment-form-grid{grid-template-columns:1fr 1fr}}
+
+/* motion budget — three animations total (§4.8); nothing moves under reduce */
+@media (prefers-reduced-motion: reduce){
+  .comments *{animation:none !important;transition:none !important}
+}
 </style>

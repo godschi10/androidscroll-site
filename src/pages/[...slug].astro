@@ -93,7 +93,7 @@ const breadcrumbLD = {
         <span class="meta-facts"><span class="f-pub"><span class="f-lbl">Published </span><time datetime={p.date} itemprop="datePublished">{fmtDate(p.date)}</time></span>
         {p.modified !== p.date && (<span class="upd">Updated <time datetime={p.modified} itemprop="dateModified">{fmtDate(p.modified)}</time></span>)}
         {p.read_min && <span>{p.read_min} min<span class="f-lbl"> read</span></span>}
-        <span>{p.comments} {p.comments === 1 ? 'comment' : 'comments'}</span></span>
+        <span class="lc" data-live-count={p.id}><span class="lc-n">{p.comments}</span> <span class="lc-l">{p.comments === 1 ? 'comment' : 'comments'}</span></span></span>
       </div>
       {/* no body image in WP payload yet: category-tint hero band reserves the slot */}
       <figure class="art-hero">
