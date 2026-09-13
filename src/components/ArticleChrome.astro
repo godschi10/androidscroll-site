@@ -324,7 +324,7 @@ const shareTg = `https://t.me/share/url?url=${enc(url)}&text=${enc(title)}`;
       ifr.title = f.getAttribute('data-title') || 'Embedded media';
       ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
       ifr.allowFullscreen = true;
-      ifr.loading = 'lazy';
+      
       /* v0.4.27 King: v0.4.23 fix broke because .fc-live iframe CSS applied aspect-ratio:16/9
          to ALL live iframes — audio players (Spotify 152, Apple 270, Audiomack 252) need the px
          height, not a ratio box. Now the JS sets the exact sizing per card: data-embed-height =

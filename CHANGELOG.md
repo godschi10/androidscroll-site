@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.32 — 2026-09-13 — embed persistence + Spotify clip cleanup
+- **Embed persistence (ArticleChrome.astro):** removed `ifr.loading = 'lazy'` set at play-time in the facade→iframe swap. A lazy iframe that is already offscreen when created can be deferred by the browser until it scrolls into view — for a card the user *just* tapped, that reads as a dead/blank player (embed never loads = "lost persistence"). The iframe is built on explicit user action and inserted in-viewport; eager loading is the correct default. Nothing else in the swap path changed.
+- **Spotify radius removal (global.css):** dropped the leftover `border-radius:6px` on `.facade-card.fc-live-spotify iframe` (v0.4.31 add-back). v0.4.30 established the law: **one clip path, on the card** — `.fc-live` has `border-radius:6px;overflow:hidden` and the iframe fills it square. The iframe's own second radius re-created the box-within-a-box white-tip artifact the card clip exists to prevent; the `#121212` iframe background stays (transparent-canvas backing), only the radius goes.
+- Version sync: package.json catches up 0.4.28→0.4.32 (0.4.29–0.4.31 shipped as commit-only entries); CHANGELOG carries the combined 0.4.32 note.
+
 ## 0.4.28 — 2026-09-12 — embed cards: added X (Twitter) embed
 - 8th provider on the style-test article: X (Twitter) facade card after YouTube Music. Embed URL `https://platform.twitter.com/embed/Tweet.html?id=20` — jack's "just setting up my twttr", the most famous public tweet; oEmbed (publish.x.com) confirms it's live; the embed endpoint returns 200 (curl, mobile UA) and is the exact frame `widgets.js` uses, so zero third-party JS until play is preserved.
 - `data-embed-ratio="16/9"` per brief (landscape card shell; the tweet frame itself centers inside).
