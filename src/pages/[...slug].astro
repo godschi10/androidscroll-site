@@ -8,7 +8,7 @@ import Base from '../layouts/Base.astro';
 import AdSlot from '../components/AdSlot.astro';
 import ArticleChrome from '../components/ArticleChrome.astro';
 import Comments from '../components/Comments.astro';
-import { SITE, POSTS, byPath, postsIn, fmtDate } from '../data/site';
+import { SITE, POSTS, byPath, bySlug, postsIn, fmtDate } from '../data/site';
 
 export function getStaticPaths() {
   return POSTS.map(p => ({ params: { slug: p.slug }, props: { p } }));
@@ -56,13 +56,25 @@ const blogPosting = {
   wordCount: p.words,
   timeRequired: `PT${p.read_min}M`,
 };
+/* breadcrumb trail — v0.6.2: sub-filed posts (cat_path = /category/root/sub/) show
+   BOTH levels: Home › root › sub › title. Single-segment posts keep the 2-step trail.
+   Trail + BreadcrumbList positions are built from ONE crumb list so they can't drift. */
+const catSegs = (p.cat_path || '').split('/').filter(Boolean); // ['category','guides-how-tos','privacy-security']
+const isSubFiled = catSegs.length === 3 && catSegs[0] === 'category';
+const rootCat = isSubFiled
+  ? (bySlug[p.root_slug] || byPath['/category/' + p.root_slug + '/'] || null)
+  : null;
+const crumbs = [
+  { name: 'Home', href: '/' },
+  ...(isSubFiled && rootCat ? [{ name: p.root_name || rootCat.name, href: rootCat.path }] : []),
+  ...(cat ? [{ name: cat.name, href: cat.path }] : []),
+];
 const breadcrumbLD = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: SITE.url + '/' },
-    ...(cat ? [{ '@type': 'ListItem', position: 2, name: cat.name, item: SITE.url + cat.path }] : []),
-    { '@type': 'ListItem', position: cat ? 3 : 2, name: crumbTitle },
+    ...crumbs.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.name, item: SITE.url + c.href })),
+    { '@type': 'ListItem', position: crumbs.length + 1, name: crumbTitle },
   ],
 };
 ---
@@ -80,8 +92,12 @@ const breadcrumbLD = {
     <header class="art-head col">
       <nav class="crumb" aria-label="Breadcrumb">
         <ol>
-          <li><a href="/">Home</a></li>
-          {cat && (<li><span class="sep" aria-hidden="true">›</span><a href={cat.path}>{cat.name}</a></li>)}
+          {crumbs.map((c, i) => (
+            <li>
+              {i > 0 && <span class="sep" aria-hidden="true">›</span>}
+              <a href={c.href}>{c.name}</a>
+            </li>
+          ))}
           <li aria-current="page"><span class="sep" aria-hidden="true">›</span><span class="txt">{crumbTitle}</span></li>
         </ol>
       </nav>
@@ -93,7 +109,7 @@ const breadcrumbLD = {
         <span class="meta-facts"><span class="f-pub"><span class="f-lbl">Published </span><time datetime={p.date} itemprop="datePublished">{fmtDate(p.date)}</time></span>
         {p.modified !== p.date && (<span class="upd">Updated <time datetime={p.modified} itemprop="dateModified">{fmtDate(p.modified)}</time></span>)}
         {p.read_min && <span>{p.read_min} min<span class="f-lbl"> read</span></span>}
-        <span class="lc" data-live-count={p.id}><span class="lc-n">{p.comments}</span> <span class="lc-l">{p.comments === 1 ? 'comment' : 'comments'}</span></span></span>
+        <a class="lc lc-link" id="lc-count" href="#comments-section" data-live-count={p.id}><span class="lc-n">{p.comments}</span> <span class="lc-l">{p.comments === 1 ? 'comment' : 'comments'}</span></a></span>
       </div>
       {/* no body image in WP payload yet: category-tint hero band reserves the slot */}
       <figure class="art-hero">

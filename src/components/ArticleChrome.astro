@@ -20,10 +20,10 @@ const shareTg = `https://t.me/share/url?url=${enc(url)}&text=${enc(title)}`;
 )}
 <div class="share-row" aria-label="Share this guide">
   <span class="share-k" aria-hidden="true">Share</span>
-  <a class="sh-btn" href={shareX} target="_blank" rel="noopener" aria-label="Share on X">X</a>
-  <a class="sh-btn" href={shareWa} target="_blank" rel="noopener" aria-label="Share on WhatsApp">WA</a>
-  <a class="sh-btn" href={shareTg} target="_blank" rel="noopener" aria-label="Share on Telegram">TG</a>
-  <button class="sh-btn" type="button" data-copy-link={url} aria-label="Copy link">Copy link</button>
+  <a class="sh-btn sh-btn--icon" href={shareX} target="_blank" rel="noopener" aria-label="Share on X"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path vector-effect="non-scaling-stroke" d="M3.2 3.6h4.4L12 9.7l4.4-6.1h4.4l-6.9 8.6 6.9 8.7h-4.4L12 14.3l-4.4 6.6H3.2l6.9-8.7L3.2 3.6Z"/></svg><span class="sr-only">Share on X</span></a>
+  <a class="sh-btn sh-btn--icon" href={shareWa} target="_blank" rel="noopener" aria-label="Share on WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle vector-effect="non-scaling-stroke" cx="12" cy="11.8" r="8.6"/><path vector-effect="non-scaling-stroke" d="M5.9 17.9 3.2 20.8 6.9 19.7"/><path vector-effect="non-scaling-stroke" d="M9.3 9a5.7 5.7 0 0 0 5.7 5.7"/><path vector-effect="non-scaling-stroke" d="M9.3 9 7.6 7.8M15 14.7l1.2 1.7"/></svg><span class="sr-only">Share on WhatsApp</span></a>
+  <a class="sh-btn sh-btn--icon" href={shareTg} target="_blank" rel="noopener" aria-label="Share on Telegram"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path vector-effect="non-scaling-stroke" d="M21.5 3.5 15 21.5 11 13.5 3 9.5Z"/><path vector-effect="non-scaling-stroke" d="M21.5 3.5 11 13.5"/></svg><span class="sr-only">Share on Telegram</span></a>
+  <button class="sh-btn sh-btn--icon" type="button" data-copy-link={url} aria-label="Copy link"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path vector-effect="non-scaling-stroke" d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path vector-effect="non-scaling-stroke" d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span>Copy link</span></button>
 </div>
 
 <!-- author bio -->

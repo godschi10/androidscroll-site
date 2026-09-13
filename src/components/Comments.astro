@@ -227,10 +227,35 @@ const REACT_SVG: Record<string, string> = {
   like: `<path class="fl"${VE} d="M8.6 20.4V11l5-8.2c2 0 3.2 1.2 3.2 3.2l-.6 3.4h4c1.6 0 2.6 1.2 2.4 2.6l-1.2 6.4c-.2 1.2-1.2 2-2.4 2H8.6Z"/><path class="fl"${VE} d="M3.6 11.6h5v8.8h-5z"/>`,
   // heart: candidate B — two-cubic classic silhouette (brief §3c.2)
   heart: `<path class="fl"${VE} d="M12 20.8C12 20.8 3.2 15 3.2 9.4 3.2 6.4 5.5 4.3 8.2 4.3c1.8 0 3.1 1 3.8 2.3.7-1.3 2-2.3 3.8-2.3 2.7 0 5 2.1 5 5.1 0 5.6-8.8 11.4-8.8 11.4Z"/>`,
-  // flame: angular outline + diamond core (core fills when reacted)
-  fire: `<path${VE} d="M12 2.8 16.2 9.4l1.6-1.6c1.6 2 2.6 4 2.6 6.2a8.4 8.4 0 1 1-16.8 0c0-2.2 1-4.2 2.6-6.2l1.6 1.6L12 2.8Z"/><path class="fl"${VE} d="M12 11.4 14.8 15.4 12 19.4 9.2 15.4Z"/>`,
-  // laugh: grinning face — squint-eye chevrons + wide filled open-grin
-  laugh: `<circle${VE} cx="12" cy="12" r="8.6"/><path${VE} d="M7.2 10.4 9.3 8.6l2.1 1.8M12.6 10.4l2.1-1.8 2.1 1.8"/><path d="M7.6 13.6h8.8a4.4 4.4 0 0 1-8.8 0Z" fill="currentColor" stroke="none"/>`,
+  // flame: angular outline + SOLID core (v0.6.2 King: the hollow diamond read as a
+  // droplet/leaf at 18px). Core is now always-filled, no .fl state, and grown
+  // (6x7px solid mass) so the flame silhouette beats droplet/leaf at a glance.
+  // Raster gate @18/24/36px both themes: pointed tip -> split side licks -> solid
+  // core -> rounded base; unambiguous flame in light+dark.
+  fire: `<path${VE} d="M12 2.8 16.2 9.4l1.6-1.6c1.6 2 2.6 4 2.6 6.2a8.4 8.4 0 1 1-16.8 0c0-2.2 1-4.2 2.6-6.2l1.6 1.6L12 2.8Z"/><path fill="currentColor" stroke="none" d="M12 10.6 15.5 15.4 12 20.2 8.5 15.4Z"/>`,
+  // laugh: 😂 tears-of-joy — v0.6.2 SOLID-FILL KNOCK-OUT (King: the v0.6.1 hairline
+  // ring collapsed into "a flat line with faint ticks" at 18px). ONE evenodd path:
+  // solid disc r7.4 c(12,12) (12x12 device px — a heavy mass that survives AA) with
+  // two THICK SQUINT-EYE CHEVRON holes knocked out (apex y7.6, arms to y11.8, 2.8u
+  // thick => solid 2x2px holes each) and a WIDE OPEN-GRIN BOWL hole (top y13.4,
+  // depth 4.0, floor wall 2.0u => 6x3px hole). That face is unchanged.
+  // v0.6.2 TEARDROP REWORK (Manager vision gate on v064: "side marks are
+  // four-pointed sparkles, not teardrops; face reads ambiguous at native size"). The
+  // old drops were 2.9u loose diamonds floating at x0.4-3.3 / 20.7-23.6, clear of the
+  // rim — that float is what read as a sparkle. Each drop is now a real teardrop
+  // ANCHORED to the rim: TIP sits exactly on the r7.4 ring at eye height
+  // (5.00,9.60) — rim x = 12-sqrt(7.4^2-2.4^2) = 5.000 to 3dp — with the round BULB
+  // (r1.65, bigger than the 2.1px eye holes) hanging down-and-out on a 22 deg axis;
+  // total tip-to-bulb 5.65u (4.2 device px at 18px). Mirrored about x=12.
+  // Acceptance evidence (cairosvg, EXACTLY 18px + 180px reference, #f2f5f3 and
+  // #101816, PIL 8-conn component audit): light+dark rasters are pixel-identical in
+  // shape, ink is ONE connected component at threshold <200 AND <128 (disc + both
+  // tears welded at the rim — no floating mark anywhere), 18px coverage map shows
+  // the tip at the outer eye row widening down-out to the bulb, and the 180px
+  // reference reads as a laughing face with droplet tears (not sparkle/star).
+  // Brand monochrome — currentColor only, never emoji yellow/blue. No dark-mode
+  // colour change (King: idle icons read great in dark as-is).
+  laugh: `<path fill="currentColor" stroke="none" fill-rule="evenodd" d="M4.6 12a7.4 7.4 0 1 0 14.8 0 7.4 7.4 0 1 0 -14.8 0Z M6.5 9.0 8.4 7.6 10.3 9.0 10.3 11.8 8.4 10.4 6.5 11.8Z M17.5 9.0 15.6 7.6 13.7 9.0 13.7 11.8 15.6 10.4 17.5 11.8Z M7.8 13.4H16.2a4.2 4.0 0 0 1 -8.4 0Z"/><path d="M5.00 9.60C4.34 10.63 2.35 11.76 1.97 12.69A1.65 1.65 0 0 0 5.03 13.93C5.41 13.00 4.76 10.80 5.00 9.60Z" fill="currentColor" stroke="none"/><path d="M19.00 9.60C19.66 10.63 21.65 11.76 22.03 12.69A1.65 1.65 0 0 1 18.97 13.93C18.59 13.00 19.24 10.80 19.00 9.60Z" fill="currentColor" stroke="none"/>`,
 };
 const reactIcon = (k: string) =>
   '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + (REACT_SVG[k] || '') + '</svg>';
@@ -809,7 +834,13 @@ $('retry-comments')?.addEventListener('click', () => loadComments());
 /* v0.5.3 — COMMENTSUX Leg A+B. Brand tokens only (global.css:23-38); radius
    ladder 2/4 (+ 999 pill idiom); motion ≤240 ms, transform/opacity/border only,
    all prefers-reduced-motion guarded; 44 px touch law on (hover:none). */
-.comments{margin-top:clamp(28px,5vh,44px)}
+.comments{margin-top:clamp(28px,5vh,44px);scroll-margin-top:calc(var(--header-h,54px) + 12px)} /* v0.6.0 fix 5: the .lc-link anchor jump must land the heading below the sticky header (scroll-behavior:smooth already on html) */
+/* King v0.6.1 (refined): the duplicate line above 'Comments' is only a problem
+   on MOBILE (tight stacking) — the related-articles block already ends with its
+   own bottom divider there. On wide viewports the rule-s top border reads as an
+   intentional section seam and STAYS. Mobile-only scoped kill (global .rule-s
+   untouched — other sections legitimately use its top border). */
+@media (max-width:639px){.comments .rule-s{border-top:0;padding-top:0}}
 .comments .c-noscript{font-family:var(--mono);font-size:11px;color:var(--muted)}
 .comments .c-noscript a{color:var(--deep)}
 
@@ -892,9 +923,9 @@ html[data-theme=dark] .comments .c-pend-chip{border-color:var(--teal);color:var(
 .comments .c-react-sum.is-zero{border-style:dashed} /* '+ React' slot-frame idiom */
 .comments .rx-add{color:var(--deep);font-weight:600}
 .comments .rx-stack{display:inline-flex;align-items:center}
-.comments .rx-bub{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:1px solid var(--line-2);border-radius:999px;background:var(--paper);color:var(--muted);margin-left:-6px}
+.comments .rx-bub{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:1px solid var(--line-2);border-radius:999px;background:var(--paper);color:var(--muted);margin-left:-6px} /* King v0.6.0: 18→22 container (overlap kept) */
 .comments .rx-bub:first-child{margin-left:0}
-.comments .rx-bub svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:square;stroke-linejoin:miter;flex:none}
+.comments .rx-bub svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:square;stroke-linejoin:miter;flex:none} /* King v0.6.0: 12→14px */
 .comments .rx-bub.is-mine .fl{fill:currentColor}
 .comments .rx-total{font-family:var(--mono);font-weight:600;font-size:12px;color:var(--deep);font-variant-numeric:tabular-nums;margin-left:2px}
 
@@ -904,7 +935,7 @@ html[data-theme=dark] .comments .c-pend-chip{border-color:var(--teal);color:var(
 .comments .c-react-picker:not([hidden]){animation:c-pick-in .14s cubic-bezier(.34,1.56,.64,1)}
 @keyframes c-pick-in{from{transform:scale(.86);opacity:0}to{transform:scale(1);opacity:1}}
 .comments .c-react{display:inline-flex;flex-direction:column;gap:2px;align-items:center;justify-content:center;border:1px solid var(--line-2);border-radius:4px;background:var(--paper);padding:3px 9px;min-height:34px;min-width:44px;font-family:var(--mono);font-size:12px;color:var(--muted);cursor:pointer;transition:border-color .14s ease-out,color .14s ease-out,background-color .14s ease-out}
-.comments .c-react svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:square;stroke-linejoin:miter;flex:none}
+.comments .c-react svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:square;stroke-linejoin:miter;flex:none} /* King v0.6.0: 15→18px — glyphs must read at a glance */
 .comments .c-react:hover{border-color:var(--deep);color:var(--deep);text-decoration:none}
 .comments .c-react[aria-pressed="true"]{background:var(--mint);border-color:var(--deep);color:var(--deep)}
 html[data-theme=dark] .comments .c-react[aria-pressed="true"]{background:transparent;border-color:var(--teal);color:var(--teal)}
