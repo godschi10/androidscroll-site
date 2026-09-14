@@ -233,23 +233,24 @@ const REACT_SVG: Record<string, string> = {
   // Raster gate @18/24/36px both themes: pointed tip -> split side licks -> solid
   // core -> rounded base; unambiguous flame in light+dark.
   fire: `<path${VE} d="M12 2.8 16.2 9.4l1.6-1.6c1.6 2 2.6 4 2.6 6.2a8.4 8.4 0 1 1-16.8 0c0-2.2 1-4.2 2.6-6.2l1.6 1.6L12 2.8Z"/><path fill="currentColor" stroke="none" d="M12 10.6 15.5 15.4 12 20.2 8.5 15.4Z"/>`,
-  // laugh: 😂 tears-of-joy — v0.6.3 LAUGH-v3, shelter-lab CANDIDATE B (blind-read PASS:
-  // "two tiny detached blobs = TEARS/DROPLETS OF JOY flying out from the corners of the
-  // eyes... big open laughing mouth"). Replaces v0.6.2's rim-welded drops, which the
-  // manager vision gate read as part of the face ("flat line with faint ticks").
-  // Geometry (units = 24-grid; 0.75 device px per unit at the 18px picker size):
-  // ONE evenodd face path — disc r6.6 c(12,12) + two flat-based WEDGE-EYE knock-out
-  // holes (squeezed-shut laugh: 3.3u wide, 2.3u visible height, 1.6u septum to mouth)
-  // + WIDE OPEN grin bowl hole (9.0u = 68.2% of face width, depth 5.3u, chin wall 1.4u).
-  // TWO DETACHED teardrops outside the rim: cusp tip at (4.295,9.195)/(19.705,9.195)
-  // (tip gutter 1.6u), bulb r1.7 down-out on a 41° axis, drop length 4.85u.
-  // Acceptance evidence (cairosvg at EXACTLY 18px, light #fff/#52635F + dark #0B241D/
-  // #B6CCC6, 8-conn PIL audit): 3 independent ink components both themes (face + 2 tears,
-  // 2px device gutters), 3 knock-out holes at 180px (2 wedges + mouth), all lab gates
-  // G1-G4 PASS; ship-leg regen re-raster is 0/324 px diff vs the lab's cand-B-18 PNGs.
+  // laugh: 😂 tears-of-joy — v0.6.3 LAUGH-v3 geometry, v0.6.6 OPTICAL SIZE MATCH (King:
+  // "You didn't increase the size of the laughter SVG" — at equal 21px CSS it read SMALLER
+  // than like/heart/fire because the face disc spanned only 13.2u of the 24 grid vs the
+  // siblings' ~16-18u). Fix is geometry, not CSS. VISION GATE HISTORY (real Obscura picker
+  // crops, both themes): r7.4 FAILED (21x13 disc still read small), r7.6s FAILED (read
+  // compact), r8.8s size-PASSed light but both-theme mass reads said 'too heavy' vs the
+  // monoline siblings. SHIPS r7.9s: face disc r6.6→7.9 (15.8u; wedge eyes + grin
+  // proportional — same 68% mouth:face opening, same eye-mouth septum, evenodd knock-out
+  // untouched); teardrops TRANSLATED along their radial axis to cusp tips (3.073,8.75)/
+  // (20.927,8.75) = radius 9.5 = R+1.6 → glyph-lab 1.6u tip gutter law holds EXACTLY; bulbs
+  // slimmed 0.80 about the tip (r1.7→1.36) so fill x[0.042,23.885] stays inside the 24u
+  // viewBox (unscaled r7.9 bulbs clip ~0.03u/side — the "stubby handles" reject class).
+  // Raster gate (cairosvg @ EXACT 21px picker + 16px pill, light #f6f8f8/#52635F + dark
+  // #0B241D/#B6CCC6, vs shipped siblings heart 17x16 ink118/120, like 19x18 ink153/154,
+  // fire 17x20 ink175/178): laugh 21x15 ink171 both themes; @16 16x12 ink104/106.
   // Brand monochrome — currentColor only, never emoji yellow/blue. No dark-mode colour
   // change (King: idle icons read great in dark as-is).
-  laugh: `<path fill="currentColor" stroke="none" fill-rule="evenodd" d="M5.4 12a6.6 6.6 0 1 0 13.2 0a6.6 6.6 0 1 0 -13.2 0Z M8.604 8.166L7.25 10.3L10.55 10.3L9.196 8.166A0.35 0.35 0 0 0 8.604 8.166Z M14.804 8.166L13.45 10.3L16.75 10.3L15.396 8.166A0.35 0.35 0 0 0 14.804 8.166Z M7.5 11.9H16.5a4.5 5.3 0 0 1 -9 0Z"/><path d="M4.295 9.195L3.91 11.819A1.7 1.7 0 1 1 1.75 9.941Z" fill="currentColor" stroke="none"/><path d="M19.705 9.195L22.25 9.941A1.7 1.7 0 1 1 20.09 11.819Z" fill="currentColor" stroke="none"/>`,
+  laugh: `<path fill="currentColor" stroke="none" fill-rule="evenodd" d="M4.1 12a7.9 7.9 0 1 0 15.8 0a7.9 7.9 0 1 0 -15.8 0Z M7.935 7.411L6.314 9.965L10.264 9.965L8.644 7.411A0.419 0.419 0 0 0 7.935 7.411Z M15.356 7.411L13.736 9.965L17.686 9.965L16.065 7.411A0.419 0.419 0 0 0 15.356 7.411Z M6.614 11.88H17.386a5.386 6.344 0 0 1 -10.773 0Z"/><path d="M3.073 8.75L2.765 10.849A1.36 1.36 0 1 1 1.037 9.347Z" fill="currentColor" stroke="none"/><path d="M20.927 8.75L22.963 9.347A1.36 1.36 0 1 1 21.235 10.849Z" fill="currentColor" stroke="none"/>`,
 };
 const reactIcon = (k: string) =>
   '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + (REACT_SVG[k] || '') + '</svg>';
@@ -309,13 +310,18 @@ function total(st: { counts: Record<string, number> }): number {
 
 // ONE summary pill (P3): overlapping 18px glyph bubbles (top 3 types) + aggregate
 // total; zero-state = dashed '+ React' slot-frame idiom. Tap → picker.
+// v0.6.6 (King: "the most reacted should be ... first on top"): ascending-by-count —
+// the LOWEST count starts the overlap chain and the HIGHEST sits LAST in the DOM.
+// CSS paint order for positioned/in-flow siblings is DOM order (no z-index on .rx-bub),
+// and each later bubble overlaps the previous via margin-left:-7px, so last = ON TOP
+// and furthest right — the Facebook/Vibee semantics.
 function sumInner(st: { counts: Record<string, number>; mine: Set<string> }): string {
   const t = total(st);
   if (!t) return `<span class="rx-add" aria-hidden="true">+</span>React`;
   const top = REACTIONS.map(([k]) => k)
     .filter(k => (st.counts[k] || 0) > 0)
-    .sort((a, b) => st.counts[b] - st.counts[a])
-    .slice(0, 3)
+    .sort((a, b) => st.counts[a] - st.counts[b])
+    .slice(-3)
     .map(k => `<span class="rx-bub${st.mine.has(k) ? ' is-mine' : ''}" data-emoji="${k}">${reactIcon(k)}</span>`)
     .join('');
   return `<span class="rx-stack" aria-hidden="true">${top}</span><span class="rx-total">${t}</span>`;
