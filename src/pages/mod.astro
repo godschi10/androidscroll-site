@@ -1,51 +1,112 @@
 ---
-/* MOD-DESK (COMMENTSUX brief §4 / leg 3) — private token-gated moderation desk.
-   - Base layout + robots noindex,nofollow (Head renders the meta; no nav/footer
-     link ever points here — it's unlisted by design).
+/* MOD-CONSOLE v2 (0.6.4) — token-gated moderation desk over the worker API.
+   Four tabs: Queue (pending + actions + reply-as-author), All comments
+   (status segment + post filter + pagination), Reports (joined comment rows),
+   Overview (stats cards). Tab + filter state lives in the URL hash
+   (#/mod/<tab>?k=v) via history.replaceState so a refresh keeps position.
+   - Base layout + robots noindex,nofollow (unlisted — no nav link ever).
    - ZERO third-party JS: plain DOM, one bundled module, Worker rail only.
    - Brand: var() tokens from global.css ONLY (mono labels, --paper cards w/
-     1px --line-2 radius 4, --band tint band, btn-deep/btn-ghost per house,
+     1px --line-2 radius 4, --band tint, btn-deep/btn-ghost, mint active tab,
      44px touch, focus-visible, reduced-motion). No new fonts.
-   - Token: localStorage 'androidscroll:modtok' (try/catch), auto-filled next
-     visit; Sign-out clears it. The token never touches the repo or logs. */
+   - Token: localStorage 'androidscroll:modtok' (try/catch); Sign-out clears;
+     401 → 'Wrong token'. Token never touches the repo or logs. */
 import Base from '../layouts/Base.astro';
+import Wordmark from '../components/Wordmark.astro';
 import { POSTS } from '../data/site';
 
-/* Build-time post_id → local URL map (13 posts, tiny — no fetch needed).
-   Unknown ids render as bare "POST <id>" mono text. */
+/* Build-time post_id → local URL map. Unknown ids render as bare "POST <id>". */
 const postMap: Record<number, string> = {};
 for (const p of POSTS) postMap[p.id] = p.url;
 ---
-<Base title="Moderation desk" desc="Private moderation queue — held comments, approve, spam, trash." robots="noindex, nofollow">
+<Base title="Moderation desk" desc="Private moderation console — queue, all comments, reports, overview." robots="noindex, nofollow">
   <div class="mod-scoped" id="mod-desk" data-post-map={JSON.stringify(postMap)}>
     <section class="mod-band">
       <div class="wrap mod-band-in">
+        <a class="mod-mark" href="/" aria-label="AndroidScroll — home"><Wordmark /></a>
         <p class="mod-kicker">Moderation Desk</p>
         <div class="mod-band-actions">
           <button id="mod-refresh" class="btn-ghost" type="button" hidden>Refresh</button>
           <button id="mod-signout" class="btn-ghost" type="button" hidden>Sign out</button>
         </div>
       </div>
+      <div class="wrap">
+        <nav class="mod-tabs" id="mod-tabs" aria-label="Console sections" hidden>
+          <button type="button" class="mod-tab" data-tab="queue">Queue</button>
+          <button type="button" class="mod-tab" data-tab="all">All comments</button>
+          <button type="button" class="mod-tab" data-tab="reports">Reports</button>
+          <button type="button" class="mod-tab" data-tab="overview">Overview</button>
+        </nav>
+      </div>
     </section>
 
     <div class="col mod-main">
       <form id="mod-lock" class="mod-card mod-lock" autocomplete="off">
         <p class="mod-label" id="mod-token-label">Access token</p>
-        <input id="mod-token" type="password" aria-labelledby="mod-token-label"
+        <input id="mod-token" class="mod-token" type="password" aria-labelledby="mod-token-label"
                placeholder="Paste the desk token" />
-        <p id="mod-lock-msg" class="mod-result" role="status" aria-live="polite"></p>
+        <p id="mod-lock-msg" class="mod-result is-bad" role="status" aria-live="polite"></p>
         <div class="mod-act-row">
           <button class="btn-deep" type="submit">Unlock</button>
         </div>
       </form>
 
-      <section id="mod-queue" hidden aria-label="Pending queue">
-        <p id="mod-note" class="mod-result" role="status" aria-live="polite"></p>
-        <div id="mod-list"></div>
-        <p id="mod-empty" class="mod-empty" hidden>Nothing waiting.</p>
+      <p id="mod-toast" class="mod-toast" role="status" aria-live="polite"></p>
+
+      <section id="mod-panel" hidden aria-label="Console panel">
+        <!-- QUEUE -->
+        <div id="mod-view-queue" class="mod-view" hidden>
+          <div id="mod-queue-list" class="mod-rows"></div>
+          <p id="mod-queue-empty" class="mod-empty" hidden>Nothing waiting.</p>
+        </div>
+
+        <!-- ALL COMMENTS -->
+        <div id="mod-view-all" class="mod-view" hidden>
+          <div class="mod-filterbar">
+            <div class="mod-seg" id="mod-seg" role="group" aria-label="Status filter">
+              <button type="button" data-status="pending">Pending</button>
+              <button type="button" data-status="approved" class="is-on">Approved</button>
+              <button type="button" data-status="spam">Spam</button>
+              <button type="button" data-status="trash">Trash</button>
+              <button type="button" data-status="all">All</button>
+            </div>
+            <form id="mod-postform" class="mod-postform" autocomplete="off">
+              <label class="mod-label mod-label-inline" for="mod-postinp">Post ID</label>
+              <input id="mod-postinp" class="mod-postinp" list="mod-postids" inputmode="numeric" placeholder="any" />
+              <datalist id="mod-postids">
+                <option value="56"></option>
+                <option value="10630"></option>
+                <option value="12251"></option>
+              </datalist>
+              <button class="btn-ghost mod-apply" type="submit">Apply</button>
+            </form>
+          </div>
+          <div id="mod-all-list" class="mod-rows"></div>
+          <p id="mod-all-empty" class="mod-empty" hidden>No comments match.</p>
+          <div id="mod-pager" class="mod-pager" hidden>
+            <button id="mod-prev" class="btn-ghost" type="button">Prev</button>
+            <p id="mod-pagen" class="mod-pagen"></p>
+            <button id="mod-next" class="btn-ghost" type="button">Next</button>
+          </div>
+        </div>
+
+        <!-- REPORTS -->
+        <div id="mod-view-reports" class="mod-view" hidden>
+          <div id="mod-rep-list" class="mod-rows"></div>
+          <p id="mod-rep-empty" class="mod-empty" hidden>No open reports.</p>
+        </div>
+
+        <!-- OVERVIEW -->
+        <div id="mod-view-overview" class="mod-view" hidden>
+          <div id="mod-cards" class="mod-cards"></div>
+          <p class="mod-label mod-top-head">Top posts</p>
+          <div id="mod-topposts" class="mod-rows"></div>
+          <p id="mod-top-empty" class="mod-empty" hidden>No posts with comments.</p>
+        </div>
+
         <div id="mod-error" class="mod-card" hidden>
           <p class="mod-label">Network</p>
-          <p class="mod-err-msg">Could not reach the queue.</p>
+          <p class="mod-err-msg">Could not reach the desk API.</p>
           <div class="mod-act-row">
             <button id="mod-retry" class="btn-ghost" type="button">Retry</button>
           </div>
@@ -57,15 +118,24 @@ for (const p of POSTS) postMap[p.id] = p.url;
 
 <style is:global>
 /* .mod-scoped — all rules namespaced under the desk root. var() tokens ONLY. */
-.mod-scoped .mod-band{background:var(--band);border-bottom:1px solid var(--line-2);padding-top:18px;padding-bottom:16px}
-.mod-scoped .mod-band-in{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.mod-scoped .mod-band{background:var(--band);border-bottom:1px solid var(--line-2);padding-top:18px;padding-bottom:0}
+.mod-scoped .mod-band-in{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding-bottom:14px}
+.mod-scoped .mod-mark{display:inline-flex;align-items:center;min-height:44px;color:var(--ink)}
 .mod-scoped .mod-kicker{margin:0;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--deep)}
-.mod-scoped .mod-band-actions{margin-left:auto;display:flex;gap:10px}
-.mod-scoped .mod-main{padding-top:22px;padding-bottom:var(--sp-e)}
+.mod-scoped .mod-band-actions{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap}
+.mod-scoped .mod-band-actions .btn-ghost{white-space:nowrap}
+.mod-scoped .mod-main{padding-top:14px;padding-bottom:var(--sp-e)}
+
+/* Tabs — mono uppercase, active gets brand mint underline. */
+.mod-scoped .mod-tabs{display:flex;gap:4px;overflow-x:auto;border-top:1px solid var(--line);padding-top:2px}
+.mod-scoped .mod-tab{appearance:none;background:none;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;min-height:44px;padding:12px 14px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap;cursor:pointer}
+.mod-scoped .mod-tab:hover{color:var(--deep)}
+.mod-scoped .mod-tab.is-on{color:var(--ink);border-bottom-color:var(--mint)}
+.mod-scoped .mod-tab:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 
 .mod-scoped .mod-label{margin:0 0 8px;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.mod-scoped .mod-label-inline{margin:0 8px 0 0}
 .mod-scoped .mod-card{background:var(--paper);border:1px solid var(--line-2);border-left:4px solid var(--verdict);border-radius:4px;margin-top:16px;padding:16px 18px}
-.mod-scoped .mod-lock .mod-card,.mod-scoped .mod-card{margin-top:16px}
 
 .mod-scoped .btn-deep{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--deep);color:var(--on-deep);font-weight:800;font-size:14.5px;padding:11px 20px;min-height:44px;border-radius:2px;border-top:2px solid var(--teal)}
 .mod-scoped .btn-deep:hover{background:var(--deeper);color:var(--on-deep);text-decoration:none}
@@ -76,16 +146,24 @@ for (const p of POSTS) postMap[p.id] = p.url;
 .mod-scoped .mod-token{width:100%;max-width:420px;background:var(--paper);border:1px solid var(--line-2);border-radius:2px;color:var(--ink);font-family:var(--mono);font-size:14px;padding:10px 12px;min-height:44px}
 .mod-scoped .mod-act-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
 
+/* Inline mono toast — action results. */
+.mod-scoped .mod-toast{margin:10px 0 0;font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--deep);font-variant-numeric:tabular-nums;min-height:16px}
+.mod-scoped .mod-toast.is-bad{color:var(--ink)}
 .mod-scoped .mod-result{margin:10px 0 0;font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--deep);font-variant-numeric:tabular-nums}
 .mod-scoped .mod-result.is-bad{color:var(--ink)}
-.mod-scoped #mod-note{margin-top:14px;min-height:16px}
 
+/* Row cards */
+.mod-scoped .mod-rows{display:block}
+.mod-scoped .mod-item{margin-top:14px}
 .mod-scoped .mod-item-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
 .mod-scoped .mod-name{font-family:var(--display);font-weight:800;font-size:16px;letter-spacing:-.01em;color:var(--ink)}
 .mod-scoped .mod-meta{font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .mod-scoped .mod-meta a{color:var(--deep)}
 .mod-scoped .mod-meta a:hover{text-decoration:underline}
-.mod-scoped .mod-score{margin-left:auto;border:1px solid var(--line-2);border-radius:2px;padding:2px 8px;color:var(--ink-2)}
+.mod-scoped .mod-chip{margin-left:auto;border:1px solid var(--line-2);border-radius:2px;padding:2px 8px;color:var(--ink-2);font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+.mod-scoped .mod-chip.is-spam{border-color:var(--deep);color:var(--deep)}
+.mod-scoped .mod-chip.is-rep{border-color:var(--deep);color:var(--deep)}
+.mod-scoped .mod-chip.is-st{color:var(--ink-2)}
 .mod-scoped .mod-ex{margin:10px 0 0;font-size:15px;line-height:1.6;color:var(--ink-2);overflow-wrap:anywhere}
 .mod-scoped .mod-linkbtn{display:inline-flex;align-items:center;min-height:44px;font-family:var(--mono);font-size:11.5px;font-weight:500;letter-spacing:.04em;color:var(--deep);background:none;border:0;padding:0 2px;margin-top:2px}
 .mod-scoped .mod-linkbtn:hover{text-decoration:underline}
@@ -94,31 +172,76 @@ for (const p of POSTS) postMap[p.id] = p.url;
 .mod-scoped .mod-reply-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px}
 .mod-scoped .mod-reply-msg{font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--deep);margin:8px 0 0}
 
+/* Filter bar (All comments) */
+.mod-scoped .mod-filterbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;margin-top:14px}
+.mod-scoped .mod-seg{display:flex;flex-wrap:wrap;gap:6px}
+.mod-scoped .mod-seg button{appearance:none;border:1px solid var(--line-2);background:var(--paper);color:var(--muted);font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:0 12px;min-height:44px;border-radius:4px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center}
+.mod-scoped .mod-seg button:hover{color:var(--deep);border-color:var(--deep)}
+.mod-scoped .mod-seg button.is-on{background:var(--mint);border-color:var(--mint);color:#10231F}
+.mod-scoped .mod-postform{display:flex;align-items:center;gap:0;margin-left:auto}
+.mod-scoped .mod-postinp{width:110px;background:var(--paper);border:1px solid var(--line-2);border-radius:2px;color:var(--ink);font-family:var(--mono);font-size:13px;padding:9px 10px;min-height:44px;margin-right:8px}
+.mod-scoped .mod-apply{padding:11px 16px}
+
+/* Pager */
+.mod-scoped .mod-pager{display:flex;align-items:center;gap:14px;margin-top:18px}
+.mod-scoped .mod-pagen{margin:0;font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* Overview cards */
+.mod-scoped .mod-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px}
+.mod-scoped .mod-kpi{background:var(--paper);border:1px solid var(--line-2);border-radius:4px;padding:14px 16px}
+.mod-scoped .mod-kpi b{display:block;font-family:var(--display);font-weight:800;font-size:28px;letter-spacing:-.02em;color:var(--ink);font-variant-numeric:tabular-nums}
+.mod-scoped .mod-kpi span{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.mod-scoped .mod-top-head{margin-top:26px}
+.mod-scoped .mod-top-row{display:flex;align-items:baseline;gap:10px;margin-top:10px;font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
+.mod-scoped .mod-top-row a{color:var(--deep)}
+.mod-scoped .mod-top-row .mod-topn{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-size:10.5px}
+
+/* Skeleton + states */
+.mod-scoped .mod-skel{margin-top:14px;height:86px;border:1px solid var(--line);border-radius:4px;background:linear-gradient(100deg,var(--paper) 40%,var(--band-2) 50%,var(--paper) 60%) 0 0/240% 100%;animation:mod-shim 1.2s linear infinite}
+@keyframes mod-shim{to{background-position:-120% 0}}
 .mod-scoped .mod-empty{margin:26px 2px;font-family:var(--mono);font-size:12px;letter-spacing:.05em;color:var(--muted)}
 .mod-scoped .mod-err-msg{margin:0;font-size:14.5px;color:var(--ink)}
 
 .mod-scoped .btn-deep:focus-visible,.mod-scoped .btn-ghost:focus-visible,
 .mod-scoped .mod-token:focus-visible,.mod-scoped .mod-ta:focus-visible,
-.mod-scoped .mod-linkbtn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.mod-scoped .mod-postinp:focus-visible,.mod-scoped .mod-linkbtn:focus-visible,
+.mod-scoped .mod-seg button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 
 @media (max-width:639px){
-  .mod-scoped .mod-score{margin-left:0}
+  .mod-scoped .mod-chip{margin-left:0}
   .mod-scoped .btn-deep,.mod-scoped .btn-ghost{flex:1 1 auto}
+  .mod-scoped .mod-postform{margin-left:0;width:100%}
+  .mod-scoped .mod-tab{padding:12px 10px;letter-spacing:.08em;font-size:10.5px}
+  .mod-scoped .mod-linkbtn{white-space:nowrap}
 }
 @media (prefers-reduced-motion:reduce){.mod-scoped *,.mod-scoped *::before,.mod-scoped *::after{transition:none!important;animation:none!important}}
 </style>
 
 <script>
-/* Desk client — zero third-party. Bearer queue + moderation actions +
-   reply-as-author. API base: absolute Worker rail in prod; on 127.0.0.1/
-   localhost (dist e2e preview) we use the SAME-ORIGIN /api path so the
-   local e2e proxy (repo scripts live in /tmp, never shipped) can bridge —
-   the Worker CORS allow-list is exact-match and excludes dev origins. */
+/* Console client — zero third-party. Bearer desk API: moderation/list,
+   /reports, /stats, moderation/:id actions, public /comments reply.
+   API base: absolute Worker rail in prod; on 127.0.0.1/localhost (dist e2e
+   preview) we use the SAME-ORIGIN /api path so the local e2e proxy can
+   bridge — the Worker CORS allow-list is exact-match and excludes dev
+   origins. Tab/filter/page state lives in the URL hash (#/mod/<tab>?k=v). */
 const ROOT = document.getElementById('mod-desk') as HTMLElement;
 
-interface QueueItem {
-  id: number; post_id: number; author_name: string; excerpt: string;
-  spam_score: number; spam_reasons: string | null; created_at: string;
+interface Item {
+  id: number; post_id: number; parent: number; name: string; content: string;
+  status: string; created_at: string; spam_score: number; is_author: boolean;
+  reactions: Record<string, number> | null; reaction_total: number | null;
+  open_reports: number | null;
+}
+interface ListResp { ok?: boolean; items?: Item[]; total?: number; page?: number; per?: number; pages?: number }
+interface Report {
+  id: number; comment_id: number; post_id: number; reason: string;
+  created_at: string; comment_name: string | null; comment_status: string | null;
+  comment_excerpt: string | null;
+}
+interface Stats {
+  ok?: boolean; comments_by_status?: Record<string, number>; pending?: number;
+  comments_last_7d?: number; reactions_total?: number; open_reports?: number;
+  top_posts?: { post_id: number; count: number }[]; posts_with_comments?: number;
 }
 
 const PROD_API = 'https://androidscroll-comments.gwill.workers.dev';
@@ -131,18 +254,88 @@ const POST_MAP: Record<string, string> = (() => {
 })();
 
 const $ = (id: string) => document.getElementById(id) as HTMLElement | null;
-const lock      = $('mod-lock') as HTMLFormElement | null;
-const tokInp    = $('mod-token') as HTMLInputElement | null;
-const lockMsg   = $('mod-lock-msg') as HTMLElement | null;
-const queue     = $('mod-queue') as HTMLElement | null;
-const list      = $('mod-list') as HTMLElement | null;
-const empty     = $('mod-empty') as HTMLElement | null;
-const note      = $('mod-note') as HTMLElement | null;
-const errBox    = $('mod-error') as HTMLElement | null;
-const refreshB  = $('mod-refresh') as HTMLButtonElement | null;
-const signoutB  = $('mod-signout') as HTMLButtonElement | null;
-const retryB    = $('mod-retry') as HTMLButtonElement | null;
+const lock     = $('mod-lock') as HTMLFormElement | null;
+const tokInp   = $('mod-token') as HTMLInputElement | null;
+const lockMsg  = $('mod-lock-msg') as HTMLElement | null;
+const panel    = $('mod-panel') as HTMLElement | null;
+const tabs     = $('mod-tabs') as HTMLElement | null;
+const toast    = $('mod-toast') as HTMLElement | null;
+const errBox   = $('mod-error') as HTMLElement | null;
+const refreshB = $('mod-refresh') as HTMLButtonElement | null;
+const signoutB = $('mod-signout') as HTMLButtonElement | null;
+const retryB   = $('mod-retry') as HTMLButtonElement | null;
 
+const views: Record<string, HTMLElement | null> = {
+  queue:    $('mod-view-queue'),
+  all:      $('mod-view-all'),
+  reports:  $('mod-view-reports'),
+  overview: $('mod-view-overview'),
+};
+const queueList = $('mod-queue-list');
+const queueEmpty = $('mod-queue-empty');
+const allList   = $('mod-all-list');
+const allEmpty  = $('mod-all-empty');
+const seg       = $('mod-seg');
+const postForm  = $('mod-postform') as HTMLFormElement | null;
+const postInp   = $('mod-postinp') as HTMLInputElement | null;
+const pager     = $('mod-pager') as HTMLElement | null;
+const prevB     = $('mod-prev') as HTMLButtonElement | null;
+const nextB     = $('mod-next') as HTMLButtonElement | null;
+const pageN     = $('mod-pagen') as HTMLElement | null;
+const repList   = $('mod-rep-list');
+const repEmpty  = $('mod-rep-empty');
+const cards     = $('mod-cards');
+const topList   = $('mod-topposts');
+const topEmpty  = $('mod-top-empty');
+
+/* ---------- state (hash-synced) ---------- */
+type State = { tab: string; status: string; post: string; page: number };
+const state: State = { tab: 'queue', status: 'approved', post: '', page: 1 };
+const TABS = ['queue', 'all', 'reports', 'overview'];
+
+function hashOf(s: State): string {
+  if (s.tab === 'all') {
+    const q = ['status=' + s.status];
+    if (s.post) q.push('post=' + s.post);
+    if (s.page > 1) q.push('page=' + s.page);
+    return '#/mod/all?' + q.join('&');
+  }
+  return '#/mod/' + s.tab;
+}
+function readHash(): boolean {
+  const m = (location.hash || '').match(/^#\/mod\/(queue|all|reports|overview)(?:\?(.*))?$/);
+  if (!m) return false;
+  state.tab = m[1];
+  const p = new URLSearchParams(m[2] || '');
+  const st = p.get('status');
+  if (st && ['pending', 'approved', 'spam', 'trash', 'all'].includes(st)) state.status = st;
+  state.post = (p.get('post') || '').replace(/[^0-9]/g, '');
+  state.page = Math.max(1, parseInt(p.get('page') || '1', 10) || 1);
+  return true;
+}
+function syncHash() {
+  const h = hashOf(state);
+  try { history.replaceState(null, '', h); } catch { /* file:// sandbox: state still in memory */ }
+}
+function setTab(tab: string) {
+  state.tab = tab;
+  syncHash();
+  paintTabs();
+  for (const k of TABS) if (views[k]) views[k]!.hidden = k !== tab;
+  show(errBox, false);
+  if (tab === 'queue') void loadQueue();
+  else if (tab === 'all') void loadAll();
+  else if (tab === 'reports') void loadReports();
+  else void loadOverview();
+}
+function paintTabs() {
+  if (!tabs) return;
+  for (const b of Array.from(tabs.querySelectorAll('.mod-tab'))) {
+    (b as HTMLElement).classList.toggle('is-on', b.getAttribute('data-tab') === state.tab);
+  }
+}
+
+/* ---------- token gate ---------- */
 let token = '';
 try { token = localStorage.getItem(TOK_KEY) || ''; } catch { /* private mode: session-only */ }
 function saveTok(v: string) {
@@ -152,16 +345,19 @@ function saveTok(v: string) {
 if (token && tokInp) tokInp.value = token; // auto-filled next visit
 
 function show(el: HTMLElement | null, on: boolean) { if (el) el.hidden = !on; }
+let unlocked = false;
 function setLocked(on: boolean) {
-  show(lock, on); show(queue, !on);
+  unlocked = !on;
+  show(lock, on); show(panel, !on); show(tabs, !on);
   show(refreshB, !on); show(signoutB, !on);
 }
-function setNote(msg: string, bad = false) {
-  if (!note) return;
-  note.textContent = msg;
-  note.classList.toggle('is-bad', bad);
+function setToast(msg: string, bad = false) {
+  if (!toast) return;
+  toast.textContent = msg;
+  toast.classList.toggle('is-bad', bad);
 }
 
+/* ---------- helpers ---------- */
 function timeAgo(iso: string): string {
   const t = Date.parse(iso);
   if (isNaN(t)) return iso;
@@ -172,8 +368,9 @@ function timeAgo(iso: string): string {
   if (s < 604800) return Math.floor(s / 86400) + 'd ago';
   return iso.slice(0, 10);
 }
+function absTitle(iso: string): string { return String(iso || '').replace('T', ' ').replace(/\.\d+Z$/, ' UTC'); }
 function stripHtml(s: string): string {
-  return s.replace(/<[^>]*>/g, ' ').replace(/&#?\w+;/g, ' ')
+  return String(s || '').replace(/<[^>]*>/g, ' ').replace(/&#?\w+;/g, ' ')
           .replace(/\s+/g, ' ').trim().slice(0, 160);
 }
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string): HTMLElementTagNameMap[K] {
@@ -181,123 +378,276 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string): HTMLEl
   if (cls) e.className = cls;
   return e;
 }
-
+function postRef(id: number): HTMLElement {
+  const meta = el('span', 'mod-meta');
+  const slug = POST_MAP[String(id)];
+  if (slug) {
+    const a = el('a'); a.href = slug; a.textContent = 'Post ' + id;
+    meta.append(a);
+  } else meta.textContent = 'Post ' + id;
+  return meta;
+}
+function skeletons(host: HTMLElement | null, n = 3) {
+  if (!host) return;
+  host.textContent = '';
+  for (let i = 0; i < n; i++) host.appendChild(el('div', 'mod-skel'));
+}
 async function api(path: string, opts: RequestInit = {}): Promise<Response> {
   const headers = new Headers(opts.headers || {});
   headers.set('authorization', 'Bearer ' + token);
   if (opts.body && !headers.has('content-type')) headers.set('content-type', 'application/json');
   return fetch(API + path, { ...opts, headers });
 }
+function wrongToken() {
+  if (lockMsg) { lockMsg.textContent = 'Wrong token'; lockMsg.classList.add('is-bad'); }
+  setLocked(true);
+}
+function netError() { show(errBox, true); }
+
+/* ---------- fetchers per tab ---------- */
+let reqSeq = 0; // stale-response guard for fast filter/page changes
 
 async function loadQueue(): Promise<void> {
   if (!token) return;
-  setNote('');
-  show(errBox, false);
+  const seq = ++reqSeq;
+  show(errBox, false); show(queueEmpty, false);
+  skeletons(queueList);
   let res: Response;
-  try { res = await api('/moderation/queue?status=pending'); }
-  catch { setLocked(false); show(errBox, true); show(empty, false); if (list) list.textContent = ''; return; }
-  if (res.status === 401) {
-    if (lockMsg) lockMsg.textContent = 'Wrong token';
-    lockMsg?.classList.add('is-bad');
-    setLocked(true);
-    return;
+  try { res = await api('/moderation/list?status=pending&per=25'); }
+  catch { if (seq === reqSeq) { skeletons(queueList, 0); netError(); } return; }
+  if (seq !== reqSeq) return;
+  if (res.status === 401) { wrongToken(); return; }
+  if (!res.ok) { skeletons(queueList, 0); setToast('Queue error — HTTP ' + res.status, true); netError(); return; }
+  let data: ListResp; try { data = await res.json(); } catch { skeletons(queueList, 0); netError(); return; }
+  setLocked(false);
+  skeletons(queueList, 0);
+  const items = data.items || [];
+  show(queueEmpty, items.length === 0);
+  if (queueList) {
+    queueList.textContent = '';
+    for (const it of items) queueList.appendChild(row(it, { reply: true }));
   }
-  if (!res.ok) { show(errBox, true); setLocked(true); return; }
-  let data: { items?: QueueItem[] };
-  try { data = await res.json(); } catch { show(errBox, true); return; }
-  show(lock, false); show(queue, true);
-  renderList(data.items || []);
 }
 
-function renderList(items: QueueItem[]): void {
-  if (!list) return;
-  list.textContent = '';
-  show(empty, items.length === 0);
-  if (!items.length) { show(errBox, false); return; }
+function allParams(): string {
+  const p = new URLSearchParams({ status: state.status, per: '25', page: String(state.page) });
+  if (state.post) p.set('post', state.post);
+  return p.toString();
+}
+async function loadAll(): Promise<void> {
+  if (!token) return;
+  const seq = ++reqSeq;
+  show(errBox, false); show(allEmpty, false);
+  skeletons(allList);
+  if (seg) for (const b of Array.from(seg.querySelectorAll('button')))
+    b.classList.toggle('is-on', b.getAttribute('data-status') === state.status);
+  if (postInp && postInp.value !== state.post) postInp.value = state.post;
+  let res: Response;
+  try { res = await api('/moderation/list?' + allParams()); }
+  catch { if (seq === reqSeq) { skeletons(allList, 0); netError(); } return; }
+  if (seq !== reqSeq) return;
+  if (res.status === 401) { wrongToken(); return; }
+  if (!res.ok) { skeletons(allList, 0); setToast('List error — HTTP ' + res.status, true); netError(); return; }
+  let data: ListResp; try { data = await res.json(); } catch { skeletons(allList, 0); netError(); return; }
+  setLocked(false);
+  skeletons(allList, 0);
+  const items = data.items || [];
+  show(allEmpty, items.length === 0);
+  if (allList) {
+    allList.textContent = '';
+    for (const it of items) allList.appendChild(row(it, { reply: true }));
+  }
+  const total = data.total ?? items.length;
+  const page = data.page ?? state.page;
+  const pages = data.pages ?? 1;
+  show(pager, total > 25);
+  if (pageN) pageN.textContent = 'Page ' + page + ' of ' + Math.max(1, pages) + ' — ' + total + ' total';
+  if (prevB) prevB.disabled = page <= 1;
+  if (nextB) nextB.disabled = page >= pages;
+}
+
+async function loadReports(): Promise<void> {
+  if (!token) return;
+  const seq = ++reqSeq;
+  show(errBox, false); show(repEmpty, false);
+  skeletons(repList);
+  let res: Response;
+  try { res = await api('/moderation/reports?page=1'); }
+  catch { if (seq === reqSeq) { skeletons(repList, 0); netError(); } return; }
+  if (seq !== reqSeq) return;
+  if (res.status === 401) { wrongToken(); return; }
+  if (!res.ok) { skeletons(repList, 0); setToast('Reports error — HTTP ' + res.status, true); netError(); return; }
+  let data: { items?: Report[]; total?: number }; try { data = await res.json(); } catch { skeletons(repList, 0); netError(); return; }
+  setLocked(false);
+  skeletons(repList, 0);
+  const items = data.items || [];
+  show(repEmpty, items.length === 0);
+  if (repList) {
+    repList.textContent = '';
+    for (const r of items) repList.appendChild(reportRow(r));
+  }
+}
+
+async function loadOverview(): Promise<void> {
+  if (!token) return;
+  const seq = ++reqSeq;
   show(errBox, false);
-  for (const it of items) list.appendChild(card(it));
+  if (cards) cards.textContent = '';
+  let res: Response;
+  try { res = await api('/moderation/stats'); }
+  catch { if (seq === reqSeq) netError(); return; }
+  if (seq !== reqSeq) return;
+  if (res.status === 401) { wrongToken(); return; }
+  if (!res.ok) { setToast('Stats error — HTTP ' + res.status, true); netError(); return; }
+  let s: Stats; try { s = await res.json(); } catch { netError(); return; }
+  setLocked(false);
+  const by = s.comments_by_status || {};
+  const n = (v: unknown) => (Number.isFinite(Number(v)) ? String(Number(v)) : '0');
+  const kpis: [string, string][] = [
+    ['Approved', n(by.approved)], ['Pending', n(by.pending ?? s.pending)],
+    ['Spam', n(by.spam)], ['Trash', n(by.trash)],
+    ['Last 7 days', n(s.comments_last_7d)], ['Reactions', n(s.reactions_total)],
+  ];
+  if (cards) {
+    cards.textContent = '';
+    for (const [label, val] of kpis) {
+      const k = el('div', 'mod-kpi');
+      const b = el('b'); b.textContent = val;
+      const sp = el('span'); sp.textContent = label;
+      k.append(b, sp);
+      cards.appendChild(k);
+    }
+  }
+  const tops = (s.top_posts || []).slice(0, 5);
+  show(topEmpty, tops.length === 0);
+  if (topList) {
+    topList.textContent = '';
+    for (const t of tops) {
+      const rowE = el('div', 'mod-card mod-top-row');
+      rowE.appendChild(postRef(t.post_id));
+      const c = el('span', 'mod-topn'); c.textContent = t.count + (t.count === 1 ? ' comment' : ' comments');
+      rowE.appendChild(c);
+      topList.appendChild(rowE);
+    }
+  }
 }
 
-function card(it: QueueItem): HTMLElement {
-  const box = el('article', 'mod-card');
+/* ---------- comment row (Queue + All) ---------- */
+function row(it: Item, opts: { reply?: boolean }): HTMLElement {
+  const box = el('article', 'mod-card mod-item');
   box.dataset.id = String(it.id);
 
   const head = el('div', 'mod-item-head');
-  const name = el('span', 'mod-name'); name.textContent = it.author_name || 'Anonymous';
-  const post = el('span', 'mod-meta');
-  const slug = POST_MAP[String(it.post_id)];
-  if (slug) {
-    const a = el('a'); a.href = slug; a.textContent = 'Post ' + it.post_id;
-    post.append(a);
-  } else {
-    post.textContent = 'Post ' + it.post_id;
+  const name = el('span', 'mod-name'); name.textContent = it.name || 'Anonymous';
+  const post = postRef(it.post_id);
+  const time = el('span', 'mod-meta');
+  time.textContent = timeAgo(it.created_at); time.title = absTitle(it.created_at);
+  head.append(name, post, time);
+  const chips: string[] = [];
+  if (it.status !== 'approved') chips.push(it.status);
+  if (Number(it.reaction_total) > 0) chips.push('\u2726 ' + it.reaction_total);
+  if (Number(it.open_reports) > 0) chips.push('reported');
+  for (const c of chips) {
+    const chip = el('span', 'mod-meta mod-chip is-st'); chip.textContent = c; head.appendChild(chip);
   }
-  const time = el('span', 'mod-meta'); time.textContent = timeAgo(it.created_at);
-  const score = el('span', 'mod-meta mod-score');
+  const score = el('span', 'mod-meta mod-chip is-spam');
   score.textContent = 'Spam ' + (Number.isFinite(it.spam_score) ? it.spam_score : '?');
-  head.append(name, post, time, score);
+  head.appendChild(score);
   box.appendChild(head);
 
-  const ex = el('p', 'mod-ex'); ex.textContent = stripHtml(it.excerpt || '');
+  const ex = el('p', 'mod-ex'); ex.textContent = stripHtml(it.content || '');
   box.appendChild(ex);
 
-  // Action row — btn-deep Approve, btn-ghost Spam, btn-ghost Trash.
-  const row = el('div', 'mod-act-row');
+  const arow = el('div', 'mod-act-row');
   const result = el('span', 'mod-result');
   const mk = (label: string, cls: string, action: string) => {
     const b = el('button', cls); b.type = 'button'; b.textContent = label;
     b.addEventListener('click', () => moderate(it.id, action, b, result));
     return b;
   };
-  row.append(mk('Approve', 'btn-deep', 'approve'), mk('Spam', 'btn-ghost', 'spam'), mk('Trash', 'btn-ghost', 'trash'));
-  box.appendChild(row);
+  arow.append(mk('Approve', 'btn-deep', 'approve'), mk('Spam', 'btn-ghost', 'spam'), mk('Trash', 'btn-ghost', 'trash'));
+  if (it.status === 'spam' || it.status === 'trash') arow.appendChild(mk('Restore', 'btn-ghost', 'restore'));
+  box.appendChild(arow);
   box.appendChild(result);
 
-  // Reply as author — toggle → textarea → submit (lands pending in queue).
-  const toggle = el('button', 'mod-linkbtn'); toggle.type = 'button'; toggle.textContent = 'Reply as author';
-  const rep = el('div', 'mod-reply'); rep.hidden = true;
-  const ta = el('textarea', 'mod-ta'); ta.placeholder = 'Your reply as G-will Chijioke…';
-  const rRow = el('div', 'mod-reply-row');
-  const send = el('button', 'btn-deep'); send.type = 'button'; send.textContent = 'Send reply';
-  const cancel = el('button', 'btn-ghost'); cancel.type = 'button'; cancel.textContent = 'Cancel';
-  const rMsg = el('p', 'mod-reply-msg');
-  rRow.append(send, cancel);
-  rep.append(ta, rRow, rMsg);
-  toggle.addEventListener('click', () => {
-    rep.hidden = !rep.hidden;
-    toggle.textContent = rep.hidden ? 'Reply as author' : 'Hide reply';
-    if (!rep.hidden) ta.focus();
-  });
-  cancel.addEventListener('click', () => { rep.hidden = true; toggle.textContent = 'Reply as author'; });
-  send.addEventListener('click', () => sendReply(it, ta, send, rMsg));
-  box.appendChild(toggle);
-  box.appendChild(rep);
+  if (opts.reply) {
+    const toggle = el('button', 'mod-linkbtn'); toggle.type = 'button'; toggle.textContent = 'Reply as author';
+    const rep = el('div', 'mod-reply'); rep.hidden = true;
+    const ta = el('textarea', 'mod-ta'); ta.placeholder = 'Your reply as G-will Chijioke\u2026';
+    const rRow = el('div', 'mod-reply-row');
+    const send = el('button', 'btn-deep'); send.type = 'button'; send.textContent = 'Send reply';
+    const cancel = el('button', 'btn-ghost'); cancel.type = 'button'; cancel.textContent = 'Cancel';
+    const rMsg = el('p', 'mod-reply-msg');
+    rRow.append(send, cancel);
+    rep.append(ta, rRow, rMsg);
+    toggle.addEventListener('click', () => {
+      rep.hidden = !rep.hidden;
+      toggle.textContent = rep.hidden ? 'Reply as author' : 'Hide reply';
+      if (!rep.hidden) ta.focus();
+    });
+    cancel.addEventListener('click', () => { rep.hidden = true; toggle.textContent = 'Reply as author'; });
+    send.addEventListener('click', () => sendReply(it, ta, send, rMsg));
+    box.appendChild(toggle);
+    box.appendChild(rep);
+  }
   return box;
 }
 
+function reportRow(r: Report): HTMLElement {
+  const box = el('article', 'mod-card mod-item');
+  const head = el('div', 'mod-item-head');
+  const name = el('span', 'mod-name'); name.textContent = r.comment_name || 'Anonymous';
+  const reason = el('span', 'mod-meta mod-chip is-rep'); reason.textContent = 'Report \u00b7 ' + (r.reason || 'unspecified');
+  const post = postRef(r.post_id);
+  const time = el('span', 'mod-meta');
+  time.textContent = timeAgo(r.created_at); time.title = absTitle(r.created_at);
+  head.append(name, reason, post, time);
+  box.appendChild(head);
+  const ex = el('p', 'mod-ex');
+  ex.textContent = stripHtml(r.comment_excerpt || '') + (r.comment_status ? ' \u00b7 ' + r.comment_status : '');
+  box.appendChild(ex);
+  const arow = el('div', 'mod-act-row');
+  const result = el('span', 'mod-result');
+  const mk = (label: string, cls: string, action: string) => {
+    const b = el('button', cls); b.type = 'button'; b.textContent = label;
+    b.addEventListener('click', () => moderate(r.comment_id, action, b, result));
+    return b;
+  };
+  arow.append(mk('Approve', 'btn-deep', 'approve'), mk('Spam', 'btn-ghost', 'spam'), mk('Trash', 'btn-ghost', 'trash'));
+  if (r.comment_status === 'spam' || r.comment_status === 'trash') arow.appendChild(mk('Restore', 'btn-ghost', 'restore'));
+  const go = el('a', 'btn-ghost');
+  const slug = POST_MAP[String(r.post_id)];
+  go.href = slug || '/'; go.textContent = 'Go to post';
+  arow.appendChild(go);
+  box.appendChild(arow);
+  box.appendChild(result);
+  return box;
+}
+
+/* ---------- actions ---------- */
 async function moderate(id: number, action: string, btn: HTMLButtonElement, result: HTMLElement): Promise<void> {
   btn.disabled = true;
-  setNote('');
   try {
     const res = await api('/moderation/' + id, { method: 'POST', body: JSON.stringify({ action }) });
     const data = await res.json().catch(() => ({} as Record<string, unknown>));
-    if (res.status === 401) { await loadQueue(); return; }
+    if (res.status === 401) { wrongToken(); return; }
     if (res.ok) {
-      result.textContent = '#' + id + ' ' + action + 'd';
-      setNote('#' + id + ' ' + action + (data && (data as {status?: string}).status ? ' → ' + (data as {status: string}).status : ''));
-      await loadQueue(); // pending row leaves the queue
+      const st = (data as { status?: string }).status;
+      result.textContent = '#' + id + ' ' + action + (st ? ' \u2192 ' + st : 'd');
+      setToast('#' + id + ' ' + action + (st ? ' \u2192 ' + st : 'd'));
+      await reloadActive();
     } else {
-      result.textContent = '#' + id + ' ' + String((data as {message?: string}).message || res.status);
-      await loadQueue();
+      result.textContent = '#' + id + ' ' + String((data as { message?: string }).message || res.status);
+      setToast('#' + id + ' failed — ' + String((data as { message?: string }).message || res.status), true);
     }
   } catch {
-    show(errBox, true);
+    netError();
   } finally {
     btn.disabled = false;
   }
 }
 
-async function sendReply(it: QueueItem, ta: HTMLTextAreaElement, btn: HTMLButtonElement, msg: HTMLElement): Promise<void> {
+async function sendReply(it: Item, ta: HTMLTextAreaElement, btn: HTMLButtonElement, msg: HTMLElement): Promise<void> {
   const content = ta.value.trim();
   if (!content) { msg.textContent = 'Write something first.'; return; }
   btn.disabled = true; msg.textContent = '';
@@ -314,31 +664,66 @@ async function sendReply(it: QueueItem, ta: HTMLTextAreaElement, btn: HTMLButton
       }),
     });
     const data = await res.json().catch(() => ({} as Record<string, unknown>));
-    if (res.ok && (data as {ok?: boolean}).ok) {
-      msg.textContent = 'Reply queued as #' + String((data as {id?: number}).id ?? '?') + ' — approve it below.';
+    if (res.ok && (data as { ok?: boolean }).ok) {
+      const rid = String((data as { id?: number }).id ?? '?');
+      msg.textContent = 'Reply queued as #' + rid + ' — approve it below.';
+      setToast('Reply queued as #' + rid + ' — approve it below.');
       ta.value = '';
-      await loadQueue();
+      await reloadActive();
     } else {
-      msg.textContent = String((data as {message?: string}).message || ('HTTP ' + res.status));
+      msg.textContent = String((data as { message?: string }).message || ('HTTP ' + res.status));
     }
   } catch {
-    msg.textContent = 'Could not reach the queue — retry.';
+    msg.textContent = 'Could not reach the desk API — retry.';
   } finally {
     btn.disabled = false;
   }
 }
 
+function reloadActive(): Promise<void> {
+  if (state.tab === 'queue') return loadQueue();
+  if (state.tab === 'all') return loadAll();
+  if (state.tab === 'reports') return loadReports();
+  return loadOverview();
+}
+
+/* ---------- wiring ---------- */
 lock?.addEventListener('submit', (ev) => {
   ev.preventDefault();
   lockMsg?.classList.remove('is-bad');
   if (lockMsg) lockMsg.textContent = '';
   saveTok((tokInp?.value || '').trim());
   if (!token) { if (lockMsg) lockMsg.textContent = 'Paste the desk token first.'; return; }
-  void loadQueue();
+  void setTab(state.tab);
 });
 
-refreshB?.addEventListener('click', () => void loadQueue());
-retryB?.addEventListener('click', () => void loadQueue());
+tabs?.addEventListener('click', (ev) => {
+  const b = (ev.target as HTMLElement)?.closest?.('.mod-tab') as HTMLElement | null;
+  if (!b || !unlocked) return;
+  void setTab(b.getAttribute('data-tab') || 'queue');
+});
+seg?.addEventListener('click', (ev) => {
+  const b = (ev.target as HTMLElement)?.closest?.('button[data-status]') as HTMLElement | null;
+  if (!b) return;
+  state.status = b.getAttribute('data-status') || 'approved';
+  state.page = 1;
+  syncHash();
+  void loadAll();
+});
+postForm?.addEventListener('submit', (ev) => {
+  ev.preventDefault();
+  state.post = (postInp?.value || '').trim().replace(/[^0-9]/g, '');
+  state.page = 1;
+  syncHash();
+  void loadAll();
+});
+prevB?.addEventListener('click', () => {
+  if (state.page > 1) { state.page -= 1; syncHash(); void loadAll(); }
+});
+nextB?.addEventListener('click', () => { state.page += 1; syncHash(); void loadAll(); });
+
+refreshB?.addEventListener('click', () => void reloadActive());
+retryB?.addEventListener('click', () => void reloadActive());
 signoutB?.addEventListener('click', () => {
   saveTok('');
   if (tokInp) tokInp.value = '';
@@ -346,6 +731,16 @@ signoutB?.addEventListener('click', () => {
   setLocked(true);
 });
 
+window.addEventListener('hashchange', () => {
+  if (!readHash()) return;
+  paintTabs();
+  if (unlocked) void setTab(state.tab);
+});
+
+/* boot: hash keeps tab (and All-tab filters) across refresh */
+readHash();
+paintTabs();
+for (const k of TABS) if (views[k]) views[k]!.hidden = k !== state.tab;
 setLocked(true);
-if (token) void loadQueue(); // saved token → desk opens straight onto the queue
+if (token) void setTab(state.tab); // saved token → straight into the console
 </script>
