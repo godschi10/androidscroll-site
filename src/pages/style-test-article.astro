@@ -1,91 +1,48 @@
 ---
-/* KITCHEN-SINK style test — renders article-kitchen-sink.md draft in full.
-   DRAFT ONLY: robots noindex,nofollow, absent from search index + sitemap.
-   Covers all 20 Gutenberg-mapped elements + HowTo/FAQ JSON-LD. */
+/* KITCHEN-SINK style fixture — the site's internal style QA page, exposed as a
+   real published URL: /style-test-article/.
+   UNLISTED BY CONSTRUCTION: the article data lives in src/data/content.json and
+   every index (homepage latest/top-fixes, /latest/, search overlay, category +
+   tag pages, RSS) is derived from POSTS there. This fixture is NOT in that file,
+   so it appears in none of them; robots is noindex,nofollow on top, and the repo
+   ships no sitemap that could list it.
+   Covers all 20 Gutenberg-mapped elements for visual QA (markup is rendered for
+   the eye only — no SEO structured data on a QA fixture). */
 import Base from '../layouts/Base.astro';
 import AdSlot from '../components/AdSlot.astro';
 import ArticleChrome from '../components/ArticleChrome.astro';
 import { SITE } from '../data/site';
 
-const title = '"App Not Installed" on Android: the 3-minute fix that actually works';
-const desc = 'FIX: "App not installed" on sideloaded APKs is almost always a stale signature conflict — uninstall the old copy (keep data via ADB), then reinstall.';
+const title = 'Style Test — AndroidScroll';
+const desc = 'Internal style QA fixture — renders every brand component (prose, code, quotes, cards, buttons, reaction pills) for visual review. Unlisted and noindex.';
 const absUrl = SITE.url + '/style-test-article/';
 const tags = ['sideload', 'adb', 'apk', 'play-protect'];
-const iso = (d: string) => d + 'T00:00:00+01:00';
-
-const blogPosting = {
-  '@context': 'https://schema.org',
-  '@type': 'BlogPosting',
-  headline: title,
-  description: desc,
-  datePublished: iso('2026-09-01'),
-  dateModified: iso('2026-09-11'),
-  author: { '@type': 'Person', name: 'G-will Chijioke', url: SITE.url + '/about/#author' },
-  publisher: { '@type': 'Organization', name: SITE.name, url: SITE.url },
-  mainEntityOfPage: absUrl,
-  wordCount: 1200,
-  timeRequired: 'PT6M',
-};
-const breadcrumbLD = {
-  '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
-  itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: SITE.url + '/' },
-    { '@type': 'ListItem', position: 2, name: 'Troubleshooting & Fixes', item: SITE.url + '/category/troubleshooting-fixes/' },
-    { '@type': 'ListItem', position: 3, name: '"App Not Installed" on Android…' },
-  ],
-};
-const howToLD = {
-  '@context': 'https://schema.org',
-  '@type': 'HowTo',
-  name: title,
-  totalTime: 'PT6M',
-  step: [
-    { '@type': 'HowToStep', name: 'Uninstall the old copy', text: 'adb uninstall -k com.example.app keeps data; long-press Uninstall if you do not need data.' },
-    { '@type': 'HowToStep', name: 'Confirm arch and version match', text: 'Check arm64-v8a and minSdk against your Android version.' },
-    { '@type': 'HowToStep', name: 'Reinstall and read the error', text: 'adb install app-release.apk, then read the real failure line.' },
-  ],
-};
-const faqLD = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    { '@type': 'Question', name: 'Play Protect blocked it — now what?', acceptedAnswer: { '@type': 'Answer', text: 'Turn it back on after the test install. A blocked sideload that installs fine with Protect off is untrusted until proven otherwise — verify the SHA on the source site.' } },
-    { '@type': 'Question', name: 'Are split APKs (.apks) broken?', acceptedAnswer: { '@type': 'Answer', text: 'No — they are multi-file by design. Install with Split APK Installer or adb install-multiple.' } },
-  ],
-};
 ---
 <Base title={title} desc={desc} ogType="article" robots="noindex, nofollow">
-  <script type="application/ld+json" set:html={JSON.stringify(blogPosting)} />
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbLD)} />
-  <script type="application/ld+json" set:html={JSON.stringify(howToLD)} />
-  <script type="application/ld+json" set:html={JSON.stringify(faqLD)} />
 
-  <article itemscope itemtype="https://schema.org/BlogPosting">
-    <meta itemprop="headline" content={title} />
-    <meta itemprop="description" content={desc} />
-
+  <article>
     <header class="art-head col">
       <nav class="crumb" aria-label="Breadcrumb">
         <ol>
           <li><a href="/">Home</a></li>
-          <li><span class="sep" aria-hidden="true">›</span><a href="/category/troubleshooting-fixes/">Troubleshooting &amp; Fixes</a></li>
-          <li aria-current="page"><span class="sep" aria-hidden="true">›</span><span class="txt">"App Not Installed" on Android…</span></li>
+          <li aria-current="page"><span class="sep" aria-hidden="true">›</span><span class="txt">Style Test</span></li>
         </ol>
       </nav>
-      <p class="art-kicker mono">Troubleshooting &amp; Fixes · style test</p>
-      <h1 class="art-h1" itemprop="headline">{title}</h1>
-      <p class="art-stand" itemprop="description">{desc}</p>
+      <p class="art-kicker mono">Internal style QA fixture</p>
+      <h1 class="art-h1">{title}</h1>
+      <p class="art-stand">{desc}</p>
       <div class="meta-bar">
         <span class="meta-who"><span class="t-mono-av t-mono-av-s" aria-hidden="true">G</span> By <a href="/about/#author" rel="author">G-will Chijioke</a></span>
-        <span class="meta-facts"><span class="f-pub"><span class="f-lbl">Published </span><time datetime="2026-09-01" itemprop="datePublished">1 Sep 2026</time></span>
-        <span class="upd">Updated <time datetime="2026-09-11" itemprop="dateModified">11 Sep 2026</time></span>
-        <span>6 min<span class="f-lbl"> read</span></span>
-        <span>0 comments</span></span>
+        <span class="meta-facts"><span class="f-pub"><span class="f-lbl">Published </span><time datetime="2026-09-01">1 Sep 2026</time></span>
+        <span class="upd">Updated <time datetime="2026-09-11">11 Sep 2026</time></span>
+        <span>6 min<span class="f-lbl"> read</span></span></span>
+      </div>
+      <div class="callout note" role="note" style="margin-top:18px">
+        <p><strong>QA fixture:</strong> this page renders every article element — headings, lists, tables, quotes, embeds, callouts — so the design system can be eyeballed as a whole. It is noindex and deliberately absent from the homepage, latest feed, search, categories, tags and RSS.</p>
       </div>
       <figure class="art-hero">
-        <img src="/img/kb-hero.svg" width="1200" height="675" alt="Terminal showing INSTALL_FAILED_UPDATE_INCOMPATIBLE, fixed with adb uninstall -k" loading="eager" fetchpriority="high" decoding="async" itemprop="image" />
-        <figcaption>The log names the cause; the toast never does. Placeholder art — field shots land with the body port.</figcaption>
+        <img src="/img/kb-hero.svg" width="1200" height="675" alt="Terminal showing INSTALL_FAILED_UPDATE_INCOMPATIBLE, fixed with adb uninstall -k" loading="eager" fetchpriority="high" decoding="async" />
+        <figcaption>Sample hero figure — exercises the 16/9 crop, caption styling and eager-load path.</figcaption>
       </figure>
     </header>
 
@@ -108,9 +65,9 @@ const faqLD = {
           <nav data-toc-mobile aria-label="Table of contents"></nav>
         </details>
 
-        <div class="prose" itemprop="articleBody">
+        <div class="prose">
           <h2>Why it happens</h2>
-          <p>Two paragraphs of lede. Android refuses the install and shows one useless toast. The Package Manager log always names the real cause — <strong>signature mismatch</strong> beats corrupt downloads 9 times out of 10. Second paragraph sets up the symptom table and keeps the promise: you will leave with the exact command that tells the truth.</p>
+          <p>Android refuses the install and shows one useless toast. The Package Manager log always names the real cause — <strong>signature mismatch</strong> beats corrupt downloads 9 times out of 10. This sample body exercises every block the editor can emit: opening paragraphs, the symptom table below, and the exact command that tells the truth.</p>
           <h3>The one-line version</h3>
           <p>Same key, same app — or no install. Everything below is just finding out which key signed what.</p>
           <h4>Heading four, small-bold</h4>
@@ -305,7 +262,7 @@ Read it first.</pre>
               <span class="fc-badge" aria-hidden="true">🎙 Field note</span>
               <audio controls preload="none" src="/audio/kb-note.wav"></audio>
             </div>
-            <figcaption>Placeholder tone standing in for the on-device recording.</figcaption>
+            <figcaption>Sample self-hosted audio row — exercises the native player styling.</figcaption>
           </figure>
 
           <h2>Notes</h2>
@@ -319,8 +276,8 @@ Read it first.</pre>
         <ArticleChrome title={title} url={absUrl} tags={tags} />
 
         <nav class="post-nav" aria-label="More guides">
-          <a class="pn-card" href="/android-phone-overheating/" rel="prev"><span class="pn-k mono">← Older</span><span class="pn-t">Android Phone Overheating? Causes and Fixes (2026)</span><span class="pn-c mono">Troubleshooting &amp; Fixes</span></a>
-          <a class="pn-card" href="/android-storage-full-after-deleting-files/" rel="next"><span class="pn-k mono">Newer →</span><span class="pn-t">Android Storage Full After Deleting Files? Here's What's Actually Hiding</span><span class="pn-c mono">Troubleshooting &amp; Fixes</span></a>
+          <a class="pn-card" href="/android-phone-overheating/"><span class="pn-k mono">Sample link</span><span class="pn-t">Android Phone Overheating? Causes and Fixes (2026)</span><span class="pn-c mono">Troubleshooting &amp; Fixes</span></a>
+          <a class="pn-card" href="/android-storage-full-after-deleting-files/"><span class="pn-k mono">Sample link</span><span class="pn-t">Android Storage Full After Deleting Files? Here's What's Actually Hiding</span><span class="pn-c mono">Troubleshooting &amp; Fixes</span></a>
         </nav>
       </div>
 
