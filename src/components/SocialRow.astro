@@ -1,0 +1,29 @@
+---
+/* SocialRow v1 — v0.6.10. One aria-labelled nav row of brand icon buttons.
+   Inline simple-icons paths (no <img>, no third-party embeds), fill=currentColor
+   so the band tokens (mint on the verdict footer, ink-2 on paper) flow through.
+   Per-icon <g transform> carries the optical-law scale (see data/socials.ts):
+   ink max-dims land ~19.8u of the 24u grid, ±5% across the set (law ±10%).
+   40x40 tap targets; 16px svg at mobile / 18px >=900px = the v0.6.7 share-btn
+   ink class. variant: 'foot' = mint-on-band, 'paper' = ink-on-card. */
+import type { Social } from '../data/socials';
+interface Props {
+  items: Social[];
+  label: string;
+  variant?: 'foot' | 'paper';
+}
+const { items, label, variant = 'foot' } = Astro.props;
+---
+<nav class:list={['soc-row', `soc-row--${variant}`]} aria-label={label}>
+  {items.map(s => (
+    <a class="soc-btn" href={s.href} target="_blank" rel="noopener noreferrer"
+       aria-label={s.label} data-soc={s.slug} title={s.label}>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <g transform={`translate(12 12) scale(${s.scale}) translate(-12 -12)`}>
+          <path style="fill:currentColor;stroke:none" d={s.d} />
+        </g>
+      </svg>
+      <span class="sr-only">{s.label}</span>
+    </a>
+  ))}
+</nav>

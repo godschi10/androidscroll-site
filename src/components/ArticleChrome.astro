@@ -2,6 +2,8 @@
 /* ArticleChrome — shared article furniture + vanilla islands (no jQuery, ever).
    Used by [...slug].astro and the kitchen-sink style test.
    Props: title, url (absolute), tags (string[]). */
+import SocialRow from './SocialRow.astro';
+import { SOCIAL_PERSONAL } from '../data/socials';
 import { SITE } from '../data/site';
 const { title, url, tags = [] } = Astro.props;
 const enc = encodeURIComponent;
@@ -62,10 +64,18 @@ const shareTg = `https://t.me/share/url?url=${enc(url)}&text=${enc(title)}`;
 
 <!-- author bio -->
 <div class="author-box" itemprop="author" itemscope itemtype="https://schema.org/Person">
-  <span class="t-mono-av" aria-hidden="true">G</span>
-  <div>
+  <!-- v0.6.10: real Gravatar photo (raw sha256 of desk email — the same URL the
+       apex footer uses) replaces the 'G' monogram. d=retro is safety only: the
+       photo serves 200 so retro never paints. 48px slot kept => zero layout shift. -->
+  <img class="a-photo" src="https://www.gravatar.com/avatar/cd2c5f952ac6bbcba85fbf973b030b6d5af4f62f46e3c4a37abbcb7dfc28b6a9?s=128&d=retro"
+       alt="G-will Chijioke" itemprop="image" loading="lazy" decoding="async" width="48" height="48" />
+  <div class="a-body">
     <h4 itemprop="name">G-will Chijioke</h4>
     <p><span itemprop="description">Founder of AndroidScroll. Fixes Android on cheap data and cheaper phones — everything tested on real Tecno/Infinix hardware.</span> Corrections and tips: <a href="mailto:desk@androidscroll.com">desk@androidscroll.com</a> · <a href="/how-we-test/">How we test</a></p>
+    <!-- v0.6.10 personal accounts (King-verified slugs; IG has NO underscore) -->
+    <div class="a-socials">
+      <SocialRow items={SOCIAL_PERSONAL} label="G-will Chijioke on social media" variant="paper" />
+    </div>
   </div>
 </div>
 

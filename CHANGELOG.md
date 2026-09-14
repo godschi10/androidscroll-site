@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.6.10] — 2026-09-14
+### Added
+- **Brand social row (footer + header sheet)** — nine accounts as inline simple-icons
+  SVG buttons (X, YouTube, Instagram, Threads, TikTok, Facebook, Telegram, WhatsApp,
+  Pinterest), each aria-labelled, rel=noopener, 40px targets. No <img>, no third-party
+  embeds. YouTube href keeps the required trailing dot (no dot = different channel).
+  OPTICAL LAW: per-icon <g> scale normalizes ink max-dims to ~19.8u/24u (set spread
+  ±5%, within the ±10% law) measured from alpha rasters — YouTube wide bar and the
+  heavy facebook/telegram discs scale down, sparse x scales up.
+- **Author box photo + personal row** — the 'G' monogram becomes the real Gravatar
+  (raw sha256 URL, s=128, d=retro safety) in the same 48px slot with brand ring;
+  five personal icon buttons (X @GwillChijioke, Instagram gwillchijioke — no
+  underscore, LinkedIn, GitHub godschi10, GitLab godschi10).
+- **Commenter gravatars** — when a comment carries email_hash, a 36px gravatar
+  (d=404) overlays the monogram; 404 removes the img and the existing initials
+  show through, so every v0.1.3-era row (null hash) renders exactly as before.
+  Zero CLS in both states.
+
 ## 0.6.9 — 2026-09-14 — reaction stack is TRUE Facebook order (most-reacted first/left and painted on top) + crescent-compacted pill; search icon toggles the overlay closed; consent required-star hugs the full stop; authentic X mark; share row wraps as one right-hand group
 - **Reaction stack order inverted (Comments.astro):** the King's fresh phone screenshot (post 578 'Thanks bro', heart1+fire1+laugh2) showed v0.6.6's reading was backwards — we put the most-reacted bubble LAST in the DOM (rightmost, on top). "The most that's in the front should be on top most" = Facebook semantics: **highest count FIRST (leftmost) AND visually on top**, later/lesser bubbles tuck behind it. Sort flipped to `counts[b]-counts[a]` + `.slice(0,3)` (ties keep canonical REACTIONS order like,heart,fire,laugh via stable sort); paint order inverted with `.rx-bub{position:relative}` + `.rx-stack .rx-bub:nth-child(1/2/3){z-index:3/2/1}` so earlier siblings cover later ones. Negative `margin-left:-7px` stays on non-first bubbles — the overlap is now UNDER the front bubble. VERIFICATION UPGRADE (the law this leg): `elementFromPoint` at BOTH junctions must return the LEFT bubble, plus a PIL pixel check that the most-reacted glyph's ring is unbroken.
 - **Search icon toggles closed (Header.astro):** King order — "Search icon should also be able to close the search overlay". Mirror of the v0.6.8 hamburger diff: `#search-trigger` click is now `if (searchLayer.hidden) openSearch(); else closeSearch()`; trigger carries `aria-expanded` (false→true→false) and its `aria-label` flips Search guides↔Close search on the same open/close paths. Esc, × button, scrim and tap-outside close paths untouched; counter-based scroll lock runs through the same idempotent pair.

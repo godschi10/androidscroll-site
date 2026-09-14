@@ -4,6 +4,8 @@
    capped pillar sitemap + The paper in the brand block, legal lives in the
    bottom bar dots. Deep-verdict band, mint type. */
 import Wordmark from './Wordmark.astro';
+import SocialRow from './SocialRow.astro';
+import { SOCIAL_BRAND } from '../data/socials';
 import { SITE, PILLARS, POSTS, TOTALS, postsIn } from '../data/site';
 const latest3 = POSTS.slice(0, 3);
 const year = 2026;
@@ -25,6 +27,11 @@ const footPillars = PILLARS
         </a>
         <p>{SITE.tagline} Built as a static publication: Astro on the edge, no trackers without your consent.</p>
         <p class="foot-alerts"><a href="/contact/">Get launch alerts — tell us where to reach you →</a></p>
+        <!-- v0.6.10: nine brand accounts, inline icons, optical-law scaled -->
+        <div class="foot-social">
+          <span class="soc-kicker">Follow AndroidScroll</span>
+          <SocialRow items={SOCIAL_BRAND} label="AndroidScroll on social media" variant="foot" />
+        </div>
       </div>
 
       <!-- v2.7: The paper lifted OUT of the brand block — it's a grid sibling now,

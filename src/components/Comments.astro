@@ -585,7 +585,11 @@ function renderThread(comments: any[]): string {
       <div class="c-item${replyToName ? ' c-reply' : ''}${c.is_author ? ' c-by-author' : ''}" id="comment-${id}">
         ${replyMark}
         <div class="c-meta">
-          <span class="c-avatar" aria-hidden="true" style="background:${avatarBg(c)}">${esc(initials(c.name || 'Anonymous'))}</span>
+          <!-- v0.6.10: email_hash (worker v0.1.3) -> 36px gravatar overlay on the
+               monogram; d=404 miss removes the img, initials show through. Hash is
+               regex-gated to [0-9a-f]{32,64} before it touches the URL. Null hash
+               (every row today) renders the initials span exactly as before. -->
+          <span class="c-av-wrap"><span class="c-avatar" aria-hidden="true" style="background:${avatarBg(c)}">${esc(initials(c.name || 'Anonymous'))}</span>${/^([0-9a-f]{32}|[0-9a-f]{64})$/.test(String(c.email_hash || '')) ? `<img class="c-photo" src="https://www.gravatar.com/avatar/${String(c.email_hash).toLowerCase()}?s=64&d=404" alt="${esc(c.name || 'Anonymous')}" loading="lazy" decoding="async" width="36" height="36" onerror="this.remove()">` : ''}</span>
           <span class="c-headline">
             <span class="c-name-wrap">${linkOpen}<span class="c-name">${safeName}</span>${linkClose}</span>
             <span class="c-sub">
@@ -927,6 +931,10 @@ html[data-theme=dark] .comments .c-pend-chip{border-color:var(--teal);color:var(
 /* meta row */
 .comments .c-meta{display:flex;align-items:center;gap:12px;margin-bottom:10px}
 .comments .c-avatar{flex:none;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:-.02em;color:var(--on-deep);background:var(--deep);border-radius:2px}
+/* v0.6.10 commenter gravatar: fixed 36px wrap, img overlays the monogram;
+   d=404 onerror removes img -> initials underneath. Zero CLS either way. */
+.comments .c-av-wrap{position:relative;width:36px;height:36px;flex:none}
+.comments .c-photo{position:absolute;inset:0;width:36px;height:36px;border-radius:2px;object-fit:cover;border:1px solid var(--line-2);background:transparent}
 .comments .c-headline{min-width:0}
 .comments .c-name{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:-.01em;color:var(--ink)}
 .comments .c-name-wrap a{color:var(--deep);text-decoration:none}

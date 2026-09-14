@@ -15,6 +15,8 @@
      its own instance). Browse bottom sheet + search overlay IDs preserved. */
 import { SITE, CATS, PILLARS, TOTALS, childrenOf, postsIn, POSTS } from '../data/site';
 import Wordmark from './Wordmark.astro';
+import SocialRow from './SocialRow.astro';
+import { SOCIAL_BRAND } from '../data/socials';
 const pillarsWithPosts = PILLARS.map(p => ({ ...p, real: postsIn(p).length }));
 const navCats = pillarsWithPosts.filter(p => p.real > 0).slice(0, 4);
 const navLabel = (name: string) => name.split(/[ &—-]+/).filter(Boolean)[0] || name;
@@ -103,6 +105,12 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
         <label><input type="checkbox" class="ad-toggle" data-role="placeholders" /> Placeholders</label>
       </div>
       <span class="sheet-foot-note">off = zero height · zero requests · zero shift</span>
+      <!-- v0.6.10 King: "the footer and header has all social link" — the bar is a
+           tight 54px trio at 390px, so the nine accounts ride the sheet foot. -->
+      <div class="sheet-socs">
+        <span class="foot-kicker">Follow us</span>
+        <SocialRow items={SOCIAL_BRAND} label="AndroidScroll on social media" variant="paper" />
+      </div>
     </div>
   </nav>
 </aside>

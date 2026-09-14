@@ -820,3 +820,42 @@ html.js .stag.in{opacity:1;transform:none}
 .hairline{border-top:1px solid var(--line-2);margin:var(--sp-e) 0 0}
 .no-js-hide{display:none}
 html.js .no-js-hide{display:block}
+
+/* ══ v0.6.10 social icon rows (footer band, browse-sheet foot, author box) ══
+   .sh-btn house rule honored: >=40px tap targets, 2px radius, currentColor ink,
+   16px svg (v0.6.7 share-btn ink class) -> 18px >=900px. Optical-law per-icon
+   <g scale> lives in data/socials.ts — geometry, not CSS.
+   Contrast: foot mint #D9F2E8 on --verdict #0A332C = 9.9:1 light / 12.6:1 dark;
+   paper ink-2 on --paper = 10.8:1 light / 11.4:1 dark (all >= 4.5). */
+.soc-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.soc-btn{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border:1px solid transparent;border-radius:2px;text-decoration:none;transition:color .16s ease-out,border-color .16s ease-out,background-color .16s ease-out}
+.soc-btn svg{width:16px;height:16px;flex:none;display:block}
+@media (min-width:900px){.soc-btn svg{width:18px;height:18px}}
+.soc-row--foot .soc-btn{color:var(--mint);border-color:rgba(217,242,232,.28)}
+.soc-row--foot .soc-btn:hover{color:#FFF;border-color:var(--teal);text-decoration:none}
+.soc-row--paper .soc-btn{color:var(--ink-2);border-color:var(--line-2);background:var(--paper)}
+.soc-row--paper .soc-btn:hover{color:var(--deep);border-color:var(--deep)}
+.soc-btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.soc-kicker{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--muted);margin-bottom:8px}
+.foot-social{margin-top:16px}
+.foot-social .soc-kicker{color:rgba(217,242,232,.8)}
+.sheet-socs{flex-basis:100%;margin-top:2px}
+.sheet-socs .foot-kicker{display:block;margin-bottom:8px}
+/* the footer's .foot-col a rule (width:100%, mono link styling) must not reach
+   the icon buttons — pin the house .soc-btn geometry inside the footer band */
+.site-footer .soc-btn{width:40px;height:40px;font-family:inherit;letter-spacing:0}
+
+/* ══ v0.6.10 author-box gravatar ══ photo replaces the 'G' monogram in the same
+   48px slot (zero CLS), circular with brand ring per theme. */
+.author-box .a-photo{width:48px;height:48px;flex:none;border-radius:50%;object-fit:cover;border:2px solid var(--verdict);background:var(--band);box-shadow:0 0 0 1px var(--line-2)}
+html[data-theme=dark] .author-box .a-photo{border-color:var(--teal)}
+.author-box .a-body{min-width:0}
+.author-box .a-socials{margin-top:12px}
+
+/* ══ v0.6.10 commenter gravatar ══ img overlays the initials box inside a fixed
+   36px wrap; d=404 hit -> inline onerror removes img -> initials underneath show.
+   Both states occupy the same box: zero CLS. Null hash (every v0.1.3-era row)
+   never builds an img at all — initials path byte-identical to before. */
+.comments .c-av-wrap{position:relative;width:36px;height:36px;flex:none}
+.comments .c-av-wrap .c-avatar{width:36px;height:36px}
+.comments .c-photo{position:absolute;inset:0;width:36px;height:36px;border-radius:2px;object-fit:cover;border:1px solid var(--line-2)}
