@@ -89,7 +89,11 @@ const hasCount = typeof initialCount === 'number' && initialCount > 0;
           <!-- honeypot: bots fill it, humans never see it -->
           <div class="c-hp" aria-hidden="true"><label for="c-hp">Leave this empty</label><input id="c-hp" name="honeypot" type="text" tabindex="-1" autocomplete="off" /></div>
           <!-- JS guard owns consent feedback (Safari bubble blocked submit silently) -->
-          <p class="c-check"><label><input id="c-consent" name="consent" type="checkbox" /> I agree to the <a href={policyUrl} target="_blank" rel="noopener">comments policy</a>. <span class="c-req">*</span></label></p>
+          <!-- v0.6.9 FINISH-3: label is inline-flex gap:8px — the "policy. " text was an
+             anonymous flex item, so gap:8px re-glued nothing (star still 8px off the
+             period). Wrap trailing text + period + star in ONE inline span: flex gap
+             only applies input↔span, star sits flush against the period. -->
+<p class="c-check"><label><input id="c-consent" name="consent" type="checkbox" /> <span>I agree to the <a href={policyUrl} target="_blank" rel="noopener">comments policy</a>.<span class="c-req">*</span></span></label></p>
           <p class="c-check"><label><input id="c-notify" name="notify" type="checkbox" /> Email me when someone replies.</label></p>
           <button type="submit" id="c-submit" class="btn-deep">Post Comment</button>
           <p id="form-msg" aria-live="polite" role="status"></p>
@@ -310,18 +314,19 @@ function total(st: { counts: Record<string, number> }): number {
 
 // ONE summary pill (P3): overlapping 18px glyph bubbles (top 3 types) + aggregate
 // total; zero-state = dashed '+ React' slot-frame idiom. Tap → picker.
-// v0.6.6 (King: "the most reacted should be ... first on top"): ascending-by-count —
-// the LOWEST count starts the overlap chain and the HIGHEST sits LAST in the DOM.
-// CSS paint order for positioned/in-flow siblings is DOM order (no z-index on .rx-bub),
-// and each later bubble overlaps the previous via margin-left:-7px, so last = ON TOP
-// and furthest right — the Facebook/Vibee semantics.
+// v0.6.9 (King, phone screenshot: "the most that's in the front should be on top
+// most" — v0.6.6 misread this as last/rightmost-on-top): TRUE Facebook semantics —
+// DESCENDING by count, so the MOST-reacted bubble is FIRST (leftmost) in the chain,
+// and .rx-stack nth-child z-index (3/2/1) paints earlier siblings OVER later ones.
+// Ties keep the canonical REACTIONS order (like, heart, fire, laugh) via stable sort.
+// Each non-first bubble still tucks in via margin-left — now under its neighbor.
 function sumInner(st: { counts: Record<string, number>; mine: Set<string> }): string {
   const t = total(st);
   if (!t) return `<span class="rx-add" aria-hidden="true">+</span>React`;
   const top = REACTIONS.map(([k]) => k)
     .filter(k => (st.counts[k] || 0) > 0)
-    .sort((a, b) => st.counts[a] - st.counts[b])
-    .slice(-3)
+    .sort((a, b) => st.counts[b] - st.counts[a])
+    .slice(0, 3)
     .map(k => `<span class="rx-bub${st.mine.has(k) ? ' is-mine' : ''}" data-emoji="${k}">${reactIcon(k)}</span>`)
     .join('');
   return `<span class="rx-stack" aria-hidden="true">${top}</span><span class="rx-total">${t}</span>`;
@@ -951,7 +956,15 @@ html[data-theme=dark] .comments .c-pend-chip{border-color:var(--teal);color:var(
 .comments .c-react-sum.is-zero{border-style:dashed} /* '+ React' slot-frame idiom */
 .comments .rx-add{color:var(--deep);font-weight:600}
 .comments .rx-stack{display:inline-flex;align-items:center}
-.comments .rx-bub{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid var(--line-2);border-radius:999px;background:var(--paper);color:var(--muted);margin-left:-7px} /* King v0.6.5: 22→24 container, proportional to 14→16 glyphs (overlap kept) */
+/* v0.6.9 King crescent compaction: -7→-11 tucks the chain tighter — 3-type pill
+   offsetWidth 58→50px (bubbles stay 24px; only the overlap deepens), meta row holds
+   one line at 390px. Visible sliver of each tucked bubble = crescent (Facebook idiom). */
+.comments .rx-bub{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid var(--line-2);border-radius:999px;background:var(--paper);color:var(--muted);margin-left:-11px;position:relative} /* King v0.6.5: 22→24 container, proportional to 14→16 glyphs */
+/* v0.6.9 King: leftmost (most-reacted after the DESC sort) paints ON TOP — z-index
+   descends by position so each earlier bubble's right edge covers the next one's. */
+.comments .rx-stack .rx-bub:nth-child(1){z-index:3}
+.comments .rx-stack .rx-bub:nth-child(2){z-index:2}
+.comments .rx-stack .rx-bub:nth-child(3){z-index:1}
 .comments .rx-bub:first-child{margin-left:0}
 .comments .rx-bub svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:square;stroke-linejoin:miter;flex:none} /* King v0.6.5: 14→16px — pill scales with the 21px picker so pill→picker still reads */
 .comments .rx-bub.is-mine .fl{fill:currentColor}
@@ -1007,6 +1020,12 @@ html[data-theme=dark] .comments .c-rep-sel{background:var(--field);border-color:
 .comments .c-field{min-width:0}
 .comments .c-field label{display:block;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
 .comments .c-req{color:var(--deep)} /* required star = deep, never red (site law) */
+/* v0.6.9 FINISH-4 blind-vision FAIL: DOM space removed but Manrope's asterisk ink box
+   has ~3.25px of combined side bearings after a period = word-space-sized gap (gate
+   PIL run analysis). Pull the star 3px left so its left arm starts ~0.25px off the
+   period dot — GLUED. Scoped to .c-check so Name/Comment label stars (which have a
+   real space, correct there) are untouched. */
+.comments .c-check .c-req{margin-left:-3px}
 .comments .c-opt{font-weight:400;letter-spacing:.03em;text-transform:none;font-size:10px}
 /* fields — verbatim .notify input; v0.6.8 dark = --field well (was --mint white-slab debt) */
 .comments #comment-form input[type="text"],.comments #comment-form input[type="email"],.comments #comment-form input[type="url"],.comments #comment-form textarea{width:100%;box-sizing:border-box;border:1px solid var(--line-2);border-bottom-width:2px;background:var(--paper);padding:12px 14px;border-radius:2px;font-size:15px;font-weight:500;font-family:var(--sans);color:var(--ink)}

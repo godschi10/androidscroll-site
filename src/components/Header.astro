@@ -38,7 +38,7 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
       <button class="icon-btn" id="browse-trigger" aria-expanded="false" aria-controls="browse-sheet" aria-label="Open browse menu" title="Browse the shelves">
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.5 6.5h17M3.5 12h17M3.5 17.5h11"/></svg>
       </button>
-      <button class="icon-btn" id="search-trigger" aria-label="Search guides" aria-controls="search-layer" title="Search (/)">
+      <button class="icon-btn" id="search-trigger" aria-label="Search guides" aria-expanded="false" aria-controls="search-layer" title="Search (/)">
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="6.3"/><path d="M15.6 15.6 20.5 20.5"/></svg>
       </button>
       <button class="icon-btn" id="theme-toggle" aria-label="Theme: auto (follows system)" aria-haspopup="true" aria-expanded="false" aria-controls="theme-menu" title="Theme">
@@ -268,6 +268,10 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
     searchLayer.hidden = false;
     searchLayer.classList.add('is-open');
     searchInput.setAttribute('aria-expanded', 'true');
+    /* v0.6.9 King: the search icon TOGGLES — mirror of the v0.6.8 hamburger:
+       trigger carries aria-expanded + a label flip so AT says "Close search". */
+    searchTrigger.setAttribute('aria-expanded', 'true');
+    searchTrigger.setAttribute('aria-label', 'Close search');
     render(searchInput.value || '');
     /* Focus the input so the keyboard comes up on mobile / cursor is in the field.
        Use rAF + short setTimeout so the browser has flushed the overlay paint first —
@@ -284,11 +288,16 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
     searchLayer.classList.remove('is-open'); searchLayer.hidden = true;
     unlockPage();
     searchInput.setAttribute('aria-expanded', 'false');
+    searchTrigger.setAttribute('aria-expanded', 'false');
+    searchTrigger.setAttribute('aria-label', 'Search guides');
     searchInput.removeAttribute('aria-activedescendant');
     activeIdx = -1;
     searchTrigger.focus({ preventScroll: true });
   };
-  searchTrigger.addEventListener('click', openSearch);
+  /* v0.6.9 King: search icon toggles (was open-only): tap while open closes.
+     openSearch/closeSearch are idempotent-guarded, so the flip tests
+     searchLayer.hidden directly — same shape as the v0.6.8 hamburger. */
+  searchTrigger.addEventListener('click', () => { if (searchLayer.hidden) openSearch(); else closeSearch(); });
   /* v0.6.5: the 'Esc to close' hint is now a REAL button — same close path as tap-outside */
   const searchCloseBtn = document.getElementById('search-close');
   searchCloseBtn.addEventListener('click', closeSearch);

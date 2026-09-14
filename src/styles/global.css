@@ -681,6 +681,10 @@ html[data-theme=dark] .prose audio{color-scheme:dark}
 .post-tags a:hover{border-color:var(--deep);text-decoration:none}
 .share-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:18px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding-top:14px;padding-bottom:14px}
 .share-k{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-right:4px}
+/* v0.6.9 King addendum #5: icons + Copy link share ONE right-hand group. The group
+   wraps INTERNALLY (justify-content:flex-end), so a narrow row stacks Copy link
+   UNDER the icon column — never orphaned under the Share label. Wide = one line. */
+.share-grp{display:inline-flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:10px;margin-left:auto}
 .sh-btn{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;border:1px solid var(--line-2);border-radius:2px;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink-2);padding-top:9px;padding-bottom:9px;padding-left:14px;padding-right:14px;background:var(--paper)}
 .sh-btn:hover{border-color:var(--deep);color:var(--deep);text-decoration:none}
 /* v0.6.2 share glyphs (King: "X/WA/TG look like plain text abbrevs") — brand-drawn
