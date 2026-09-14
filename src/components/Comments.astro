@@ -233,29 +233,23 @@ const REACT_SVG: Record<string, string> = {
   // Raster gate @18/24/36px both themes: pointed tip -> split side licks -> solid
   // core -> rounded base; unambiguous flame in light+dark.
   fire: `<path${VE} d="M12 2.8 16.2 9.4l1.6-1.6c1.6 2 2.6 4 2.6 6.2a8.4 8.4 0 1 1-16.8 0c0-2.2 1-4.2 2.6-6.2l1.6 1.6L12 2.8Z"/><path fill="currentColor" stroke="none" d="M12 10.6 15.5 15.4 12 20.2 8.5 15.4Z"/>`,
-  // laugh: 😂 tears-of-joy — v0.6.2 SOLID-FILL KNOCK-OUT (King: the v0.6.1 hairline
-  // ring collapsed into "a flat line with faint ticks" at 18px). ONE evenodd path:
-  // solid disc r7.4 c(12,12) (12x12 device px — a heavy mass that survives AA) with
-  // two THICK SQUINT-EYE CHEVRON holes knocked out (apex y7.6, arms to y11.8, 2.8u
-  // thick => solid 2x2px holes each) and a WIDE OPEN-GRIN BOWL hole (top y13.4,
-  // depth 4.0, floor wall 2.0u => 6x3px hole). That face is unchanged.
-  // v0.6.2 TEARDROP REWORK (Manager vision gate on v064: "side marks are
-  // four-pointed sparkles, not teardrops; face reads ambiguous at native size"). The
-  // old drops were 2.9u loose diamonds floating at x0.4-3.3 / 20.7-23.6, clear of the
-  // rim — that float is what read as a sparkle. Each drop is now a real teardrop
-  // ANCHORED to the rim: TIP sits exactly on the r7.4 ring at eye height
-  // (5.00,9.60) — rim x = 12-sqrt(7.4^2-2.4^2) = 5.000 to 3dp — with the round BULB
-  // (r1.65, bigger than the 2.1px eye holes) hanging down-and-out on a 22 deg axis;
-  // total tip-to-bulb 5.65u (4.2 device px at 18px). Mirrored about x=12.
-  // Acceptance evidence (cairosvg, EXACTLY 18px + 180px reference, #f2f5f3 and
-  // #101816, PIL 8-conn component audit): light+dark rasters are pixel-identical in
-  // shape, ink is ONE connected component at threshold <200 AND <128 (disc + both
-  // tears welded at the rim — no floating mark anywhere), 18px coverage map shows
-  // the tip at the outer eye row widening down-out to the bulb, and the 180px
-  // reference reads as a laughing face with droplet tears (not sparkle/star).
-  // Brand monochrome — currentColor only, never emoji yellow/blue. No dark-mode
-  // colour change (King: idle icons read great in dark as-is).
-  laugh: `<path fill="currentColor" stroke="none" fill-rule="evenodd" d="M4.6 12a7.4 7.4 0 1 0 14.8 0 7.4 7.4 0 1 0 -14.8 0Z M6.5 9.0 8.4 7.6 10.3 9.0 10.3 11.8 8.4 10.4 6.5 11.8Z M17.5 9.0 15.6 7.6 13.7 9.0 13.7 11.8 15.6 10.4 17.5 11.8Z M7.8 13.4H16.2a4.2 4.0 0 0 1 -8.4 0Z"/><path d="M5.00 9.60C4.34 10.63 2.35 11.76 1.97 12.69A1.65 1.65 0 0 0 5.03 13.93C5.41 13.00 4.76 10.80 5.00 9.60Z" fill="currentColor" stroke="none"/><path d="M19.00 9.60C19.66 10.63 21.65 11.76 22.03 12.69A1.65 1.65 0 0 1 18.97 13.93C18.59 13.00 19.24 10.80 19.00 9.60Z" fill="currentColor" stroke="none"/>`,
+  // laugh: 😂 tears-of-joy — v0.6.3 LAUGH-v3, shelter-lab CANDIDATE B (blind-read PASS:
+  // "two tiny detached blobs = TEARS/DROPLETS OF JOY flying out from the corners of the
+  // eyes... big open laughing mouth"). Replaces v0.6.2's rim-welded drops, which the
+  // manager vision gate read as part of the face ("flat line with faint ticks").
+  // Geometry (units = 24-grid; 0.75 device px per unit at the 18px picker size):
+  // ONE evenodd face path — disc r6.6 c(12,12) + two flat-based WEDGE-EYE knock-out
+  // holes (squeezed-shut laugh: 3.3u wide, 2.3u visible height, 1.6u septum to mouth)
+  // + WIDE OPEN grin bowl hole (9.0u = 68.2% of face width, depth 5.3u, chin wall 1.4u).
+  // TWO DETACHED teardrops outside the rim: cusp tip at (4.295,9.195)/(19.705,9.195)
+  // (tip gutter 1.6u), bulb r1.7 down-out on a 41° axis, drop length 4.85u.
+  // Acceptance evidence (cairosvg at EXACTLY 18px, light #fff/#52635F + dark #0B241D/
+  // #B6CCC6, 8-conn PIL audit): 3 independent ink components both themes (face + 2 tears,
+  // 2px device gutters), 3 knock-out holes at 180px (2 wedges + mouth), all lab gates
+  // G1-G4 PASS; ship-leg regen re-raster is 0/324 px diff vs the lab's cand-B-18 PNGs.
+  // Brand monochrome — currentColor only, never emoji yellow/blue. No dark-mode colour
+  // change (King: idle icons read great in dark as-is).
+  laugh: `<path fill="currentColor" stroke="none" fill-rule="evenodd" d="M5.4 12a6.6 6.6 0 1 0 13.2 0a6.6 6.6 0 1 0 -13.2 0Z M8.604 8.166L7.25 10.3L10.55 10.3L9.196 8.166A0.35 0.35 0 0 0 8.604 8.166Z M14.804 8.166L13.45 10.3L16.75 10.3L15.396 8.166A0.35 0.35 0 0 0 14.804 8.166Z M7.5 11.9H16.5a4.5 5.3 0 0 1 -9 0Z"/><path d="M4.295 9.195L3.91 11.819A1.7 1.7 0 1 1 1.75 9.941Z" fill="currentColor" stroke="none"/><path d="M19.705 9.195L22.25 9.941A1.7 1.7 0 1 1 20.09 11.819Z" fill="currentColor" stroke="none"/>`,
 };
 const reactIcon = (k: string) =>
   '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + (REACT_SVG[k] || '') + '</svg>';
