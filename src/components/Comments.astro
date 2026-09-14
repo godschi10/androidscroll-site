@@ -992,7 +992,7 @@ html[data-theme=dark] .comments .c-react[aria-pressed="true"]{background:transpa
 .comments .c-rep-x{color:var(--muted) !important;text-decoration:underline;text-underline-offset:2px}
 .comments .c-rep-done{color:var(--deep);font-weight:600}
 .comments .c-rep-err{color:var(--deep)}
-html[data-theme=dark] .comments .c-rep-sel{background:var(--mint);border-color:var(--mint);color:#10231F}
+html[data-theme=dark] .comments .c-rep-sel{background:var(--field);border-color:var(--field-line);color:var(--field-ink)} /* v0.6.8: was --mint white-slab */
 
 /* empty — sheet-note voice */
 .comments .c-empty{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.03em;border-left:3px solid var(--deep);background:var(--band);padding:14px 18px;line-height:1.6;margin:4px 0 16px}
@@ -1008,11 +1008,11 @@ html[data-theme=dark] .comments .c-rep-sel{background:var(--mint);border-color:v
 .comments .c-field label{display:block;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
 .comments .c-req{color:var(--deep)} /* required star = deep, never red (site law) */
 .comments .c-opt{font-weight:400;letter-spacing:.03em;text-transform:none;font-size:10px}
-/* fields — verbatim .notify input; dark = mint King ruling */
+/* fields — verbatim .notify input; v0.6.8 dark = --field well (was --mint white-slab debt) */
 .comments #comment-form input[type="text"],.comments #comment-form input[type="email"],.comments #comment-form input[type="url"],.comments #comment-form textarea{width:100%;box-sizing:border-box;border:1px solid var(--line-2);border-bottom-width:2px;background:var(--paper);padding:12px 14px;border-radius:2px;font-size:15px;font-weight:500;font-family:var(--sans);color:var(--ink)}
 .comments #comment-form input::placeholder{color:var(--muted)}
-html[data-theme=dark] .comments #comment-form input[type="text"],html[data-theme=dark] .comments #comment-form input[type="email"],html[data-theme=dark] .comments #comment-form input[type="url"],html[data-theme=dark] .comments #comment-form textarea{background:var(--mint);border-color:var(--mint);color:#10231F}
-html[data-theme=dark] .comments #comment-form input::placeholder{color:#2C4640}
+html[data-theme=dark] .comments #comment-form input[type="text"],html[data-theme=dark] .comments #comment-form input[type="email"],html[data-theme=dark] .comments #comment-form input[type="url"],html[data-theme=dark] .comments #comment-form textarea{background:var(--field);border-color:var(--field-line);color:var(--field-ink)}
+html[data-theme=dark] .comments #comment-form input::placeholder,html[data-theme=dark] .comments #comment-form textarea::placeholder{color:var(--field-ph)}
 .comments #comment-form textarea{resize:vertical;min-height:110px}
 .comments :is(button,input,textarea,select,a):focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .comments .c-count{display:block;font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:4px;text-align:right}

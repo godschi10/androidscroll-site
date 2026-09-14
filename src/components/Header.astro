@@ -246,9 +246,12 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
   let locks = 0, lockY = 0;
   const lockPage = () => { if (!locks) { lockY = window.scrollY || 0; document.body.style.top = (-lockY) + 'px'; document.body.classList.add('frozen'); } locks++; document.documentElement.classList.add('locked'); };
   const unlockPage = () => { locks = Math.max(0, locks - 1); if (!locks) { document.documentElement.classList.remove('locked'); document.body.classList.remove('frozen'); document.body.style.top = ''; try { window.scrollTo({ top: lockY, behavior: 'instant' }); } catch (e) { window.scrollTo(0, lockY); } } };
-  const openSheet = () => { if (!sheet.hidden) return; lockPage(); scrim.hidden = false; sheet.hidden = false; requestAnimationFrame(() => { scrim.classList.add('is-open'); sheet.classList.add('is-open'); }); document.getElementById('browse-trigger').setAttribute('aria-expanded', 'true'); };
-  const closeSheet = () => { if (sheet.hidden) return; scrim.classList.remove('is-open'); sheet.classList.remove('is-open'); document.getElementById('browse-trigger').setAttribute('aria-expanded', 'false'); setTimeout(() => { sheet.hidden = true; scrim.hidden = true; unlockPage(); }, 200); };
-  document.getElementById('browse-trigger').addEventListener('click', openSheet);
+  const openSheet = () => { if (!sheet.hidden) return; lockPage(); scrim.hidden = false; sheet.hidden = false; requestAnimationFrame(() => { scrim.classList.add('is-open'); sheet.classList.add('is-open'); }); const trig = document.getElementById('browse-trigger'); trig.setAttribute('aria-expanded', 'true'); trig.setAttribute('aria-label', 'Close browse menu'); };
+  const closeSheet = () => { if (sheet.hidden) return; scrim.classList.remove('is-open'); sheet.classList.remove('is-open'); const trig = document.getElementById('browse-trigger'); trig.setAttribute('aria-expanded', 'false'); trig.setAttribute('aria-label', 'Open browse menu'); setTimeout(() => { sheet.hidden = true; scrim.hidden = true; unlockPage(); }, 200); };
+  /* v0.6.8 King: the hamburger TOGGLES — tap while the drawer is open closes it
+     (it used to be open-only; × / scrim / Escape already closed). openSheet and
+     closeSheet are idempotent guards, so the flip tests sheet.hidden directly. */
+  document.getElementById('browse-trigger').addEventListener('click', () => { if (sheet.hidden) openSheet(); else closeSheet(); });
   document.getElementById('browse-close').addEventListener('click', closeSheet);
   scrim.addEventListener('click', closeSheet);
 

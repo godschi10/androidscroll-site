@@ -36,7 +36,19 @@ html[data-theme=dark]{color-scheme:dark;
   --line:#1F4138;--line-2:#285047;
   --teal:#00C896;--deep:#00A88F;--deeper:#14BFA4;--verdict:#0C2B24;--mint:#D9F2E8;
   --focus:#5EEAD4;--on-deep:#071512;
-  --float:0 14px 34px rgba(0,0,0,.5)}
+  --float:0 14px 34px rgba(0,0,0,.5);
+  /* v0.6.8 dark form fields. Root cause: v3.3 "mint King ruling" painted every dark
+     field background with --mint #D9F2E8 = rgb(217,242,232), a near-WHITE (live probe
+     on served bytes read form bg rgb(217,242,232) color rgb(16,35,31)) — mint was born
+     as INK on the --verdict bands, never a surface; on dark cards it blazes as a white
+     block. Fix: a real sunken field surface derived ONLY from existing tokens —
+     --field=--band-2 #123430 (deep green family, 1.21:1 vs paper card = reads as a
+     well, not a slab); --field-line=--line-2 #285047 (1.81:1 vs card >= 1.5 visible);
+     --field-ink=--ink #E8F5EF (12.01:1 on field >= 4.5); --field-ph=--muted #B6CCC6
+     (placeholder 7.98:1 on field >= 3 — the old #2C4640-on-mint pairing was derived for
+     a light surface and goes invalid the moment fields go dark). Focus = border lift
+     only via existing :focus-visible outline --focus. Light theme untouched. */
+  --field:var(--band-2);--field-line:var(--line-2);--field-ink:var(--ink);--field-ph:var(--muted)}
 
 /* ---------- reset / base ---------- */
 *{box-sizing:border-box}html,body{margin:0;padding:0}
@@ -421,9 +433,14 @@ h1.hero-h1 .dot{color:var(--deep)}
 .notify p{color:var(--muted);font-size:14px;margin:8px 0 0;max-width:48ch}
 .notify form{display:flex;gap:10px;flex-wrap:wrap}
 .notify input[type=email]{flex:1;min-width:200px;border:1px solid var(--line-2);border-bottom-width:2px;background:var(--paper);padding:12px 14px;border-radius:2px;font-size:15px;font-weight:500}
-/* v3.3 King: dark field melted into the page (1.14:1) — mint field, ink text */
-html[data-theme=dark] .notify input[type=email]{background:var(--mint);border-color:var(--mint);color:#10231F}
-html[data-theme=dark] .notify input[type=email]::placeholder{color:#2C4640}
+/* v0.6.8 King: dark fields were --mint (rgb(217,242,232)) = white slabs on the dark
+   band (v3.3 debt reversed) — now --field derived from --band-2, ink light, placeholder
+   --muted re-derived for the dark surface. Light mode untouched. */
+html[data-theme=dark] .notify input[type=email]{background:var(--field);border-color:var(--field-line);color:var(--field-ink)}
+html[data-theme=dark] .notify input[type=email]::placeholder{color:var(--field-ph)}
+/* v0.6.8: checkbox accents lift to --teal on dark (UA paints the box dark via
+   color-scheme:dark; the checked fill at --deep #00A88F was muddy against --field) */
+html[data-theme=dark] .c-check input,html[data-theme=dark] .ad-toggles input,html[data-theme=dark] .foot-ad input{accent-color:var(--teal)}
 /* v3.3 King: dark button text melted into the button (verdict bg + ink text) */
 html[data-theme=dark] .notify .btn-deep{color:var(--mint)}
 .notify .btn-deep{border-top-width:0;background:var(--verdict)}
