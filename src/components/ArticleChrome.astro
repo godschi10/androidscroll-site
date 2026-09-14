@@ -21,21 +21,19 @@ const shareTg = `https://t.me/share/url?url=${enc(url)}&text=${enc(title)}`;
 <div class="share-row" aria-label="Share this guide">
   <span class="share-k" aria-hidden="true">Share</span>
   <a class="sh-btn sh-btn--icon" href={shareX} target="_blank" rel="noopener" aria-label="Share on X"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path vector-effect="non-scaling-stroke" d="M3.2 3.6h4.4L12 9.7l4.4-6.1h4.4l-6.9 8.6 6.9 8.7h-4.4L12 14.3l-4.4 6.6H3.2l6.9-8.7L3.2 3.6Z"/></svg><span class="sr-only">Share on X</span></a>
-<!-- v0.6.2 share glyph family (24 viewBox, 1.6 non-scaling hairline, square caps,
-     currentColor). v0.6.3 WA REWORK (King screenshot zoom: v0.6.2 drew a plain
-     circle-ring + detached triangle tail + squiggle). Now the true WhatsApp
-     silhouette: ONE continuous path — r8.3 bubble whose lower-left is pulled into
-     an INTEGRATED teardrop tail (tangent A(4.138,10.305) -> tail tip (3.1,21.1) ->
-     B(13.791,19.283), both tail edges concave-quadratic so the join is a smooth
-     continuation, no separate triangle anywhere) — plus the real handset: curved
-     bar (8.6,8.6)->(15,15.2) bulging lower-left (concave faces upper-right, the
-     official orientation measured off the brand glyph: top bulb x-centroid left
-     of bottom bulb) with two perpendicular end bulbs. Blind vision gate (4-tail
-     tune sheet): this tail "keeps a true rounded circle... sharp, smoothly
-     integrated point — exactly the construction of the official mark" PASS.
-     X + Telegram + Copy-link bytes untouched. -->
-  <a class="sh-btn sh-btn--icon" href={shareWa} target="_blank" rel="noopener" aria-label="Share on WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path vector-effect="non-scaling-stroke" d="M4.138 10.305a8.3 8.3 0 1 1 9.653 8.978Q7.6 19.3 3.1 21.1Q3.3 17.7 4.138 10.305"/><path vector-effect="non-scaling-stroke" d="M8.6 8.6Q9.5 14.2 15 15.2"/><path vector-effect="non-scaling-stroke" d="M10.081 8.362 7.119 8.838M15.268 13.724 14.732 16.676"/></svg><span class="sr-only">Share on WhatsApp</span></a>
-  <a class="sh-btn sh-btn--icon" href={shareTg} target="_blank" rel="noopener" aria-label="Share on Telegram"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path vector-effect="non-scaling-stroke" d="M21.5 3.5 15 21.5 11 13.5 3 9.5Z"/><path vector-effect="non-scaling-stroke" d="M21.5 3.5 11 13.5"/></svg><span class="sr-only">Share on Telegram</span></a>
+<!-- v0.6.5 share glyph updates (King screenshot verdict on v0.6.3: WA read as a TILTED MAP PIN
+     with handset ends welded to the wall — root cause: v0.6.3's arc flags `0 1 1` drew the
+     REFLECTED circle. v3 bubble = ONE continuous path, major arc `0 1 0` (verified renders the
+     true circle) r7.0 c(12,11.2) + SHORT integrated stub tail to tip ~(6.2,18.6) max y18.6<19,
+     no long sweep; handset = bowed bar + 2 bulb circles r0.85, ends at r3.2 from centre ->
+     >=2.5u clear of the wall at every point (never touching). Blind-read PASS: "circular speech
+     bubble with a small pointed tail... WhatsApp". TG v2 (King: "double-pointed glitched nose,
+     wings too narrow, fold misaligned"): nose ONE corner (21.2,4.8), left tail corner (2.6,12.4),
+     small notch mid-tail, bottom wing corner (12.8,19.4); miter joins + square caps; fold line
+     tail-centre->nose stopping 1.4u short so the cap never doubles at the tip; 2 paths max.
+     Blind-read PASS: "paper airplane... Telegram... Send". X + Copy-link bytes untouched. -->
+  <a class="sh-btn sh-btn--icon" href={shareWa} target="_blank" rel="noopener" aria-label="Share on WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path vector-effect="non-scaling-stroke" d="M9.38 17.69A7.0 7.0 0 1 0 5.82 14.49L6.06 16.96Q6.21 18.61 7.48 18.24Z"/><path vector-effect="non-scaling-stroke" d="M9.74 8.94Q11.47 11.73 14.26 13.46"/><path vector-effect="non-scaling-stroke" d="M10.59 8.94a0.85 0.85 0 1 0 -1.70 0a0.85 0.85 0 1 0 1.70 0" stroke-linecap="round" stroke-linejoin="round"/><path vector-effect="non-scaling-stroke" d="M15.11 13.46a0.85 0.85 0 1 0 -1.70 0a0.85 0.85 0 1 0 1.70 0" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Share on WhatsApp</span></a>
+  <a class="sh-btn sh-btn--icon" href={shareTg} target="_blank" rel="noopener" aria-label="Share on Telegram"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path vector-effect="non-scaling-stroke" d="M21.2 4.8L2.6 12.4L9.05 14.79L12.8 19.4Z"/><path vector-effect="non-scaling-stroke" d="M9.05 14.79L20.12 5.69"/></svg><span class="sr-only">Share on Telegram</span></a>
   <button class="sh-btn sh-btn--icon" type="button" data-copy-link={url} aria-label="Copy link"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path vector-effect="non-scaling-stroke" d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path vector-effect="non-scaling-stroke" d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span>Copy link</span></button>
 </div>
 

@@ -255,15 +255,19 @@ const reactIcon = (k: string) =>
   '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + (REACT_SVG[k] || '') + '</svg>';
 
 // ── own-reaction mirror (brief §3a.3 option i) — localStorage, try/catch ──
+// v0.6.5: single-highlight semantics — the mirror stores ONE emoji key (string)
+// per comment or deletes the entry. Old array format is migrated on read: the
+// LAST valid key in the array wins (it was the most recent tap).
 const RX_KEY = 'androidscroll:rx:' + postId;
-function readMirror(): Record<string, string[]> {
+const VALID_RX = new Set(REACTIONS.map(([k]) => k));
+function readMirror(): Record<string, string | string[]> {
   try {
     const raw = localStorage.getItem(RX_KEY);
     const o = raw ? JSON.parse(raw) : {};
     return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {};
   } catch { return {}; } // private browsing / disabled storage → degrade silently
 }
-function writeMirror(o: Record<string, string[]>) {
+function writeMirror(o: Record<string, string | string[]>) {
   try { localStorage.setItem(RX_KEY, JSON.stringify(o)); } catch { /* non-fatal */ }
 }
 
@@ -276,14 +280,26 @@ function stateFor(c: any) {
   for (const [k] of REACTIONS) counts[k] = Number((c.reactions && c.reactions[k]) || 0);
   const mine = new Set<string>();
   const stored = readMirror()[id];
-  if (Array.isArray(stored)) for (const k of REACTIONS) if (stored.includes(k[0])) mine.add(k[0]);
+  // v0.6.5 single-highlight: mirror is one key (string). Migrate the old array
+  // format on read — last valid key wins — and rewrite the mirror in the new shape.
+  let migrated: string | undefined;
+  if (typeof stored === 'string' && VALID_RX.has(stored)) migrated = stored;
+  else if (Array.isArray(stored)) { const last = stored.filter(k => VALID_RX.has(k)).pop(); if (last) migrated = last; }
+  if (migrated) {
+    mine.add(migrated);
+    const m = readMirror();
+    if (m[id] !== migrated) { m[id] = migrated; writeMirror(m); }
+  } else if (stored !== undefined && stored !== null) {
+    const m = readMirror(); delete m[id]; writeMirror(m); // stale/invalid entry pruned
+  }
   const st = { counts, mine };
   CSTATE.set(id, st);
   return st;
 }
 function persistMine(id: string, st: { mine: Set<string> }) {
   const m = readMirror();
-  if (st.mine.size) m[id] = Array.from(st.mine); else delete m[id];
+  const one = st.mine.size ? Array.from(st.mine)[0] : undefined; // v0.6.5: single key or null
+  if (one) m[id] = one; else delete m[id];
   writeMirror(m);
 }
 
@@ -349,20 +365,28 @@ function pop(el: HTMLElement) {
 }
 
 // ── optimistic state machine (brief §3a.3) — kills the silent return at old :228 ──
+// v0.6.5 SINGLE-HIGHLIGHT (King bug #2): a tap REPLACES my reaction — mine holds at
+// most one emoji. Tapping the same emoji again clears it (toggle-off). Every path
+// (optimistic, server confirm, rollback) repaints all four buttons via renderRx, so
+// no stale aria-pressed can survive. Rollback restores the full prior snapshot.
 async function toggleReact(btn: HTMLElement) {
   if (btn.classList.contains('is-syncing')) return; // tap-block while syncing
   const cid = btn.dataset.id || '', emoji = btn.dataset.emoji || '';
   const st = CSTATE.get(cid); if (!st || !(emoji in st.counts)) return;
   st.err = undefined;
 
-  // PENDING (local): instant flip + count delta (never below 0) + pulse
+  // snapshot for rollback BEFORE the optimistic replace
+  const prevMine = new Set(st.mine);
+  const prevCounts = { ...st.counts };
   const was = st.mine.has(emoji);
   const delta = was ? -1 : 1;
-  if (was) st.mine.delete(emoji); else st.mine.add(emoji);
+  // PENDING (local): replace-or-clear mine so only ONE key can be highlighted
+  st.mine = was ? new Set() : new Set([emoji]);
   st.counts[emoji] = Math.max(0, (st.counts[emoji] || 0) + delta);
   btn.classList.add('is-syncing');
   pop(btn);
   renderRx(cid);
+  closePickers(); // King: the picker must vanish the instant a choice is applied
 
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), 5000); // 5 s abort → rollback path
@@ -376,14 +400,18 @@ async function toggleReact(btn: HTMLElement) {
     clearTimeout(timer);
     if (!res.ok) { let msg = ''; try { msg = (await res.json()).message || ''; } catch {} throw new Error(msg || String(res.status)); }
     const data = await res.json();
-    // CONFIRMED: adopt the server's counts; mirror survives reload (§3a.3-i)
+    // CONFIRMED: adopt the server's counts (authoritative — old emoji decremented,
+    // new one incremented); mirror the single active key; mirror survives reload
     if (data && data.counts) for (const [k] of REACTIONS) if (typeof data.counts[k] === 'number') st.counts[k] = data.counts[k];
-    if (data && typeof data.active === 'boolean') { if (data.active) st.mine.add(emoji); else st.mine.delete(emoji); }
+    if (data && typeof data.active === 'boolean') {
+      if (data.active) st.mine = new Set([emoji]);
+      else st.mine.delete(emoji); // toggle-off confirmed: only the tapped key clears
+    }
     persistMine(cid, st);
   } catch (e: any) {
-    // ROLLED BACK: revert the flip + delta, surface it — never silent
-    if (was) st.mine.add(emoji); else st.mine.delete(emoji);
-    st.counts[emoji] = Math.max(0, (st.counts[emoji] || 0) - delta);
+    // ROLLED BACK: restore the full prior snapshot (mine + counts), surface it — never silent
+    st.mine = prevMine;
+    st.counts = prevCounts;
     persistMine(cid, st);
     st.err = e && e.name === 'AbortError'
       ? 'Reaction timed out — tap to retry.'
@@ -917,9 +945,9 @@ html[data-theme=dark] .comments .c-pend-chip{border-color:var(--teal);color:var(
 .comments .c-react-sum.is-zero{border-style:dashed} /* '+ React' slot-frame idiom */
 .comments .rx-add{color:var(--deep);font-weight:600}
 .comments .rx-stack{display:inline-flex;align-items:center}
-.comments .rx-bub{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:1px solid var(--line-2);border-radius:999px;background:var(--paper);color:var(--muted);margin-left:-6px} /* King v0.6.0: 18→22 container (overlap kept) */
+.comments .rx-bub{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid var(--line-2);border-radius:999px;background:var(--paper);color:var(--muted);margin-left:-7px} /* King v0.6.5: 22→24 container, proportional to 14→16 glyphs (overlap kept) */
 .comments .rx-bub:first-child{margin-left:0}
-.comments .rx-bub svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:square;stroke-linejoin:miter;flex:none} /* King v0.6.0: 12→14px */
+.comments .rx-bub svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:square;stroke-linejoin:miter;flex:none} /* King v0.6.5: 14→16px — pill scales with the 21px picker so pill→picker still reads */
 .comments .rx-bub.is-mine .fl{fill:currentColor}
 .comments .rx-total{font-family:var(--mono);font-weight:600;font-size:12px;color:var(--deep);font-variant-numeric:tabular-nums;margin-left:2px}
 
@@ -928,8 +956,8 @@ html[data-theme=dark] .comments .c-pend-chip{border-color:var(--teal);color:var(
 .comments .c-react-picker[hidden]{display:none} /* display override must not beat [hidden] */
 .comments .c-react-picker:not([hidden]){animation:c-pick-in .14s cubic-bezier(.34,1.56,.64,1)}
 @keyframes c-pick-in{from{transform:scale(.86);opacity:0}to{transform:scale(1);opacity:1}}
-.comments .c-react{display:inline-flex;flex-direction:column;gap:2px;align-items:center;justify-content:center;border:1px solid var(--line-2);border-radius:4px;background:var(--paper);padding:3px 9px;min-height:34px;min-width:44px;font-family:var(--mono);font-size:12px;color:var(--muted);cursor:pointer;transition:border-color .14s ease-out,color .14s ease-out,background-color .14s ease-out}
-.comments .c-react svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:square;stroke-linejoin:miter;flex:none} /* King v0.6.0: 15→18px — glyphs must read at a glance */
+.comments .c-react{display:inline-flex;flex-direction:column;gap:2px;align-items:center;justify-content:center;border:1px solid var(--line-2);border-radius:4px;background:var(--paper);padding:3px 9px;min-height:44px;min-width:44px;font-family:var(--mono);font-size:12px;color:var(--muted);cursor:pointer;transition:border-color .14s ease-out,color .14s ease-out,background-color .14s ease-out}
+.comments .c-react svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:square;stroke-linejoin:miter;flex:none} /* King v0.6.5: 15→18→21px — 'Laughing SVG is now looking awesome... TOO SMALL at 18px'; uniform bump across all four glyphs (equal rhythm), non-scaling stroke stays 1.6px, 44px tap targets */
 .comments .c-react:hover{border-color:var(--deep);color:var(--deep);text-decoration:none}
 .comments .c-react[aria-pressed="true"]{background:var(--mint);border-color:var(--deep);color:var(--deep)}
 html[data-theme=dark] .comments .c-react[aria-pressed="true"]{background:transparent;border-color:var(--teal);color:var(--teal)}
