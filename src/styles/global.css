@@ -843,7 +843,11 @@ html.js .no-js-hide{display:block}
 .sheet-socs .foot-kicker{display:block;margin-bottom:8px}
 /* the footer's .foot-col a rule (width:100%, mono link styling) must not reach
    the icon buttons — pin the house .soc-btn geometry inside the footer band */
-.site-footer .soc-btn{width:40px;height:40px;font-family:inherit;letter-spacing:0}
+/* v0.6.10 gate fix: the generic .foot-col a{justify-content:space-between} rule
+   (link+count rows) leaked into the icon buttons — a lone svg under space-between
+   sits flex-start, so every footer glyph rode the box edge 11px left of center.
+   Re-pin the flex centering (specificity .site-footer .soc-btn beats .foot-col a). */
+.site-footer .soc-btn{width:40px;height:40px;font-family:inherit;letter-spacing:0;justify-content:center;align-items:center}
 
 /* ══ v0.6.10 author-box gravatar ══ photo replaces the 'G' monogram in the same
    48px slot (zero CLS), circular with brand ring per theme. */
