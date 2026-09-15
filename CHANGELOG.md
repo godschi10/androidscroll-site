@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.6.16] — 2026-09-15
+### Added — Moderation desk overhaul (King ledger 10:20–11:17, pairs worker v0.1.6)
+- **Overview is now the FIRST and DEFAULT tab** — tab order Overview|Queue|All Comments|Reports;
+  no `?tab=` and no hash lands on Overview (legacy `?tab=` still honoured, hash wins).
+- **Overview expansion, real data only** — TOP GUIDES (base-aware links, same trace map as the
+  fix below), ACTION REQUIRED tiles (pending + open reports; calm when 0, accent when >0, click
+  jumps to the tab), 7-DAY TREND inline SVG sparkline (derived from list `created_at`, bespoke
+  monoline, no chart lib), RECENT ACTIVITY last-5 from the list payload, REACTION MIX aggregated
+  client-side from the same payload. Every number DOM-asserted against `/api/moderation/stats`.
+- **The 4 status tiles are buttons** (King 11:17): PENDING → Queue; APPROVED/SPAM/TRASH → All
+  Comments pre-filtered through the existing status segment. Full button semantics: type=button,
+  aria-label, focus-visible ring, hover/press states, chevron 'View' affordance.
+- **REPORTS tab redesign** (King 10:20): a report no longer wears the comment-card costume — alert
+  treatment (6px deep rail + band wash), header = 'Report received' + REASON chip + reporter hash
+  chip + timestamp, the flagged comment is a dimmed QUOTE (context), and the report gets its OWN
+  actions: **Dismiss report / Resolve — keep** via worker v0.1.6
+  `POST /api/moderation/reports/:id/resolve` (sets reports.resolved_at; comment untouched). The
+  comment-level Approve/Spam/Trash row sits below, labelled 'On the comment'. Go-to-post kept.
+### Fixed
+- **Trace links are base-aware** — `withBase()` derives the site root from the live `/mod/` path
+  (absolute slugs 404'd under the staging base) and links now carry the `#comment-<id>` anchor.
+- **Approve-matrix per status** — approved rows no longer show an Approve button (nor Spam/Trash
+  on spam/trash rows); restore stays where legal.
+- **Ghost vertical scrollbar in tab panels** — `.mod-view` pinned to natural height
+  (`max-height:none;overflow:visible`); DOM-asserted scrollHeight<=clientHeight per panel at
+  390px + desktop in both signed-in/empty states.
+
 ## [0.6.15] — 2026-09-15
 ### Fixed
 - **Share-bar Telegram glyph is now the PLANE ALONE (King screenshot 12:29 + follow-up: "Telegram

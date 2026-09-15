@@ -1,9 +1,12 @@
 ---
-/* MOD-CONSOLE v2 (0.6.4) — token-gated moderation desk over the worker API.
-   Four tabs: Queue (pending + actions + reply-as-author), All comments
-   (status segment + post filter + pagination), Reports (joined comment rows),
-   Overview (stats cards). Tab + filter state lives in the URL hash
-   (#/mod/<tab>?k=v) via history.replaceState so a refresh keeps position.
+/* MOD-CONSOLE v2 (0.6.16) — token-gated moderation desk over the worker API.
+   Four tabs (v0.6.16: Overview FIRST + DEFAULT): Overview (KPI tiles that
+   jump to their sections, action-required tiles, top guides, 7-day sparkline,
+   recent activity, reaction mix), Queue (pending + actions + reply-as-author),
+   All comments (status segment + post filter + pagination), Reports (alert-
+   style report cards with their OWN dismiss/resolve — worker v0.1.6 route —
+   plus a separate on-the-comment row). Tab + filter state lives in the URL
+   hash (#/mod/<tab>?k=v) via history.replaceState so a refresh keeps position.
    - Base layout + robots noindex,nofollow (unlisted — no nav link ever).
    - ZERO third-party JS: plain DOM, one bundled module, Worker rail only.
    - Brand: var() tokens from global.css ONLY (mono labels, --paper cards w/
@@ -15,7 +18,8 @@ import Base from '../layouts/Base.astro';
 import Wordmark from '../components/Wordmark.astro';
 import { POSTS } from '../data/site';
 
-/* Build-time post_id → local URL map. Unknown ids render as bare "POST <id>". */
+/* Build-time post_id → local URL map. Unknown ids render as bare "Post <id>"
+   meta with an honest no-link fallback (v0.6.14 — never a dead href). */
 const postMap: Record<number, string> = {};
 for (const p of POSTS) postMap[p.id] = p.url;
 ---
@@ -31,11 +35,12 @@ for (const p of POSTS) postMap[p.id] = p.url;
         </div>
       </div>
       <div class="wrap">
+        <!-- v0.6.16: Overview FIRST + DEFAULT (King 10:24) -->
         <nav class="mod-tabs" id="mod-tabs" aria-label="Console sections" hidden>
+          <button type="button" class="mod-tab" data-tab="overview">Overview</button>
           <button type="button" class="mod-tab" data-tab="queue">Queue</button>
           <button type="button" class="mod-tab" data-tab="all">All comments</button>
           <button type="button" class="mod-tab" data-tab="reports">Reports</button>
-          <button type="button" class="mod-tab" data-tab="overview">Overview</button>
         </nav>
       </div>
     </section>
@@ -96,12 +101,20 @@ for (const p of POSTS) postMap[p.id] = p.url;
           <p id="mod-rep-empty" class="mod-empty" hidden>No open reports.</p>
         </div>
 
-        <!-- OVERVIEW -->
+        <!-- OVERVIEW (v0.6.16: first + default tab, expanded real-data-only) -->
         <div id="mod-view-overview" class="mod-view" hidden>
           <div id="mod-cards" class="mod-cards"></div>
-          <p class="mod-label mod-top-head">Top posts</p>
+          <div id="mod-actionreq" class="mod-actionreq"></div>
+          <p class="mod-label mod-top-head">Top guides</p>
           <div id="mod-topposts" class="mod-rows"></div>
           <p id="mod-top-empty" class="mod-empty" hidden>No posts with comments.</p>
+          <p class="mod-label mod-top-head">Last 7 days</p>
+          <div id="mod-spark" class="mod-spark"></div>
+          <p class="mod-label mod-top-head">Recent activity</p>
+          <div id="mod-recent" class="mod-rows"></div>
+          <p id="mod-recent-empty" class="mod-empty" hidden>No comments yet.</p>
+          <p id="mod-mix-head" class="mod-label mod-top-head" hidden>Reaction mix</p>
+          <div id="mod-mix" class="mod-rows"></div>
         </div>
 
         <div id="mod-error" class="mod-card" hidden>
@@ -153,6 +166,9 @@ for (const p of POSTS) postMap[p.id] = p.url;
 .mod-scoped .mod-result.is-bad{color:var(--ink)}
 
 /* Row cards */
+/* v0.6.16 (King 10:22): tab panels are NATURAL height — never an artificial
+   max-height/overflow that paints a ghost scrollbar 1px past the content. */
+.mod-scoped .mod-view{max-height:none;overflow:visible}
 .mod-scoped .mod-rows{display:block}
 .mod-scoped .mod-item{margin-top:14px}
 .mod-scoped .mod-item-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
@@ -191,10 +207,50 @@ for (const p of POSTS) postMap[p.id] = p.url;
 .mod-scoped .mod-kpi{background:var(--paper);border:1px solid var(--line-2);border-radius:4px;padding:14px 16px}
 .mod-scoped .mod-kpi b{display:block;font-family:var(--display);font-weight:800;font-size:28px;letter-spacing:-.02em;color:var(--ink);font-variant-numeric:tabular-nums}
 .mod-scoped .mod-kpi span{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+/* v0.6.16 (King 11:17): the 4 status tiles ARE buttons — jump to their section. */
+.mod-scoped button.mod-kpi{text-align:left;cursor:pointer;font:inherit;color:inherit;transition:transform .12s ease-out,border-color .12s ease-out}
+.mod-scoped button.mod-kpi:hover{border-color:var(--deep)}
+.mod-scoped button.mod-kpi:active{transform:scale(.985)}
+.mod-scoped button.mod-kpi:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.mod-scoped .mod-kpi .mod-kpi-go{display:block;margin-top:6px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--deep)}
+.mod-scoped .mod-kpi .mod-kpi-go::after{content:" \203A"} /* subtle chevron affordance */
+/* Action required row — calm when zero, accent when not (King ledger #5). */
+.mod-scoped .mod-actionreq{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:12px}
+.mod-scoped .mod-actionreq:empty{display:none}
+.mod-scoped .mod-act-tile{display:flex;align-items:center;gap:10px;text-align:left;background:var(--paper);border:1px solid var(--line-2);border-radius:4px;padding:14px 16px;cursor:pointer;font:inherit;color:inherit;transition:transform .12s ease-out,border-color .12s ease-out}
+.mod-scoped .mod-act-tile:hover{border-color:var(--deep)}
+.mod-scoped .mod-act-tile:active{transform:scale(.985)}
+.mod-scoped .mod-act-tile:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.mod-scoped .mod-act-tile b{font-family:var(--display);font-weight:800;font-size:24px;color:var(--ink);font-variant-numeric:tabular-nums}
+.mod-scoped .mod-act-tile span{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.mod-scoped .mod-act-tile.is-hot{border-color:var(--deep);background:var(--band)}
+.mod-scoped .mod-act-tile.is-hot b{color:var(--deep)}
+/* 7-day sparkline — bespoke monoline, no chart lib (brand law). */
+.mod-scoped .mod-spark{margin-top:12px;background:var(--paper);border:1px solid var(--line-2);border-radius:4px;padding:14px 16px}
+.mod-scoped .mod-spark svg{display:block;width:100%;height:44px}
+.mod-scoped .mod-spark-num{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:8px 0 0}
+/* Recent activity + reaction mix rows reuse card language. */
+.mod-scoped .mod-rec-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin-top:10px}
+.mod-scoped .mod-rec-name{font-family:var(--display);font-weight:800;font-size:14px;color:var(--ink)}
+.mod-scoped .mod-rec-snippet{font-size:13.5px;line-height:1.5;color:var(--ink-2);overflow-wrap:anywhere;flex:1 1 100%}
+.mod-scoped .mod-mix-row{display:flex;align-items:center;gap:12px;margin-top:10px;font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
+.mod-scoped .mod-mix-e{font-size:16px}
+.mod-scoped .mod-mix-n{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--muted)}
 .mod-scoped .mod-top-head{margin-top:26px}
 .mod-scoped .mod-top-row{display:flex;align-items:baseline;gap:10px;margin-top:10px;font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
 .mod-scoped .mod-top-row a{color:var(--deep)}
 .mod-scoped .mod-top-row .mod-topn{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-size:10.5px}
+
+/* v0.6.16 REPORT cards — alert language, deliberately NOT the comment-bubble
+   card: verdict-tinted rail + band wash, quote is dimmed context. */
+.mod-scoped .mod-report{border-left-width:6px;border-left-color:var(--deep);background:var(--band)}
+.mod-scoped .mod-rep-sub{margin:10px 0 0;color:var(--muted)}
+.mod-scoped .mod-rep-quote{margin:10px 0 0;padding:8px 14px;border-left:2px solid var(--line-2);color:var(--muted);font-style:italic;font-size:14px;line-height:1.55;overflow-wrap:anywhere}
+.mod-scoped .mod-chip.is-reason{border-color:var(--deep);color:var(--on-deep);background:var(--deep)}
+.mod-scoped .mod-rep-lead{margin:14px 0 0}
+.mod-scoped .mod-rep-actions{margin-top:14px}
+.mod-scoped .mod-rep-comment{opacity:.9;margin-top:6px}
+.mod-scoped .mod-rep-comment .btn-ghost{font-size:13px;padding:9px 16px}
 
 /* Skeleton + states */
 .mod-scoped .mod-skel{margin-top:14px;height:86px;border:1px solid var(--line);border-radius:4px;background:linear-gradient(100deg,var(--paper) 40%,var(--band-2) 50%,var(--paper) 60%) 0 0/240% 100%;animation:mod-shim 1.2s linear infinite}
@@ -236,12 +292,14 @@ interface ListResp { ok?: boolean; items?: Item[]; total?: number; page?: number
 interface Report {
   id: number; comment_id: number; post_id: number; reason: string;
   created_at: string; comment_name: string | null; comment_status: string | null;
-  comment_excerpt: string | null;
+  comment_excerpt: string | null; reporter_hash?: string | null;
+  resolved_at?: string | null;
 }
 interface Stats {
   ok?: boolean; comments_by_status?: Record<string, number>; pending?: number;
   comments_last_7d?: number; reactions_total?: number; open_reports?: number;
   top_posts?: { post_id: number; count: number }[]; posts_with_comments?: number;
+  comments_total?: number;
 }
 
 const PROD_API = 'https://androidscroll-comments.gwill.workers.dev';
@@ -252,6 +310,17 @@ const TOK_KEY = 'androidscroll:modtok';
 const POST_MAP: Record<string, string> = (() => {
   try { return JSON.parse(ROOT?.dataset.postMap || '{}'); } catch { return {}; }
 })();
+
+/* Site root at runtime — the desk is served from any origin: apex '/',
+   staging '/androidscroll-site/'. Astro base is '' at build, so the only
+   honest way to resolve '/' + slug on the current host is to take the path
+   up to (and incl.) the '/mod/' segment. v0.6.14: fixes trace links that
+   404'd on staging because they pointed at origin root. */
+function withBase(slug: string): string {
+  const m = (location.pathname || '').match(/^(.*?)\/mod\/?$/);
+  const root = m ? m[1] + '/' : '/';
+  return root + slug.replace(/^\//, '');
+}
 
 const $ = (id: string) => document.getElementById(id) as HTMLElement | null;
 const lock     = $('mod-lock') as HTMLFormElement | null;
@@ -289,9 +358,13 @@ const topList   = $('mod-topposts');
 const topEmpty  = $('mod-top-empty');
 
 /* ---------- state (hash-synced) ---------- */
+/* v0.6.16: Overview is FIRST + DEFAULT (King 10:24). ?tab= search param is
+   honoured for legacy links; hash wins over it. No ?tab=, no hash →
+   overview. */
 type State = { tab: string; status: string; post: string; page: number };
-const state: State = { tab: 'queue', status: 'approved', post: '', page: 1 };
-const TABS = ['queue', 'all', 'reports', 'overview'];
+const state: State = { tab: 'overview', status: 'approved', post: '', page: 1 };
+const TABS = ['overview', 'queue', 'all', 'reports'];
+const TAB_QUERY = (new URLSearchParams(location.search).get('tab') || '').trim();
 
 function hashOf(s: State): string {
   if (s.tab === 'all') {
@@ -378,11 +451,15 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string): HTMLEl
   if (cls) e.className = cls;
   return e;
 }
-function postRef(id: number): HTMLElement {
+function postRef(id: number, commentId?: number): HTMLElement {
   const meta = el('span', 'mod-meta');
   const slug = POST_MAP[String(id)];
   if (slug) {
-    const a = el('a'); a.href = slug; a.textContent = 'Post ' + id;
+    // v0.6.14/16: base-aware — absolute slug 404s under the staging base;
+    // withBase() derives the real root from the /mod/ path. When we know the
+    // comment row we land on its #comment-<id> anchor (Comments.astro).
+    const a = el('a'); a.href = withBase(slug) + (commentId ? '#comment-' + commentId : '');
+    a.textContent = 'Post ' + id;
     meta.append(a);
   } else meta.textContent = 'Post ' + id;
   return meta;
@@ -488,36 +565,122 @@ async function loadReports(): Promise<void> {
   }
 }
 
+/* ---------- Overview (v0.6.16 expansion — real data only) ---------- */
+function sparkPoints(createdList: string[]): number[] {
+  // comments per day for the last 7 days (today = index 6), from list created_at
+  const DAY = 86_400_000;
+  const now = Date.now();
+  const buckets = new Array(7).fill(0);
+  for (const iso of createdList) {
+    const t = Date.parse(iso);
+    if (isNaN(t)) continue;
+    const daysAgo = Math.floor((now - t) / DAY);
+    if (daysAgo >= 0 && daysAgo <= 6) buckets[6 - daysAgo]++;
+  }
+  return buckets;
+}
+
+function sparklineSVG(b: number[]): SVGElement | null {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg') as SVGElement;
+  svg.setAttribute('viewBox', '0 0 280 44');
+  svg.setAttribute('preserveAspectRatio', 'none');
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', 'Comments per day, last 7 days');
+  const max = Math.max(1, ...b);
+  const step = 280 / 6;
+  const pts = b.map((v, i) => (i * step).toFixed(1) + ',' + (40 - (v / max) * 34).toFixed(1)).join(' ');
+  const line = document.createElementNS(NS, 'polyline');
+  line.setAttribute('points', pts);
+  line.setAttribute('fill', 'none');
+  line.setAttribute('stroke', 'var(--deep)');
+  line.setAttribute('stroke-width', '2');
+  line.setAttribute('stroke-linecap', 'round');
+  line.setAttribute('stroke-linejoin', 'round');
+  const base = document.createElementNS(NS, 'line');
+  base.setAttribute('x1', '0'); base.setAttribute('x2', '280');
+  base.setAttribute('y1', '42'); base.setAttribute('y2', '42');
+  base.setAttribute('stroke', 'var(--line-2)'); base.setAttribute('stroke-width', '1');
+  svg.append(base, line);
+  return svg;
+}
+
 async function loadOverview(): Promise<void> {
   if (!token) return;
   const seq = ++reqSeq;
   show(errBox, false);
   if (cards) cards.textContent = '';
-  let res: Response;
-  try { res = await api('/moderation/stats'); }
-  catch { if (seq === reqSeq) netError(); return; }
+  let res: Response; let listRes: Response | null = null;
+  try {
+    const p = Promise.all([
+      api('/moderation/stats'),
+      api('/moderation/list?status=all&per=100&page=1'),
+    ]);
+    res = (await p)[0]; listRes = (await p)[1];
+  } catch { if (seq === reqSeq) netError(); return; }
   if (seq !== reqSeq) return;
   if (res.status === 401) { wrongToken(); return; }
   if (!res.ok) { setToast('Stats error — HTTP ' + res.status, true); netError(); return; }
   let s: Stats; try { s = await res.json(); } catch { netError(); return; }
+  let listData: ListResp = {};
+  if (listRes && listRes.ok) { try { listData = await listRes.json(); } catch { /* partial: no extras */ } }
   setLocked(false);
+  const items = listData.items || [];
   const by = s.comments_by_status || {};
   const n = (v: unknown) => (Number.isFinite(Number(v)) ? String(Number(v)) : '0');
-  const kpis: [string, string][] = [
-    ['Approved', n(by.approved)], ['Pending', n(by.pending ?? s.pending)],
-    ['Spam', n(by.spam)], ['Trash', n(by.trash)],
-    ['Last 7 days', n(s.comments_last_7d)], ['Reactions', n(s.reactions_total)],
+
+  /* status tiles — v0.6.16: BUTTONS (King 11:17). PENDING jumps to Queue;
+     APPROVED/SPAM/TRASH jump to All Comments pre-filtered (client-side seg). */
+  const tiles: [string, string, string, () => void][] = [
+    ['approved', n(by.approved), 'Approved', () => jumpFiltered('approved')],
+    ['pending',  n(by.pending ?? s.pending), 'Pending', () => setTab('queue')],
+    ['spam',     n(by.spam), 'Spam', () => jumpFiltered('spam')],
+    ['trash',    n(by.trash), 'Trash', () => jumpFiltered('trash')],
+  ];
+  const extras: [string, string, string][] = [
+    ['last7', 'Last 7 days', n(s.comments_last_7d)],
+    ['reactions', 'Reactions', n(s.reactions_total)],
   ];
   if (cards) {
     cards.textContent = '';
-    for (const [label, val] of kpis) {
-      const k = el('div', 'mod-kpi');
+    for (const [key, val, label, fn] of tiles) {
+      const k = el('button', 'mod-kpi'); k.type = 'button'; k.dataset.kpi = key;
+      k.setAttribute('aria-label', label + ' — ' + val + ', open ' + (key === 'pending' ? 'queue' : 'all comments filtered ' + key));
+      const b = el('b'); b.textContent = val;
+      const sp = el('span'); sp.textContent = label;
+      const go = el('span', 'mod-kpi-go'); go.textContent = 'View';
+      k.append(b, sp, go);
+      k.addEventListener('click', fn);
+      cards.appendChild(k);
+    }
+    for (const [key, label, val] of extras) {
+      const k = el('div', 'mod-kpi'); k.dataset.kpi = key;
       const b = el('b'); b.textContent = val;
       const sp = el('span'); sp.textContent = label;
       k.append(b, sp);
       cards.appendChild(k);
     }
   }
+
+  /* ACTION REQUIRED — pending + open reports as clickable tiles */
+  const actHost = $('mod-actionreq');
+  if (actHost) {
+    actHost.textContent = '';
+    const pend = Number(by.pending ?? s.pending);
+    const reps = Number(s.open_reports);
+    const mkTile = (label: string, val: number, hot: boolean, fn: () => void) => {
+      const t = el('button', 'mod-act-tile' + (hot ? ' is-hot' : '')); t.type = 'button';
+      t.dataset.actiontile = label.toLowerCase().replace(/\s+/g, '');
+      const b = el('b'); b.textContent = String(val);
+      const sp = el('span'); sp.textContent = hot ? label + ' — act' : label + ' — clear';
+      t.append(b, sp); t.addEventListener('click', fn);
+      actHost.appendChild(t);
+    };
+    mkTile('Pending comments', pend, pend > 0, () => setTab('queue'));
+    mkTile('Open reports', reps, reps > 0, () => setTab('reports'));
+  }
+
+  /* TOP GUIDES — base-aware links via the same postRef map (fix #2 reuse) */
   const tops = (s.top_posts || []).slice(0, 5);
   show(topEmpty, tops.length === 0);
   if (topList) {
@@ -530,6 +693,73 @@ async function loadOverview(): Promise<void> {
       topList.appendChild(rowE);
     }
   }
+
+  /* 7-DAY TREND — inline SVG sparkline from list created_at (no chart lib) */
+  const spark = $('mod-spark');
+  if (spark) {
+    spark.textContent = '';
+    const buckets = sparkPoints(items.map((it) => it.created_at));
+    const svg = sparklineSVG(buckets);
+    if (svg) {
+      svg.setAttribute('data-spark', buckets.join(','));
+      spark.appendChild(svg);
+    }
+    const num = el('p', 'mod-spark-num');
+    num.textContent = n(s.comments_last_7d) + ' comments in the last 7 days';
+    spark.appendChild(num);
+  }
+
+  /* RECENT ACTIVITY — last 5 newest from list payload (list is created_at DESC) */
+  const recent = $('mod-recent');
+  const recEmpty = $('mod-recent-empty');
+  if (recent) {
+    recent.textContent = '';
+    const last5 = items.slice(0, 5);
+    show(recEmpty, last5.length === 0);
+    for (const it of last5) {
+      const rowE = el('div', 'mod-card mod-rec-row');
+      const name = el('span', 'mod-rec-name'); name.textContent = it.name || 'Anonymous';
+      const snip = el('span', 'mod-rec-snippet');
+      const text = stripHtml(it.content || '');
+      snip.textContent = text.length > 40 ? text.slice(0, 40) + '\u2026' : text;
+      const time = el('span', 'mod-meta'); time.textContent = timeAgo(it.created_at);
+      rowE.append(name, time, postRef(it.post_id, it.id), snip);
+      recent.appendChild(rowE);
+    }
+  }
+
+  /* REACTION MIX — client-side aggregate over the SAME list payload */
+  const mixHost = $('mod-mix');
+  const mixHead = $('mod-mix-head');
+  if (mixHost) {
+    mixHost.textContent = '';
+    const tally: Record<string, number> = {};
+    let any = false;
+    for (const it of items) {
+      const rx = it.reactions || {};
+      for (const [e, v] of Object.entries(rx)) {
+        tally[e] = (tally[e] || 0) + Number(v || 0);
+        any = true;
+      }
+    }
+    const entries = Object.entries(tally).sort((a, b2) => b2[1] - a[1]);
+    show(mixHead, any);
+    for (const [emoji, count] of entries) {
+      const rowE = el('div', 'mod-card mod-mix-row');
+      const e = el('span', 'mod-mix-e'); e.textContent = emoji;
+      const l = el('span'); l.textContent = emojiLabel(emoji);
+      const c = el('span', 'mod-mix-n'); c.dataset.mix = emoji; c.textContent = String(count);
+      rowE.append(e, l, c);
+      mixHost.appendChild(rowE);
+    }
+  }
+}
+function emojiLabel(e: string): string {
+  return ({ like: 'Like', heart: 'Heart', fire: 'Fire', laugh: 'Laugh' } as Record<string, string>)[e] || e;
+}
+function jumpFiltered(status: string): void {
+  state.status = status; state.page = 1; state.post = '';
+  setTab('all');
 }
 
 /* ---------- comment row (Queue + All) ---------- */
@@ -539,7 +769,7 @@ function row(it: Item, opts: { reply?: boolean }): HTMLElement {
 
   const head = el('div', 'mod-item-head');
   const name = el('span', 'mod-name'); name.textContent = it.name || 'Anonymous';
-  const post = postRef(it.post_id);
+  const post = postRef(it.post_id, it.id);
   const time = el('span', 'mod-meta');
   time.textContent = timeAgo(it.created_at); time.title = absTitle(it.created_at);
   head.append(name, post, time);
@@ -565,7 +795,9 @@ function row(it: Item, opts: { reply?: boolean }): HTMLElement {
     b.addEventListener('click', () => moderate(it.id, action, b, result));
     return b;
   };
-  arow.append(mk('Approve', 'btn-deep', 'approve'), mk('Spam', 'btn-ghost', 'spam'), mk('Trash', 'btn-ghost', 'trash'));
+  arow.append(...(it.status === 'approved' ? [] : [mk('Approve', 'btn-deep', 'approve')]));
+  if (it.status !== 'spam') arow.appendChild(mk('Spam', 'btn-ghost', 'spam'));
+  if (it.status !== 'trash') arow.appendChild(mk('Trash', 'btn-ghost', 'trash'));
   if (it.status === 'spam' || it.status === 'trash') arow.appendChild(mk('Restore', 'btn-ghost', 'restore'));
   box.appendChild(arow);
   box.appendChild(result);
@@ -593,35 +825,87 @@ function row(it: Item, opts: { reply?: boolean }): HTMLElement {
   return box;
 }
 
+/* REPORT card (v0.6.16, King 10:20) — a report must NOT look like a comment
+   card. Alert treatment: --verdict left rail + tint, reporter WHO + reason
+   chip + timestamp as the header meta, the flagged comment rendered as a
+   dimmed QUOTE (context, not the body), and the report's OWN actions
+   (Dismiss = was noise / Resolve = seen, keep comment) clearly separated
+   from the comment-level Spam/Trash row underneath. Go-to-post stays. */
 function reportRow(r: Report): HTMLElement {
-  const box = el('article', 'mod-card mod-item');
+  const box = el('article', 'mod-card mod-report');
+  box.dataset.reportId = String(r.id);
   const head = el('div', 'mod-item-head');
-  const name = el('span', 'mod-name'); name.textContent = r.comment_name || 'Anonymous';
-  const reason = el('span', 'mod-meta mod-chip is-rep'); reason.textContent = 'Report \u00b7 ' + (r.reason || 'unspecified');
-  const post = postRef(r.post_id);
+  const who = el('span', 'mod-name'); who.textContent = 'Report received';
+  const reporter = el('span', 'mod-meta mod-chip is-rep');
+  reporter.textContent = 'Reporter ' + (r.reporter_hash ? '#' + r.reporter_hash : 'unknown');
+  const reason = el('span', 'mod-meta mod-chip is-reason');
+  reason.textContent = String(r.reason || 'unspecified').toUpperCase();
   const time = el('span', 'mod-meta');
   time.textContent = timeAgo(r.created_at); time.title = absTitle(r.created_at);
-  head.append(name, reason, post, time);
+  head.append(who, reason, reporter, time);
   box.appendChild(head);
-  const ex = el('p', 'mod-ex');
-  ex.textContent = stripHtml(r.comment_excerpt || '') + (r.comment_status ? ' \u00b7 ' + r.comment_status : '');
-  box.appendChild(ex);
-  const arow = el('div', 'mod-act-row');
-  const result = el('span', 'mod-result');
-  const mk = (label: string, cls: string, action: string) => {
-    const b = el('button', cls); b.type = 'button'; b.textContent = label;
-    b.addEventListener('click', () => moderate(r.comment_id, action, b, result));
-    return b;
-  };
-  arow.append(mk('Approve', 'btn-deep', 'approve'), mk('Spam', 'btn-ghost', 'spam'), mk('Trash', 'btn-ghost', 'trash'));
-  if (r.comment_status === 'spam' || r.comment_status === 'trash') arow.appendChild(mk('Restore', 'btn-ghost', 'restore'));
+
+  const sub = el('p', 'mod-meta mod-rep-sub');
+  sub.textContent = 'Flagged comment by ' + (r.comment_name || 'Anonymous') +
+    ' \u00b7 status ' + (r.comment_status || '?');
+  box.appendChild(sub);
+
+  const quote = el('blockquote', 'mod-rep-quote');
+  quote.textContent = stripHtml(r.comment_excerpt || '');
+  box.appendChild(quote);
+
+  /* report's own trash — separate row, separate meaning */
+  const repRow = el('div', 'mod-act-row mod-rep-actions');
+  const repResult = el('span', 'mod-result');
+  const dismiss = el('button', 'btn-deep'); dismiss.type = 'button'; dismiss.textContent = 'Dismiss report';
+  const keep = el('button', 'btn-ghost'); keep.type = 'button'; keep.textContent = 'Resolve \u2014 keep';
+  dismiss.addEventListener('click', () => resolveReport(r.id, 'dismiss', dismiss, repResult));
+  keep.addEventListener('click', () => resolveReport(r.id, 'keep', keep, repResult));
   const go = el('a', 'btn-ghost');
   const slug = POST_MAP[String(r.post_id)];
-  go.href = slug || '/'; go.textContent = 'Go to post';
-  arow.appendChild(go);
-  box.appendChild(arow);
-  box.appendChild(result);
+  go.href = slug ? withBase(slug) + (r.comment_id ? '#comment-' + r.comment_id : '') : '/';
+  go.textContent = 'Go to post';
+  repRow.append(dismiss, keep, go);
+  box.appendChild(repRow);
+  box.appendChild(repResult);
+
+  /* comment-level actions — visually de-emphasised, "on the comment" not "on the report" */
+  const cRow = el('div', 'mod-act-row mod-rep-comment');
+  const cResult = el('span', 'mod-result');
+  const cmk = (label: string, cls: string, action: string) => {
+    const b = el('button', cls); b.type = 'button'; b.textContent = label;
+    b.addEventListener('click', () => moderate(r.comment_id, action, b, cResult));
+    return b;
+  };
+  if (r.comment_status !== 'approved') cRow.appendChild(cmk('Approve', 'btn-ghost', 'approve'));
+  if (r.comment_status !== 'spam') cRow.appendChild(cmk('Spam', 'btn-ghost', 'spam'));
+  if (r.comment_status !== 'trash') cRow.appendChild(cmk('Trash', 'btn-ghost', 'trash'));
+  if (r.comment_status === 'spam' || r.comment_status === 'trash') cRow.appendChild(cmk('Restore', 'btn-ghost', 'restore'));
+  if (cRow.children.length) {
+    const lead = el('span', 'mod-label mod-rep-lead'); lead.textContent = 'On the comment';
+    box.appendChild(lead); box.appendChild(cRow); box.appendChild(cResult);
+  }
   return box;
+}
+
+async function resolveReport(id: number, action: 'dismiss' | 'keep', btn: HTMLButtonElement, result: HTMLElement): Promise<void> {
+  btn.disabled = true;
+  try {
+    const res = await api('/moderation/reports/' + id + '/resolve', { method: 'POST', body: JSON.stringify({ action }) });
+    const data = await res.json().catch(() => ({} as Record<string, unknown>));
+    if (res.status === 401) { wrongToken(); return; }
+    if (res.ok) {
+      setToast('Report #' + id + ' ' + (action === 'dismiss' ? 'dismissed \u2014 comment untouched' : 'resolved \u2014 comment kept'));
+      await loadReports();
+    } else {
+      result.textContent = 'Report #' + id + ' ' + String((data as { message?: string }).message || res.status);
+      setToast('Report #' + id + ' failed \u2014 ' + String((data as { message?: string }).message || res.status), true);
+      btn.disabled = false;
+    }
+  } catch {
+    netError();
+    btn.disabled = false;
+  }
 }
 
 /* ---------- actions ---------- */
@@ -700,7 +984,7 @@ lock?.addEventListener('submit', (ev) => {
 tabs?.addEventListener('click', (ev) => {
   const b = (ev.target as HTMLElement)?.closest?.('.mod-tab') as HTMLElement | null;
   if (!b || !unlocked) return;
-  void setTab(b.getAttribute('data-tab') || 'queue');
+  void setTab(b.getAttribute('data-tab') || 'overview');
 });
 seg?.addEventListener('click', (ev) => {
   const b = (ev.target as HTMLElement)?.closest?.('button[data-status]') as HTMLElement | null;
@@ -737,8 +1021,9 @@ window.addEventListener('hashchange', () => {
   if (unlocked) void setTab(state.tab);
 });
 
-/* boot: hash keeps tab (and All-tab filters) across refresh */
-readHash();
+/* boot: hash keeps tab (and All-tab filters) across refresh; ?tab= legacy
+   deep link is honoured when no hash present; default = Overview (v0.6.16) */
+if (!readHash() && TABS.includes(TAB_QUERY)) state.tab = TAB_QUERY;
 paintTabs();
 for (const k of TABS) if (views[k]) views[k]!.hidden = k !== state.tab;
 setLocked(true);
