@@ -207,13 +207,9 @@ html[data-theme=dark] .theme-seg button.is-active{background:#006E5E;color:#FFF}
 .b-kids a.is-empty{color:var(--muted);font-weight:400}
 .sheet-note{grid-column:1/-1;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.03em;padding-top:16px}
 .sheet-note a{color:var(--deep)}
-/* browse sheet footer: Law-8 ad toggles live here (out of the header bar) */
+/* browse sheet footer: social accounts ride the sheet foot (out of the header bar) */
 .sheet-foot{grid-column:1/-1;margin-top:6px;padding:14px clamp(16px,4vw,28px);border-top:1px solid var(--line-2);background:var(--band);display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
 .sheet-foot .foot-kicker{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
-.ad-toggles{display:inline-flex;align-items:center;gap:16px}
-.ad-toggles label{display:inline-flex;gap:7px;align-items:center;cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--ink-2);font-weight:500}
-.ad-toggles input{accent-color:var(--deep);width:14px;height:14px;margin:0}
-.sheet-foot-note{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--muted);white-space:nowrap}
 /* King fix 1: search overlay = clear foreground layer (same anatomy as Browse sheet, anchored under header) */
 /* v0.6.18 Direction A "The Desk": sheet-from-top, oversized Archivo field, live
    completions under a RECENT/TRENDING rail, ranked rows, see-all footer.
@@ -331,15 +327,6 @@ html[data-theme=dark] .sq-chips button[aria-pressed="true"]{background:rgba(94,2
 .close-x{width:38px;height:38px;border:1px solid var(--line-2);border-radius:2px;color:var(--muted);display:inline-flex;align-items:center;justify-content:center;flex:none}
 .close-x:hover{border-color:var(--deep);color:var(--deep)}
 .close-x svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:square}
-
-/* ---------- ad slots (law 8: off = zero height, zero request, zero shift) ---------- */
-.ad-slot{margin:34px auto;max-width:960px;padding:0 clamp(16px,4vw,40px);height:auto}
-.ad-slot .slot-frame{border:1px dashed var(--line-2);background:var(--band);min-height:90px;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:14px;gap:6px}
-.slot-label{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.slot-note{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
-html[data-ads=off] .ad-slot{display:none}
-html[data-ph=off] .slot-frame{border:0;background:transparent;min-height:0;padding:0}
-html[data-ph=off] .slot-frame>*{display:none}
 
 /* ---------- homepage hero: H1 left 8 cols + site-status panel right 4 ---------- */
 .hero{padding-top:clamp(10px,3vh,26px)} /* v3.2: longhand — shorthand killed wrap gutters (hero text was flush to glass too) */
@@ -513,7 +500,7 @@ html[data-theme=dark] .notify input[type=email]{background:var(--field);border-c
 html[data-theme=dark] .notify input[type=email]::placeholder{color:var(--field-ph)}
 /* v0.6.8: checkbox accents lift to --teal on dark (UA paints the box dark via
    color-scheme:dark; the checked fill at --deep #00A88F was muddy against --field) */
-html[data-theme=dark] .c-check input,html[data-theme=dark] .ad-toggles input,html[data-theme=dark] .foot-ad input{accent-color:var(--teal)}
+html[data-theme=dark] .c-check input{accent-color:var(--teal)}
 /* v3.3 King: dark button text melted into the button (verdict bg + ink text) */
 html[data-theme=dark] .notify .btn-deep{color:var(--mint)}
 .notify .btn-deep{border-top-width:0;background:var(--verdict)}
@@ -887,10 +874,6 @@ html[data-theme=dark] .site-footer .wordmark-lockup{--deep:#006E5E}
 .foot-legal .sep{opacity:.4}
 /* back-to-top pinned right on desktop; smooth scroll is the html{} rule */
 .foot-top{margin-left:auto;white-space:nowrap;padding:8px 0}
-.foot-ad{display:inline-flex;align-items:center;gap:8px;border:1px dashed rgba(217,242,232,.4);padding:6px 10px;border-radius:2px}
-.foot-ad label{display:inline-flex;gap:6px;align-items:center;cursor:pointer;font-weight:500}
-.foot-ad input{accent-color:var(--teal);width:13px;height:13px;margin:0}
-.foot-ad-off{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal)}
 /* v2.4 responsive contract: brand full width + pillars 2-col on phones, foot-bar stacks */
 @media (max-width:1023.98px){.foot-brand{grid-column:1/-1}}
 @media (max-width:767px){
@@ -898,9 +881,8 @@ html[data-theme=dark] .site-footer .wordmark-lockup{--deep:#006E5E}
   .foot-bar{flex-direction:column;align-items:flex-start;gap:12px}
   .foot-bar > .sep{display:none}
   .foot-top{margin-left:0}
-  .foot-ad{flex-direction:column;align-items:flex-start}
   /* WCAG target size on touch: every footer link ≥44px tappable box */
-  .foot-col a,.foot-alerts a,.foot-bar a,.foot-ad label{min-height:44px;display:inline-flex;align-items:center}
+  .foot-col a,.foot-alerts a,.foot-bar a{min-height:44px;display:inline-flex;align-items:center}
 }
 
 /* ---------- toast (v0.6.8: hidden state FULLY off-screen + invisible — sliver fix; visibility flips only after the .18s exit completes) ---------- */

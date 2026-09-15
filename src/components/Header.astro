@@ -10,9 +10,7 @@
      height eases to 48px.
    - Desktop ≥900px: up to 4 inline category links, mono 12px, between wordmark
      and icons (Cloudflare's labeled-links pattern).
-   - Law 8 ad-toggles live in the Browse sheet footer (duplicated markup, classed
-     .ad-toggle, wired by event delegation — no duplicate IDs; Footer.astro keeps
-     its own instance). Browse bottom sheet + search overlay IDs preserved. */
+   - Browse bottom sheet + search overlay IDs preserved. */
 import { SITE, CATS, PILLARS, TOTALS, childrenOf, postsIn, POSTS, mostRead } from '../data/site';
 import { buildSynonyms } from '../lib/search-core.js';
 import searchCoreRaw from '../lib/search-core.js?raw';
@@ -104,13 +102,7 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
       Counts are honest: {TOTALS.posts} guides live today across {TOTALS.categories} shelves — the rest open as the
       200-post library lands. <a href="/about/">How we work →</a>
     </div>
-    <div class="sheet-foot" aria-label="Ad slot settings">
-      <span class="foot-kicker mono">Ad slots (law 8)</span>
-      <div class="ad-toggles">
-        <label><input type="checkbox" class="ad-toggle" data-role="slots" /> Slots</label>
-        <label><input type="checkbox" class="ad-toggle" data-role="placeholders" /> Placeholders</label>
-      </div>
-      <span class="sheet-foot-note">off = zero height · zero requests · zero shift</span>
+    <div class="sheet-foot" aria-label="Follow AndroidScroll">
       <!-- v0.6.10 King: "the footer and header has all social link" — the bar is a
            tight 54px trio at 390px, so the nine accounts ride the sheet foot. -->
       <div class="sheet-socs">
@@ -155,8 +147,7 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
 
 <script type="module">
   /* One progressive-enhancement script: theme, compact header, browse sheet,
-     search overlay (client index), Law-8 ad toggles (delegated, classed),
-     rail stagger. */
+     search overlay (client index), rail stagger. */
   /* NOTE: NO imports here — Astro passes this module script through to dist
      verbatim, so a TS import 404s and kills the whole script (caught pre-ship
      v0.6.9). Theme colors come from #tc-base data attrs, stamped at build time
@@ -473,29 +464,6 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
   });
   searchClear.addEventListener('click', () => { searchInput.value = ''; render(''); searchInput.focus({ preventScroll: true }); });
 
-  /* Law 8 ad toggles — one source of truth via event delegation on .ad-toggle.
-     Every instance (Browse sheet here, Footer control elsewhere) reads and
-     writes the same localStorage keys + html[data-ads]/[data-ph]; no IDs, so
-     multiple placements can never collide. */
-  const paintAds = () => {
-    document.querySelectorAll('.ad-toggle').forEach(box => {
-      box.checked = box.dataset.role === 'slots' ? root.getAttribute('data-ads') === 'on' : root.getAttribute('data-ph') !== 'off';
-    });
-    const foot = document.getElementById('foot-ad-state');
-    if (foot) foot.textContent = root.getAttribute('data-ads') === 'on' ? 'ON' : 'OFF';
-  };
-  paintAds();
-  document.addEventListener('change', e => {
-    const box = e.target instanceof Element && e.target.closest('.ad-toggle');
-    if (!box) return;
-    const on = box.checked;
-    if (box.dataset.role === 'slots') { root.setAttribute('data-ads', on ? 'on' : 'off'); store.set('as-ads', on ? 'on' : 'off'); }
-    else { root.setAttribute('data-ph', on ? 'on' : 'off'); store.set('as-ph', on ? 'on' : 'off'); }
-    paintAds();
-    say(box.dataset.role === 'slots'
-      ? (on ? 'Ad slots ON — still zero requests in this prototype.' : 'Ad slots OFF — zero height, zero shift.')
-      : (on ? 'Placeholders shown.' : 'Placeholders hidden — slots render empty.'));
-  });
 </script>
 
 <script type="application/json" id="search-index" set:html={JSON.stringify(SEARCH_IDX).replace(/</g, String.fromCharCode(92, 117, 48, 48, 51, 99))} />

@@ -57,10 +57,6 @@ const title = props.title ? `${props.title} â€” ${SITE.name}` : `${SITE.name} â€
       };
       apply();
       if (t === 'system' && mq.addEventListener) mq.addEventListener('change', apply);
-      var a = localStorage.getItem('as-ads') || 'off';
-      var p = localStorage.getItem('as-ph') || 'on';
-      document.documentElement.setAttribute('data-ads', a);
-      document.documentElement.setAttribute('data-ph', p);
       document.documentElement.classList.add('js');
     } catch (e) {}
   })();

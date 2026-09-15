@@ -9,7 +9,6 @@
    Covers all 20 Gutenberg-mapped elements for visual QA (markup is rendered for
    the eye only — no SEO structured data on a QA fixture). */
 import Base from '../layouts/Base.astro';
-import AdSlot from '../components/AdSlot.astro';
 import ArticleChrome from '../components/ArticleChrome.astro';
 import { SITE } from '../data/site';
 
@@ -283,8 +282,6 @@ Read it first.</pre>
 
       <aside class="toc-side" data-toc-desktop hidden aria-label="On this page"></aside>
     </div>
-
-    <AdSlot id="art-seam-1" note="In-article slot sits at section seams only — fixed container, zero CLS (Law 8)." />
 
     <section class="col" aria-label="Related" style="margin-bottom:40px">
       <div class="kicker-h">Keep reading · Troubleshooting &amp; Fixes</div>

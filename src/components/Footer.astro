@@ -74,34 +74,13 @@ const footPillars = PILLARS
       </nav>
       <span class="sep">·</span>
       <span class="matomo-note">Self-hosted Matomo · consent-only · no third-party trackers</span>
-      <span class="sep">·</span>
-      <span class="foot-ad">
-        <label><input type="checkbox" id="foot-ads-toggle" /> Site-wide ad slots: <b id="foot-ad-state">OFF</b></label>
-        <span class="foot-ad-off" id="foot-ad-law">off = zero height · zero requests · zero shift</span>
-      </span>
       <a class="foot-top" href="#top">Back to top ↑</a>
     </div>
   </div>
 </footer>
 
 <script type="module">
-  /* footer ad toggle mirrors the header control (same localStorage keys, law 8);
-     #foot-ads-toggle/#foot-ad-state ids are load-bearing for the header sync. */
-  const root = document.documentElement;
-  const box = document.getElementById('foot-ads-toggle');
-  const state = document.getElementById('foot-ad-state');
   const toast = document.getElementById('toast');
-  const sync = on => {
-    root.setAttribute('data-ads', on ? 'on' : 'off');
-    state.textContent = on ? 'ON' : 'OFF';
-    try { localStorage.setItem('as-ads', on ? 'on' : 'off'); } catch {}
-    document.querySelectorAll('.ad-toggle[data-role="slots"]').forEach(b => { b.checked = on; });
-    toast.textContent = on ? 'Site-wide ad slots ON (zero requests in this prototype).' : 'Site-wide ad slots OFF — zero height, zero shift.';
-    toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2600);
-  };
-  const cur = root.getAttribute('data-ads') === 'on';
-  box.checked = cur; state.textContent = cur ? 'ON' : 'OFF';
-  box.addEventListener('change', () => sync(box.checked));
   /* v2.5 back-to-top: href="#top" is the no-JS fallback; JS owns the jump so it
      works in every engine (native anchor jumps are flaky on some builds). */
   const topLink = document.querySelector('.foot-top');

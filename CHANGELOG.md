@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.6.30] — 2026-09-15
+### Removed — P22 ADS-OUT: ad-slots system out, zero slots site-wide
+- LAW 8 settings UI gone: Browse-sheet `Slots`/`Placeholders` toggles + `off =
+  zero height` note (Header), `Site-wide ad slots: ON/OFF` footer control +
+  its sync script (Footer). No ad UI remains anywhere, including /mod/.
+- Every site-wide render gone: `AdSlot.astro` deleted; `home-mid` (index),
+  `art-seam-1` (article template + style-test fixture) usages removed with
+  their imports. All `.ad-slot`/`.slot-frame`/`.ad-toggle`/`.foot-ad` CSS and
+  the `data-ads`/`data-ph` boot stamp (`Head`) + `as-ads`/`as-ph` keys removed.
+- End state: zero slots, zero ad requests (none ever existed — no AdSense or
+  third-party ad host was ever wired; CSP unchanged and still ad-host-free),
+  zero layout shift from ads (home §00→§01, article seam→related flow
+  gap-free). Legal copy updated (cookie/privacy policies no longer mention ad
+  preferences). Gates 6/6 green @390 light+dark (home, article, mod desk).
+- HOW ADS RETURN (reversible): restore `src/components/AdSlot.astro` from git
+  history (`git show <pre-P22-sha>:src/components/AdSlot.astro`), re-add its
+  `.ad-slot` CSS + `data-ads` boot default, re-import it at the seam points
+  above, and re-wire the toggles — then re-prove zero-CLS with reserved
+  fixed-dimension containers before any ad script loads.
+
 ## [0.6.29] — 2026-09-15
 ### Fixed — P21 AUDIT-01: all 15 findings per fix-guidance prescriptions
 - **H1 (HIGH)** — comment-sanitizer href blocklist bypassable via tab/newline

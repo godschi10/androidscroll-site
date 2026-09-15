@@ -8,7 +8,6 @@ import Base from '../layouts/Base.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Head from '../components/Head.astro';
-import AdSlot from '../components/AdSlot.astro';
 import '../styles/global.css';
 import { SITE, POSTS, CATS, PILLARS, TOTALS, postsIn, fmtDate } from '../data/site';
 
@@ -77,8 +76,6 @@ const words = POSTS.reduce((n, p) => n + (p.words || 0), 0);
     </div>
     <div class="lat-more"><a href="/latest/">All {TOTALS.posts} fixes →</a></div>
   </section>
-
-  <AdSlot id="home-mid" />
 
   <!-- §01 latest: chronologic mono list (moved up — readers want what's new next) -->
   <section class="sec wrap" aria-labelledby="s-latest">
