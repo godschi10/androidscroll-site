@@ -132,12 +132,12 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
     </div>
     <div class="search-rail" id="search-rail">
       <div class="sr-row">
-        <span class="sr-eyebrow">Recent</span>
+        <span class="sr-eyebrow">RECENT</span>
         <span class="recent-chips" id="search-recent"></span>
         <button class="sr-clear" id="search-recent-clear" type="button" hidden>clear all</button>
       </div>
       <div class="sr-row">
-        <span class="sr-eyebrow">Trending</span>
+        <span class="sr-eyebrow">TRENDING</span>
         <span class="recent-chips">{TRENDING.map(p => (<a href={p.url}>{p.title.length > 34 ? p.title.slice(0, 34) + '…' : p.title}</a>))}</span>
       </div>
       <div class="sr-scope">Search AndroidScroll · {TOTALS.posts} guides</div>
@@ -145,7 +145,7 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
     <div class="search-complete" id="search-complete" hidden></div>
     <div class="search-meta"><span id="search-status" role="status" aria-live="polite">Search {TOTALS.posts} guides</span><button class="search-close" id="search-close" type="button" aria-label="Close search" title="Close search">Esc to close</button></div>
     <ul class="search-results" id="search-results" role="listbox" aria-label="Search suggestions"></ul>
-    <a class="search-seeall" id="search-seeall" href="/search/">Browse all {TOTALS.posts} guides →</a>
+    <a class="search-seeall" id="search-seeall" href="/search/">See all {TOTALS.posts} results →</a>
     <div class="search-empty no-js-hide" id="search-empty" hidden>
       <span id="search-empty-msg">No guide matches that yet — and that's the backlog, not a dead end.</span><br />
       <a id="search-tellus" href="/contact/">Tell us what to write →</a>
@@ -432,7 +432,7 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
     else if (matched.length) searchStatus.textContent = matched.length + (matched.length === 1 ? ' match' : ' matches');
     else searchStatus.textContent = '0 matches';
     const qt = q.trim();
-    if (!terms.length) { seeAll.textContent = `Browse all ${INDEX.length} guides →`; seeAll.href = '/search/'; }
+    if (!terms.length) { seeAll.textContent = `See all ${INDEX.length} results →`; seeAll.href = '/search/'; }
     else { seeAll.textContent = `See all ${matched.length} result${matched.length === 1 ? '' : 's'} for “${qt}” →`; seeAll.href = '/search/?q=' + encodeURIComponent(qt); }
     const emptyMsg = document.getElementById('search-empty-msg');
     if (emptyMsg) emptyMsg.textContent = fallback ? `Nothing filed under “${qt}” yet — that's the backlog, not a dead end.` : '';
