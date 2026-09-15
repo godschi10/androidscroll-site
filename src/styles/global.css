@@ -813,6 +813,22 @@ html[data-theme=dark] .sh-btn{border-color:#3E7264}
 .cat-list .x{grid-column:1;color:var(--muted);font-size:14px;line-height:1.55;max-width:68ch;margin-top:4px}
 .cat-empty{padding:8px 0 0}
 
+/* ══ v0.6.25 P15B-A Field-Manual Index: dressed sub-shelf tiles ══
+   Digest §1 (informed-by: linear.app feature-card/status-badge — bounded tile +
+   pill count; notion — count as distinct visual property; mintlify — green strictly
+   for stock state; uiplaybook — one radius + one padding token across all tiles).
+   Bounded paper tile, hairline border, house 2px radius, mono count pill:
+   mint-filled when stocked, outline-gray when empty. No yellow, no serif —
+   Archivo display + Plex Mono only, existing brand tokens only. */
+.empty-row{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+@media (min-width:760px){.empty-row{grid-template-columns:repeat(4,1fr);gap:16px}}
+.empty-tile{display:flex;flex-direction:column;align-items:flex-start;gap:10px;background:var(--paper);border:1px solid var(--line-2);border-radius:2px;padding:16px 14px;min-height:44px;transition:border-color .16s ease-out}
+.empty-tile:hover{border-color:var(--deep);text-decoration:none}
+.empty-tile b{font-family:var(--display);font-weight:800;font-size:16.5px;letter-spacing:-.02em;line-height:1.15;color:var(--ink)}
+.empty-tile:hover b{color:var(--deep)}
+.empty-tile .t-count{display:inline-flex;align-items:center;width:fit-content;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.06em;background:var(--mint);color:var(--verdict);padding:2px 8px;border-radius:999px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.empty-tile .t-count.is-empty{background:transparent;color:var(--muted);border:1px solid var(--line-2);font-weight:500}
+
 /* ---------- footer (mono voice) ---------- */
 /* C1 wordmark on the deep band: remap type tokens to the footer palette,
    size ~30px. --canvas feeds the eye holes + mouth — must equal the band

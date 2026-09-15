@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.6.25] — 2026-09-15
+### Added — P15B-A FIELD-MANUAL INDEX: dressed sub-shelf tiles
+- **Tiles** — `Nearby sub-shelves` anchors graduate from naked links to bounded
+  tiles per digest §1 (informed-by: linear.app feature-card/status-badge,
+  notion count-as-property, mintlify green-for-state-only, uiplaybook one
+  radius/padding token): paper surface, 1px hairline border (`--line-2`),
+  house 2px radius, 16/14px padding, 2-col grid @390 → 4-col ≥760px.
+  Tile name in Archivo 800; count becomes a mono pill — mint-filled
+  (`--mint` bg, `--verdict` ink, theme-invariant) when stocked (`2 guides`,
+  `1 guide`), outline-gray (`--line-2` border, `--muted` ink) `opens soon`
+  when empty. Hover lifts border to `--deep`, no underline. CSS-only;
+  rows, empties, desk (7761/7762) untouched.
+- Files: src/pages/category/[...path].astro (pill markup), src/styles/global.css
+  (tile block), package.json, CHANGELOG.md. Obscura @390 both-themes gates
+  gate15b-*.
+
 ## [0.6.24] — 2026-09-15
 ### Fixed — P15A ARCHIVE RE-SHIP: crumb-zero ghost killed + copy fixes, fresh pages-dist carrying P14 gap
 - **Root cause** — root categories carry `"parent": 0` (content.json); the

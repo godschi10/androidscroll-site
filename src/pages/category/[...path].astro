@@ -87,12 +87,15 @@ const planned = {
           <>
             <div class="kicker-h" style="margin-top:36px">Nearby sub-shelves</div>
             <div class="empty-row">
-              {kids.map(k => (
+              {kids.map(k => {
+                const n = postsIn(k).length;
+                return (
                 <a class="empty-tile" href={k.path} style="text-decoration:none">
                   <b>{k.name}</b>
-                  <span>{postsIn(k).length === 0 ? '0 guides · opens Q1 2027' : postsIn(k).length === 1 ? '1 guide' : postsIn(k).length + ' guides'}</span>
+                  {n === 0 ? <span class="t-count is-empty">opens soon</span> : <span class="t-count">{n === 1 ? '1 guide' : n + ' guides'}</span>}
                 </a>
-              ))}
+                );
+              })}
             </div>
           </>
         )}
