@@ -47,8 +47,8 @@ const shelfCats = PILLARS.map(p => ({ name: p.name, path: p.path, n: postsIn(p).
     </section>
   </div>
 
-  <script type="application/json" id="sq-index" set:html={JSON.stringify(IDX)} />
-  <script type="application/json" id="sq-syn" set:html={JSON.stringify(SYNM)} />
+  <script type="application/json" id="sq-index" set:html={JSON.stringify(IDX).replace(/</g, String.fromCharCode(92, 117, 48, 48, 51, 99))} />
+  <script type="application/json" id="sq-syn" set:html={JSON.stringify(SYNM).replace(/</g, String.fromCharCode(92, 117, 48, 48, 51, 99))} />
   <script type="module" is:inline set:html={searchCoreRaw}></script>
   <script type="module">
     const INDEX = JSON.parse(document.getElementById('sq-index').textContent);
@@ -69,7 +69,7 @@ const shelfCats = PILLARS.map(p => ({ name: p.name, path: p.path, n: postsIn(p).
       }
       return out;
     };
-    const row = (p, i, terms) => `<li><a href="${p.url}"><span class="sr-rank" aria-hidden="true">${i + 1}</span><span class="sr-body"><h3>${hi(p.title, terms)}</h3><span class="sr-x">${hi(p.excerpt, terms)}</span><span class="sr-meta"><b class="sr-cat">${esc(p.cat)}</b> · ${p.read_min ? esc(String(p.read_min)) + ' min · ' : ''}${esc(p.meta.split('·')[0].trim())}</span></span></a></li>`;
+    const row = (p, i, terms) => `<li><a href="${esc(p.url)}"><span class="sr-rank" aria-hidden="true">${i + 1}</span><span class="sr-body"><h3>${hi(p.title, terms)}</h3><span class="sr-x">${hi(p.excerpt, terms)}</span><span class="sr-meta"><b class="sr-cat">${esc(p.cat)}</b> · ${p.read_min ? esc(String(p.read_min)) + ' min · ' : ''}${esc(p.meta.split('·')[0].trim())}</span></span></a></li>`;
     const q = new URLSearchParams(location.search).get('q') || '';
     /* q-pages are addressable but never indexed: static shell can't vary meta at
        build, so the hydrate marks q-views noindex (Google renders JS). */

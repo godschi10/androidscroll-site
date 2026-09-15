@@ -2,14 +2,14 @@
   "name": "Android Scroll",
   "short_name": "AndroidScroll",
   "description": "Master your Android — fixes, guides and verdicts.",
-  "start_url": "/androidscroll-site/",
-  "scope": "/androidscroll-site/",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
   "background_color": "#EDF6F3",
   "theme_color": "#071512",
   "icons": [
-    { "src": "/androidscroll-site/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/androidscroll-site/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/androidscroll-site/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

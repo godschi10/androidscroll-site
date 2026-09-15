@@ -8,6 +8,9 @@ const title = props.title ? `${props.title} â€” ${SITE.name}` : `${SITE.name} â€
 ---
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- AUDIT-01 M3: baseline CSP for staging (meta cannot set frame-ancestors;
+     apex host headers remain primary). Tightened post-M5: no gravatar. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://androidscroll-comments.gwill.workers.dev; frame-src youtube.com *.youtube.com www.youtube-nocookie.com youtu.be vimeo.com player.vimeo.com tiktok.com *.tiktok.com open.spotify.com *.apple.com embed.music.apple.com audiomack.com platform.twitter.com; object-src 'none'; base-uri 'self'" />
 <title>{title}</title>
 <meta name="description" content={props.desc || SITE.tagline} />
 <link rel="canonical" href={canonical} />

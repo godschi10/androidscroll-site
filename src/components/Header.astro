@@ -426,7 +426,7 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
     compBox.hidden = !comp.suggestions.length;
     compBox.innerHTML = comp.suggestions.map(s => `<button type="button" data-s="${esc(s)}">⌕ ${esc(s)}</button>`).join('')
       + (comp.total > comp.suggestions.length ? `<span class="sr-more">+${comp.total - comp.suggestions.length} more</span>` : '');
-    results.innerHTML = hits.map((p, i) => `<li role="option" id="search-opt-${i}" aria-selected="false"><a href="${p.url}" tabindex="-1"><span class="sr-rank" aria-hidden="true">${i + 1}</span><span class="sr-body"><h3>${hi(p.title, terms)}</h3><span class="sr-x">${hi(p.excerpt, terms)}</span><span class="sr-meta"><b class="sr-cat">${esc(p.cat)}</b> · ${p.read_min ? esc(String(p.read_min)) + ' min · ' : ''}${esc(p.meta.split('·')[0].trim())}</span></span></a></li>`).join('');
+    results.innerHTML = hits.map((p, i) => `<li role="option" id="search-opt-${i}" aria-selected="false"><a href="${esc(p.url)}" tabindex="-1"><span class="sr-rank" aria-hidden="true">${i + 1}</span><span class="sr-body"><h3>${hi(p.title, terms)}</h3><span class="sr-x">${hi(p.excerpt, terms)}</span><span class="sr-meta"><b class="sr-cat">${esc(p.cat)}</b> · ${p.read_min ? esc(String(p.read_min)) + ' min · ' : ''}${esc(p.meta.split('·')[0].trim())}</span></span></a></li>`).join('');
     if (!reduceMotion) results.querySelectorAll('li').forEach((li, i) => { li.style.animationDelay = Math.min(i * 24, 144) + 'ms'; });
     /* honest count: total matched, plus a showing-note when the slice hides some */
     if (!terms.length) searchStatus.textContent = INDEX.length + ' guides';
@@ -498,6 +498,6 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
   });
 </script>
 
-<script type="application/json" id="search-index" set:html={JSON.stringify(SEARCH_IDX)} />
-<script type="application/json" id="search-syn" set:html={JSON.stringify(SEARCH_SYN)} />
+<script type="application/json" id="search-index" set:html={JSON.stringify(SEARCH_IDX).replace(/</g, String.fromCharCode(92, 117, 48, 48, 51, 99))} />
+<script type="application/json" id="search-syn" set:html={JSON.stringify(SEARCH_SYN).replace(/</g, String.fromCharCode(92, 117, 48, 48, 51, 99))} />
 <script type="module" is:inline set:html={searchCoreRaw}></script>

@@ -60,6 +60,14 @@ function fetchCount(postId) {
 }
 
 const data = JSON.parse(readFileSync(CONTENT, 'utf8'));
+
+// AUDIT-01 L4a: pipeline compromise must break the build, not ship.
+// Every post url stays site-relative; a javascript: (or absolute) url aborts.
+const badUrls = data.posts.filter((pl) => typeof pl.url !== "string" || pl.url.indexOf("/") !== 0 || pl.url.indexOf("javascript:") !== -1).map((pl) => String(pl.id) + ":" + String(pl.url));
+if (badUrls.length) {
+  console.error('[gen-content] FATAL post urls must be site-relative (L4a): ' + badUrls.join(', '));
+  process.exit(1);
+}
 let stale = false;
 const failures = [];
 

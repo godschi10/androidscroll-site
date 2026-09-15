@@ -1,5 +1,54 @@
 # Changelog
 
+## [0.6.29] — 2026-09-15
+### Fixed — P21 AUDIT-01: all 15 findings per fix-guidance prescriptions
+- **H1 (HIGH)** — comment-sanitizer href blocklist bypassable via tab/newline
+  entities. Replaced with an allowlist (`safeHttpUrl`: strip char codes 0-32,
+  require http(s)) at the attr sink + hardened the post-pass (missing/failing
+  href is removed, link text kept). Relative comment links now delink by design.
+- **M4** — desk token moved `localStorage` → `sessionStorage` (dies with the
+  tab), auto-fill deleted, 30-min idle auto-lock added. Worker-side short-lived
+  tokens + revoke-all endpoint filed as a Worker follow-up (not this repo).
+- **M2** — all six inlined-JSON sites (`[...slug]` x2, `Header` x2, `search` x2)
+  escape `<` as U+003C (valid JSON, parses identically). Permanent ride-along:
+  `scripts/security-gate.mjs` asserts every served JSON block parses + carries
+  no literal close tag; `npm run gate` runs it (CI too).
+- **M3** — CSP baseline `<meta http-equiv>` in `Head.astro` (covers staging;
+  apex host headers incl. `frame-ancestors` remain the primary control, ops
+  follow-up). Tightened post-M5: no gravatar host.
+- **M1** — author-URL render sink gated by the same `safeHttpUrl` helper (one
+  definition, no drift); bad schemes render as plain names.
+- **M5** — Gravatar fully out: author photo self-hosted (`public/img/author.png`,
+  wired into author box + byline + home trust cell + about + style-test),
+  commenter faces initials-only (monogram fallback was already finished).
+  Privacy copy ("no third-party trackers") is true again.
+- **L1** — TOC builder escapes heading ids (attr context, new `escA`) + heading
+  text (text context) — covers the hostile-`id` attribute breakout too.
+- **L2** — facade iframes get `sandbox="allow-scripts allow-same-origin
+  allow-presentation"` via `setAttribute` (not IDL assignment — the sandbox
+  DOMTokenList has no string setter on minimal engines; attribute is universal)
+  + trimmed `allow`; never `allow-top-navigation`.
+  Gate asserts every `data-src` host against the known-provider list.
+- **L3** — `noreferrer` added to all three share links (matches SocialRow).
+- **L4** — build fails loud on non-site-relative or `javascript:` post urls
+  (`gen-content.mjs`); overlay + search rows escape `p.url` at interpolation.
+- **L5** — client friction (abuse-hygiene only, honest scope): 60 s comment
+  cooldown persisted in `localStorage` reusing `countdown()`, 5-min per-comment
+  report cooldown. No CAPTCHA by design. Worker per-IP/per-comment limits on
+  report + comment endpoints filed as a Worker follow-up.
+- **L6** — manifest already target-relative (prior partial kept); Head asset
+  hrefs stay absolute in source because `relativize.mjs` rewrites them per page
+  with a LEAK gate — verified in served bytes, not changed.
+- **N1** — hardcoded WP post IDs deleted from the mod datalist (free-text kept).
+- **N2** — `.github/workflows/audit.yml`: `npm audit --omit=dev` on lockfile
+  change + monthly (report-only: astro 5 advisories need breaking-major 7,
+  deferred to a King-approved upgrade leg), plus build + `npm run gate`.
+- **N3** — global `class` allowance dropped from the comment sanitizer.
+- Files: Comments.astro, mod.astro, ArticleChrome.astro, Head.astro,
+  Header.astro, search.astro, [...slug].astro, index/about/style-test-article,
+  gen-content.mjs, security-gate.mjs (new), audit.yml (new), author.png (new),
+  package.json, CHANGELOG.md. Gates: Obscura @390 both-themes gate21-*.
+
 ## [0.6.28] — 2026-09-15
 ### Fixed — P18 SEARCH-OVERLAY-CLIP: dvh-aware overlay fit, see-all footer never clipped
 - **Root cause** — `.search-box` had `overflow:hidden` with no max-height

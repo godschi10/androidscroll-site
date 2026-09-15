@@ -83,9 +83,6 @@ for (const p of POSTS) postMap[p.id] = { u: p.url, t: p.title };
               <label class="mod-label mod-label-inline" for="mod-postinp">Post ID</label>
               <input id="mod-postinp" class="mod-postinp" list="mod-postids" inputmode="numeric" placeholder="any" />
               <datalist id="mod-postids">
-                <option value="56"></option>
-                <option value="10630"></option>
-                <option value="12251"></option>
               </datalist>
               <button class="btn-ghost mod-apply" type="submit">Apply</button>
             </form>
@@ -507,12 +504,20 @@ function paintTabs() {
 
 /* ---------- token gate ---------- */
 let token = '';
-try { token = localStorage.getItem(TOK_KEY) || ''; } catch { /* private mode: session-only */ }
+try { token = sessionStorage.getItem(TOK_KEY) || ''; } catch { /* private mode: session-only */ }
 function saveTok(v: string) {
   token = v;
-  try { v ? localStorage.setItem(TOK_KEY, v) : localStorage.removeItem(TOK_KEY); } catch { /* ok */ }
+  try { v ? sessionStorage.setItem(TOK_KEY, v) : sessionStorage.removeItem(TOK_KEY); } catch { /* ok */ }
 }
-if (token && tokInp) tokInp.value = token; // auto-filled next visit
+// AUDIT-01 M4: session-only token (dies with the tab) + no auto-fill.
+// Idle auto-lock: 30 min without activity re-locks the desk.
+let idleH = 0;
+function pokeIdle() {
+  if (!unlocked) return;
+  if (idleH) clearTimeout(idleH);
+  idleH = window.setTimeout(() => setLocked(true), 30 * 60 * 1000);
+}
+for (const ev of ['click', 'keydown', 'scroll']) window.addEventListener(ev, pokeIdle, { passive: true });
 
 function show(el: HTMLElement | null, on: boolean) { if (el) el.hidden = !on; }
 let unlocked = false;
@@ -520,6 +525,7 @@ function setLocked(on: boolean) {
   unlocked = !on;
   show(lock, on); show(panel, !on); show(tabs, !on);
   show(refreshB, !on); show(signoutB, !on);
+  if (!on) pokeIdle();
 }
 function setToast(msg: string, bad = false) {
   if (!toast) return;

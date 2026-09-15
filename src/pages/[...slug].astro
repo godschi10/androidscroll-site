@@ -79,8 +79,8 @@ const breadcrumbLD = {
 };
 ---
 <Base title={p.title} desc={p.excerpt} ogType="article">
-  <script type="application/ld+json" set:html={JSON.stringify(blogPosting)} />
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbLD)} />
+  <script type="application/ld+json" set:html={JSON.stringify(blogPosting).replace(/</g, String.fromCharCode(92, 117, 48, 48, 51, 99))} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbLD).replace(/</g, String.fromCharCode(92, 117, 48, 48, 51, 99))} />
 
   <article itemscope itemtype="https://schema.org/BlogPosting">
     <meta itemprop="headline" content={p.title} />
@@ -105,7 +105,7 @@ const breadcrumbLD = {
       <h1 class="art-h1" itemprop="headline">{p.title}</h1>
       <p class="art-stand" itemprop="description">{p.excerpt}</p>
       <div class="meta-bar">
-        <span class="meta-who"><img class="t-mono-av t-mono-av-s" src="https://www.gravatar.com/avatar/cd2c5f952ac6bbcba85fbf973b030b6d5af4f62f46e3c4a37abbcb7dfc28b6a9?s=96&d=retro" alt="" aria-hidden="true" width="32" height="32" loading="lazy" decoding="async"> By <a href="/about/#author" rel="author">G-will Chijioke</a></span> <!-- v0.6.11 #4: King 'gravatar doesn't work for ... post meta profile image' — byline monogram -> his photo (same sha256 as author box) -->
+        <span class="meta-who"><img class="t-mono-av t-mono-av-s" src="/img/author.png" alt="" aria-hidden="true" width="32" height="32" loading="lazy" decoding="async"> By <a href="/about/#author" rel="author">G-will Chijioke</a></span> <!-- v0.6.11 #4: King 'gravatar doesn't work for ... post meta profile image' — byline monogram -> his photo (self-hosted author photo) -->
         <span class="meta-facts"><span class="f-pub"><span class="f-lbl">Published </span><time datetime={p.date} itemprop="datePublished">{fmtDate(p.date)}</time></span>
         {p.modified !== p.date && (<span class="upd">Updated <time datetime={p.modified} itemprop="dateModified">{fmtDate(p.modified)}</time></span>)}
         {p.read_min && <span>{p.read_min} min<span class="f-lbl"> read</span></span>}
