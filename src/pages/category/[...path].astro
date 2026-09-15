@@ -34,7 +34,7 @@ const planned = {
   <div class="wrap" style="padding-bottom:56px">
     <nav class="crumb" aria-label="Breadcrumb" style="padding-top:26px">
       <a href="/">Home</a> <span>›</span>
-      {c.parent && <><a href={bySlug[c.parent_slug].path}>{c.parent_name}</a> <span>›</span></>}
+      {c.parent ? <><a href={bySlug[c.parent_slug].path}>{c.parent_name}</a> <span>›</span></> : null}
       <span>{c.name}</span>
     </nav>
 
@@ -50,7 +50,7 @@ const planned = {
       <section class="cat-empty" aria-labelledby="e-h">
         <div class="rule-s" style="margin-top:34px"><span class="s-no">§</span><h2 id="e-h">What’s coming here</h2><span class="s-side">designed empty, never a dead end</span></div>
         <ul class="b-kids" style="max-width:640px;border-top:1px solid var(--line)">
-          {(planned[c.slug] || '').split('. ').map(line => line && <li style="padding:10px 0;border-bottom:1px solid var(--line)"><span style="font-size:15px;color:var(--ink-2)">{line.trim()}.</span></li>)}
+          {(planned[c.slug] || '').split('. ').map(line => line ? <li style="padding:10px 0;border-bottom:1px solid var(--line)"><span style="font-size:15px;color:var(--ink-2)">{line.trim().endsWith('.') ? line.trim() : line.trim() + '.'}</span></li> : null)}
         </ul>
         <div class="kicker-h" style="margin-top:38px">Leave with something real · bridge guides</div>
         <div class="rel-grid" style="border-top:2px solid var(--ink)">
@@ -78,7 +78,7 @@ const planned = {
               <div>
                 <h3><a href={p.url}>{p.title}</a></h3>
                 <p class="x">{p.excerpt}</p>
-                <div class="byline" style="margin-top:8px"><span>{fmtDate(p.date)}</span>{p.read_min && <span><b>{p.read_min} min</b></span>}<span>{p.comments} comments</span></div>
+                <div class="byline" style="margin-top:8px"><span>{fmtDate(p.date)}</span>{p.read_min ? <span><b>{p.read_min} min</b></span> : null}<span>{p.comments} comments</span></div>
               </div>
             </article>
           ))}
@@ -90,7 +90,7 @@ const planned = {
               {kids.map(k => (
                 <a class="empty-tile" href={k.path} style="text-decoration:none">
                   <b>{k.name}</b>
-                  <span>{postsIn(k).length === 0 ? '0 guides · opens Q1 2027' : postsIn(k).length + ' guides'}</span>
+                  <span>{postsIn(k).length === 0 ? '0 guides · opens Q1 2027' : postsIn(k).length === 1 ? '1 guide' : postsIn(k).length + ' guides'}</span>
                 </a>
               ))}
             </div>

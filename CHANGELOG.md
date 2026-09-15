@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.6.24] — 2026-09-15
+### Fixed — P15A ARCHIVE RE-SHIP: crumb-zero ghost killed + copy fixes, fresh pages-dist carrying P14 gap
+- **Root cause** — root categories carry `"parent": 0` (content.json); the
+  crumb's `{c.parent && …}` short-circuit rendered the falsy `0` as a text
+  node, so served crumbs read `Home › 0 Buying Guides…` in both themes.
+  Classic `{0 && …}` zero-render. Fix: ternary `{c.parent ? … : null}` —
+  no `0` can ever print. Same-class hardening on the same template:
+  `{p.read_min && …}` → ternary, `{line && <li>}` → ternary.
+- **Copy** — sub-shelf tiles had no singular: `1 guides` → `1 guide`
+  (populated headers already guarded). Empty-state `planned` lines append
+  `.` only when missing — `rubric..` double period gone.
+- **Re-ship** — staging was behind (served lacked P14 `gap:8px`); fresh
+  dist rebuilt from main so pages-dist carries it. Obscura @390
+  both-themes gates gate15a-*.
+- Files: src/pages/category/[...path].astro, package.json, CHANGELOG.md.
+
 ## [0.6.23] — 2026-09-15
 ### Fixed — P14 BREADCRUMB-SPACING: gap for ol-less .crumb trails
 - **Root cause** — ol-less `.crumb` markup (`search.astro`, `latest.astro`,
