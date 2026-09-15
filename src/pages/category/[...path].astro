@@ -11,6 +11,10 @@ export function getStaticPaths() {
 const c = Astro.props.c;
 const live = postsIn(c);
 const kids = childrenOf(c);
+const par = c.parent ? bySlug[c.parent_slug] : null;
+const sibs = (kids.length === 0 && par) ? childrenOf(par).filter(s => s.slug !== c.slug) : [];
+const tiles = kids.length > 0 ? kids : sibs;
+const tilesHeading = kids.length > 0 ? 'Nearby sub-shelves' : 'Nearby shelves';
 const empty = live.length === 0;
 const root = rootOf(c);
 const bridges = empty ? PILLARS.filter(p => p.slug !== root.slug).flatMap(p => postsIn(p).slice(0, 1)) : [];
@@ -83,11 +87,11 @@ const planned = {
             </article>
           ))}
         </div>
-        {kids.length > 0 && (
+        {tiles.length > 0 && (
           <>
-            <div class="kicker-h" style="margin-top:36px">Nearby sub-shelves</div>
+            <div class="kicker-h" style="margin-top:36px">{tilesHeading}</div>
             <div class="empty-row">
-              {kids.map(k => {
+              {tiles.map(k => {
                 const n = postsIn(k).length;
                 return (
                 <a class="empty-tile" href={k.path} style="text-decoration:none">

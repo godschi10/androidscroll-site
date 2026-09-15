@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.6.26] — 2026-09-15
+### Added — P15C SIBLING-TILES: leaf shelves show sibling tiles
+- **Leaf tiles** — populated leaf shelves (no children, e.g.
+  `guides-how-tos/basics-setup`) rendered zero tiles; now they show
+  SIBLING tiles (parent's children minus self) in the v0.6.25
+  Field-Manual Index language, reused untouched: bordered paper
+  `.empty-tile`, mint count pills stocked / outline `opens soon` empty,
+  Archivo names, 2-col @390. CSS-only, zero new rules; rows, empties,
+  desk (7761/7762) untouched.
+- **Honest heading** — parents keep `Nearby sub-shelves`; leaves read
+  `Nearby shelves` (siblings are not sub-shelves). Leaf intros already
+  carried no `sub-shelves as they stock up` suffix — unchanged.
+  Root-leaf `troubleshooting-fixes` (no parent, no kids) correctly shows
+  no section; State-B empties untouched (bridge guides + back link stay
+  the exit path).
+- Files: src/pages/category/[...path].astro, package.json, CHANGELOG.md.
+  Obscura @390 both-themes gates gate15c-* (leaf + parent regression).
+
 ## [0.6.25] — 2026-09-15
 ### Added — P15B-A FIELD-MANUAL INDEX: dressed sub-shelf tiles
 - **Tiles** — `Nearby sub-shelves` anchors graduate from naked links to bounded
