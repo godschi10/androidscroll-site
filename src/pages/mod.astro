@@ -160,6 +160,13 @@ for (const p of POSTS) postMap[p.id] = { u: p.url, t: p.title };
 .mod-scoped .mod-tab.is-on{color:var(--ink);border-bottom-color:var(--mint)}
 .mod-scoped .mod-tab:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 
+/* v0.6.17 (F) TAB-WHITENESS (King 16:5x) — dark-theme active tab/pill must never
+   read pure-white: active tab gets brand-mint #00E9B0 text + underline; status
+   pills get a dark fill + mint accent border + mint text (no pale --mint slab). */
+html[data-theme=dark] .mod-scoped .mod-tab.is-on{color:#00E9B0;border-bottom-color:#00E9B0}
+html[data-theme=dark] .mod-scoped .mod-seg button.is-on{background:var(--band-2);border-color:#00E9B0;color:#00E9B0}
+@media (prefers-color-scheme:dark){html:not([data-theme=light]) .mod-scoped .mod-tab.is-on{color:#00E9B0;border-bottom-color:#00E9B0}html:not([data-theme=light]) .mod-scoped .mod-seg button.is-on{background:var(--band-2);border-color:#00E9B0;color:#00E9B0}}
+
 .mod-scoped .mod-label{margin:0 0 8px;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .mod-scoped .mod-label-inline{margin:0 8px 0 0}
 .mod-scoped .mod-card{background:var(--paper);border:1px solid var(--line-2);border-left:4px solid var(--verdict);border-radius:4px;margin-top:16px;padding:16px 18px}

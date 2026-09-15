@@ -11,6 +11,9 @@
   Delete-forever (only when ALL selected are trash) → one `POST /api/moderation/bulk` with
   per-id honesty ('x/y applied — failed: #id code'). Selection clears on tab/filter/page change.
   Reports tab has no checkboxes (Dismiss/Resolve is its own lifecycle).
+- **TAB-WHITENESS (F — King 16:5x)** — dark-theme active tab/pill never reads
+  pure-white: active tab gets brand-mint #00E9B0 text + underline; status pills
+  get a dark fill + mint accent border + mint text (no pale --mint slab).
 ### Fixed
 - **Tab-rail ghost scrollbar (C — King: "revert the vertical scroll bar in the tab menu")** —
   measured on staged v0.6.16: `overflow-x:auto` forces computed `overflow-y:auto`, and the
