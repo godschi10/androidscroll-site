@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.6.22] — 2026-09-15
+### Fixed — P13 SEARCH-BRAND-A: honest query-scoped filter chips + mint-slab marks + mobile × close, dead clear-all gone
+- **Query-scoped chips (Direction A)** — `/search/?q=` chips are now live filter
+  buttons, not shelf links: counts come from the matched set via new
+  `countByCat()` in search-core.js (same core as the scorer, exposed on
+  `globalThis.SearchCore`), so chips always sum to the result length; tapping a
+  chip filters the painted list for real (`All (n)` reset, `aria-pressed`
+  active state in mint). Idle / zero-state keeps the server shelf links.
+- **Mint-slab marks, both themes** — `<mark>` in overlay results + empty state
+  + `/search` list is now a real mint slab (`--mint` bg, bold) instead of the
+  pale underline wash; dark theme gets the translucent-teal slab. `/search`
+  marks previously had NO rule (browser-yellow default) — now covered.
+- **Mobile × close** — the overlay close button shows a 44px × target on phone;
+  the `Esc to close` hint is desktop-only (≥900px).
+- **Dead clear-all gone** — the RECENT `clear all` button is removed (markup +
+  JS + CSS); per-chip × deletes stay. Each recent already deletes itself, so
+  the global clear was dead weight.
+- Files: search.astro (chips), search-core.js (countByCat), Header.astro
+  (× close, clear-all removal), global.css (slabs, chip buttons, × switch).
+
 ## [0.6.21] — 2026-09-15
 ### Fixed — P11 SEARCH-ROBUST: intrinsic width/height on all icon SVGs (unstyled-degradation fix)
 - **Root cause** — header/menu/chevron/share/social/reaction icon SVGs carried

@@ -246,10 +246,22 @@ export function makeSearch(INDEX, SYN) {
   return { rank, rankOR, complete, didYouMean, norm, newest: n => INDEX.slice(0, n || 3) };
 }
 
+/* Query-scoped filter counts (P13 Direction A): honest per-category counts over
+ * an already-ranked list — every chip count is drawn from the live result set,
+ * so the chips always sum to the list length. Key = p.cat || p.cat_name. */
+export function countByCat(list) {
+  const counts = {};
+  for (const p of list || []) {
+    const c = p.cat || p.cat_name || 'Unfiled';
+    counts[c] = (counts[c] || 0) + 1;
+  }
+  return counts;
+}
+
 /* browser self-registration: the ?raw-inlined <script type="module"> runs this,
  * exposing the same api to Header/search-page module scripts via globalThis. */
 if (typeof globalThis !== 'undefined') {
   globalThis.makeSearch = makeSearch;
   globalThis.buildSynonyms = buildSynonyms;
-  globalThis.SearchCore = { makeSearch, buildSynonyms, norm, levLE };
+  globalThis.SearchCore = { makeSearch, buildSynonyms, norm, levLE, countByCat };
 }

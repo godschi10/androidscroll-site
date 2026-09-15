@@ -20,7 +20,7 @@ const shelfCats = PILLARS.map(p => ({ name: p.name, path: p.path, n: postsIn(p).
       <div class="sq-kicker">Search results</div>
       <h1 class="sq-h" id="sq-h">Every guide on the shelf<span class="dot">.</span></h1>
       <p class="sq-count" id="sq-count" role="status" aria-live="polite">{TOTALS.posts} guides · shelf order, newest first</p>
-      <div class="sq-chips" aria-label="Browse shelves">
+      <div class="sq-chips" id="sq-chips" aria-label="Browse shelves">
         {shelfCats.map(c => (<a href={c.path}>{c.name} ({c.n})</a>))}
       </div>
     </header>
@@ -78,6 +78,34 @@ const shelfCats = PILLARS.map(p => ({ name: p.name, path: p.path, n: postsIn(p).
       m.name = 'robots'; m.content = 'noindex';
       document.head.appendChild(m);
     }
+    /* P13 Direction A — query-scoped filter chips: counts come from the LIVE
+       matched set (countByCat, same core as the scorer), so chips always sum
+       to the result length. Idle / zero-state keeps the server shelf links. */
+    const chips = document.getElementById('sq-chips');
+    let pool = [], poolTerms = [], activeFilter = 'All';
+    const countByCat = (globalThis.SearchCore && globalThis.SearchCore.countByCat)
+      || (ls => { const o = {}; for (const p of ls || []) { const c = p.cat || p.cat_name || 'Unfiled'; o[c] = (o[c] || 0) + 1; } return o; });
+    function paintChips() {
+      const counts = countByCat(pool);
+      const cats = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || (a < b ? -1 : 1));
+      chips.setAttribute('aria-label', 'Filter these results by shelf');
+      chips.innerHTML = [`<button type="button" data-cat="All" aria-pressed="${activeFilter === 'All' ? 'true' : 'false'}">All (${pool.length})</button>`,
+        ...cats.map(c => `<button type="button" data-cat="${esc(c)}" aria-pressed="${activeFilter === c ? 'true' : 'false'}">${esc(c)} (${counts[c]})</button>`)].join('');
+    }
+    chips.addEventListener('click', e => {
+      const btn = e.target instanceof Element && e.target.closest('button[data-cat]');
+      if (!btn || !pool.length) return;
+      activeFilter = btn.dataset.cat;
+      paintChips();
+      paintList();
+    });
+    function paintList() {
+      const rows = activeFilter === 'All' ? pool : pool.filter(p => (p.cat || p.cat_name || 'Unfiled') === activeFilter);
+      list.innerHTML = rows.map((p, i) => row(p, i, poolTerms)).join('');
+      count.textContent = activeFilter === 'All'
+        ? `${pool.length} guide${pool.length === 1 ? '' : 's'} · ranked, tie = newest first`
+        : `${rows.length} of ${pool.length} in ${activeFilter}`;
+    }
     function paint(query) {
       const qt = query.trim();
       const terms = S.norm(qt).split(' ').filter(Boolean);
@@ -87,8 +115,8 @@ const shelfCats = PILLARS.map(p => ({ name: p.name, path: p.path, n: postsIn(p).
       document.title = `“${qt}” — Search — AndroidScroll`;
       if (matched.length) {
         none.hidden = true; list.hidden = false;
-        list.innerHTML = matched.map((p, i) => row(p, i, terms)).join('');
-        count.textContent = `${matched.length} guide${matched.length === 1 ? '' : 's'} · ranked, tie = newest first`;
+        pool = matched; poolTerms = terms; activeFilter = 'All';
+        paintChips(); paintList();
       } else {
         list.hidden = true; none.hidden = false;
         noneH.textContent = `Nothing filed under “${qt}” yet — that's the backlog, not a dead end.`;
@@ -106,8 +134,8 @@ const shelfCats = PILLARS.map(p => ({ name: p.name, path: p.path, n: postsIn(p).
           orBtn.onclick = () => {
             list.hidden = false; none.hidden = true;
             h.innerHTML = `For “${esc(qt)}” — any word<span class="dot">.</span>`;
-            list.innerHTML = orHits.map((p, i) => row(p, i, terms)).join('');
-            count.textContent = `${orHits.length} relaxed match${orHits.length === 1 ? '' : 'es'}`;
+            pool = orHits; poolTerms = terms; activeFilter = 'All';
+            paintChips(); paintList();
           };
         }
         /* P11 base-aware: #sq-tell static href was relativized at build time —
