@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.13] — 2026-09-15
+### Fixed
+- **Share-bar Telegram glyph is now the real brand mark (King phone screenshot, 10:10 UTC:
+  "the telegram logo in social share section looks wrong")** — the v0.6.5/6.7 TG icon was an
+  angular custom paper-plane (2 stroke paths), not Telegram's current mark. Rebuilt like
+  WhatsApp in v0.6.7: the authentic Simple-Icons `telegram` path — modern rounded plane with
+  curved tail, curved underside sweep and center fold, punched as negative space inside the
+  brand disc — used VERBATIM from cdn.simpleicons.org, filled `currentColor` to join the
+  filled X + WA pair. Transform-only resize `scale(0.84)` about (12,12): cairosvg trio lab
+  at the true 16px device size, both themes, puts TG's ink bbox at 14×14 — identical class to
+  X 14×14 and WA 14×14 (v0.6.7 final metrics preserved), inside the ±10% law; blind cold-read
+  names all three icons correctly on light and dark. aria-label/sr-only/href unchanged.
+
 ## [0.6.12] — 2026-09-15
 ### Fixed
 - **reaction rate-limit UX: honest copy + computed retry-after (worker v0.1.4)** —
