@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.6.18] — 2026-09-15
+### Added — Search 2026 Direction A 'The Desk' (overlay + /search + scorer)
+- **OVERLAY TOP-SHEET** — oversized Archivo 26px field, RECENT rail (localStorage
+  `as-search-recent`, max 6, per-chip × + clear-all) + TRENDING 3 (top-commented,
+  build-time) + scope line pre-typing, live prefix completions, rank numerals,
+  category chip + read time per row, 'See all N results for q →' footer → /search?q=.
+  `/` hotkey, tap-outside, focus + scroll-lock + combobox/listbox ARIA laws kept;
+  Enter with no row focused routes overlay → page. Mint-underline `mark`, teal
+  inset active row, 220ms sheet + 24ms row stagger (reduced-motion = instant).
+- **/search PAGE** — ?q= addressable shell + embedded index, same scorer hydrate,
+  display-scale restated query heading, category chips, canonical /search/,
+  JS-injected noindex on q-views, no-JS fallback = full shelf server-rendered.
+- **NO-RESULTS** — backlog headline verbatim, Did-you-mean (fuzzy, index-only),
+  relaxed-OR retry chip, category browse fallback, 3 newest, Tell-us carrying q.
+- **SCORER** — src/lib/search-core.js single source (?raw inline; Node suite
+  imports the SAME file): lede +4, phrase proximity +18/+8 (replaces flat +4),
+  position-in-title ×1.15, build-time data-driven synonym map → #search-syn JSON,
+  IDF cap on >half-corpus terms, AND rank + OR retry, completions + did-you-mean.
+
 ## [0.6.17] — 2026-09-15
 ### Added — Mod desk: delete-forever, bulk select, title links (King ledger; pairs worker v0.1.7)
 - **DELETE FOREVER (A)** — trash rows get a red 'Delete forever' button: inline two-tap arm

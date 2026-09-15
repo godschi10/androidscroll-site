@@ -13,7 +13,13 @@
    - Law 8 ad-toggles live in the Browse sheet footer (duplicated markup, classed
      .ad-toggle, wired by event delegation — no duplicate IDs; Footer.astro keeps
      its own instance). Browse bottom sheet + search overlay IDs preserved. */
-import { SITE, CATS, PILLARS, TOTALS, childrenOf, postsIn, POSTS } from '../data/site';
+import { SITE, CATS, PILLARS, TOTALS, childrenOf, postsIn, POSTS, mostRead } from '../data/site';
+import { buildSynonyms } from '../lib/search-core.js';
+import searchCoreRaw from '../lib/search-core.js?raw';
+const SEARCH_IDX = POSTS.map(p => ({ title: p.title, url: p.url, excerpt: p.excerpt, cat: p.cat_name,
+  read_min: p.read_min, meta: `${p.date} · ${p.read_min} min · ${p.cat_name}` }));
+const SEARCH_SYN = buildSynonyms(SEARCH_IDX);
+const TRENDING = mostRead().slice(0, 3);
 import Wordmark from './Wordmark.astro';
 import SocialRow from './SocialRow.astro';
 import { SOCIAL_BRAND } from '../data/socials';
@@ -118,17 +124,33 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
 <div class="search-layer" id="search-layer" role="dialog" aria-modal="true" aria-label="Search" hidden>
   <div class="scrim is-open" id="search-scrim" style="position:absolute"></div>
   <div class="search-box">
-    <div class="search-meta"><span id="search-status" role="status" aria-live="polite">Search {TOTALS.posts} guides</span><button class="search-close" id="search-close" type="button" aria-label="Close search" title="Close search">Esc to close</button></div>
     <div class="search-field">
-      <label class="sr-only" for="search-input" style="position:absolute;left:-9999px">Search query</label>
-      <input id="search-input" type="search" placeholder="battery, overheating, whatsapp, malware…" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list" />
+      <span class="sf-dot" aria-hidden="true"></span>
+      <label class="sr-only" for="search-input" style="position:absolute;left:-9999px">Search guides</label>
+      <input id="search-input" type="search" placeholder={`Search ${TOTALS.posts} guides…`} autocomplete="off" role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list" />
       <button class="search-clear" id="search-clear" type="button" aria-label="Clear search" title="Clear" hidden>×</button>
     </div>
+    <div class="search-rail" id="search-rail">
+      <div class="sr-row">
+        <span class="sr-eyebrow">Recent</span>
+        <span class="recent-chips" id="search-recent"></span>
+        <button class="sr-clear" id="search-recent-clear" type="button" hidden>clear all</button>
+      </div>
+      <div class="sr-row">
+        <span class="sr-eyebrow">Trending</span>
+        <span class="recent-chips">{TRENDING.map(p => (<a href={p.url}>{p.title.length > 34 ? p.title.slice(0, 34) + '…' : p.title}</a>))}</span>
+      </div>
+      <div class="sr-scope">Search AndroidScroll · {TOTALS.posts} guides</div>
+    </div>
+    <div class="search-complete" id="search-complete" hidden></div>
+    <div class="search-meta"><span id="search-status" role="status" aria-live="polite">Search {TOTALS.posts} guides</span><button class="search-close" id="search-close" type="button" aria-label="Close search" title="Close search">Esc to close</button></div>
     <ul class="search-results" id="search-results" role="listbox" aria-label="Search suggestions"></ul>
+    <a class="search-seeall" id="search-seeall" href="/search/">Browse all {TOTALS.posts} guides →</a>
     <div class="search-empty no-js-hide" id="search-empty" hidden>
       <span id="search-empty-msg">No guide matches that yet — and that's the backlog, not a dead end.</span><br />
-      <a href="/contact/">Tell us what to write →</a>
+      <a id="search-tellus" href="/contact/">Tell us what to write →</a>
     </div>
+    <div class="search-keys" aria-hidden="true"><span>↑↓ navigate</span><span>↵ open</span><span>esc close</span></div>
   </div>
 </div>
 
@@ -345,93 +367,101 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
     if (activeIdx >= 0) searchInput.setAttribute('aria-activedescendant', 'search-opt-' + activeIdx);
     else searchInput.removeAttribute('aria-activedescendant');
   };
-  /* v0.6.5+ ranking engine — ported from the proven wordpress-smart-search scorer
-     (host-independent pure JS; index stays client-side — zero network per keystroke).
-     norm → token weights → first-letter-anchored fuzzy → honest totals. */
-  /* v065-SCORER-START */
-  const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
-  function levLE(a, b, max) { /* bounded Levenshtein, returns dist if <=max else max+1 */
-    if (Math.abs(a.length - b.length) > max) return max + 1;
-    let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
-    for (let i = 1; i <= a.length; i++) {
-      const cur = [i]; let rowMin = i;
-      for (let j = 1; j <= b.length; j++) {
-        const d = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
-        cur.push(d); if (d < rowMin) rowMin = d;
-      }
-      if (rowMin > max) return max + 1;
-      prev = cur;
+  /* v0.6.18 Direction A: single-source ranking — search-core.js (src/lib) is inlined
+     above via ?raw and self-registers on globalThis; the Node query-suite imports
+     the SAME file, so overlay + /search page + CI can never drift. Lazy lookup:
+     the core module executes in document order, first use is post-interaction. */
+  const SYN = JSON.parse(document.getElementById('search-syn').textContent);
+  let S = null;
+  const api = () => (S || (S = globalThis.makeSearch(INDEX, SYN)));
+  const rail = document.getElementById('search-rail');
+  const recentBox = document.getElementById('search-recent');
+  const recentClear = document.getElementById('search-recent-clear');
+  const compBox = document.getElementById('search-complete');
+  const seeAll = document.getElementById('search-seeall');
+  const tellUs = document.getElementById('search-tellus');
+  const REC_KEY = 'as-search-recent';
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const getRecent = () => { try { return JSON.parse(localStorage.getItem(REC_KEY)) || []; } catch (e) { return []; } };
+  const paintRecent = () => {
+    const r = getRecent();
+    recentBox.innerHTML = r.length ? r.map(q => `<button type="button" data-q="${esc(q)}"><span>${esc(q)}</span><i aria-hidden="true">×</i></button>`).join('') : '<span class="sr-none">no recent searches yet</span>';
+    recentClear.hidden = !r.length;
+  };
+  const saveRecent = q => {
+    q = String(q || '').trim();
+    if (!q) return;
+    const r = [q, ...getRecent().filter(x => x !== q)].slice(0, 6);
+    try { localStorage.setItem(REC_KEY, JSON.stringify(r)); } catch (e) {}
+    paintRecent();
+  };
+  paintRecent();
+  recentBox.addEventListener('click', e => {
+    const btn = e.target instanceof Element && e.target.closest('button[data-q]');
+    if (!btn) return;
+    if (e.target instanceof Element && e.target.closest('i')) {
+      try { localStorage.setItem(REC_KEY, JSON.stringify(getRecent().filter(x => x !== btn.dataset.q))); } catch (err) {}
+      paintRecent(); return;
     }
-    return prev[b.length];
-  }
-  /* fuzzy MUST be first-letter-anchored: without it 'battery'↔'matter' (dist 2) leaks */
-  const fuzzyHit = (tok, word) => tok[0] === word[0] && levLE(tok, word, tok.length >= 6 ? 2 : (tok.length >= 4 ? 1 : 0)) <= (tok.length >= 6 ? 2 : (tok.length >= 4 ? 1 : 0));
-  function rank(terms) {
-    const q = terms.join(' ');
-    const scored = [];
-    for (const p of INDEX) {
-      const nt = norm(p.title), ns = norm(p.url), nx = norm(p.excerpt), nc = norm(p.cat);
-      const words = nt.split(' ');
-      const all = nt + ' ' + ns + ' ' + nx + ' ' + nc;
-      let s = 0, allTitle = true, allAnywhere = true;
-      if (nt === q) s += 150; else if (nt.startsWith(q)) s += 110; else if (nt.includes(q)) s += 70;
-      for (const tok of terms) {
-        const inT = nt.includes(tok), inS = ns.includes(tok), inX = nx.includes(tok), inC = nc.includes(tok);
-        if (inT) s += 20; else allTitle = false;
-        if (inS) s += 12;
-        if (inX) s += 8;
-        if (inC) s += 6;
-        if (!(inT || inS || inX || inC)) {
-          let fz = false;
-          for (const w of words) { if (fuzzyHit(tok, w)) { fz = true; break; } }
-          if (fz) s += 15; else allAnywhere = false;
-        } else if (inT) {
-          for (const w of words) {
-            if (w === tok) { s += 34; break; }
-            if (w.startsWith(tok)) { s += 28; break; }
-            if (fuzzyHit(tok, w)) { s += 15; break; }
-          }
-        }
-      }
-      if (terms.length && allTitle) s += 40;
-      if (terms.length && allAnywhere) s += 25;
-      if (terms.length > 1 && all.includes(q)) s += 4;
-      if (s > 0) scored.push([p, s]);
-    }
-    /* stable sort keeps INDEX's date-desc order → ties = newer post first */
-    scored.sort((a, b) => b[1] - a[1]);
-    return scored.map(x => x[0]);
-  }
-  /* v065-SCORER-END */
+    searchInput.value = btn.dataset.q; render(searchInput.value); searchInput.focus({ preventScroll: true });
+  });
+  recentClear.addEventListener('click', () => { try { localStorage.removeItem(REC_KEY); } catch (e) {} paintRecent(); });
   function render(q) {
-    const terms = norm(q).split(' ').filter(Boolean);
-    const matched = terms.length ? rank(terms) : INDEX;
+    const A = api();
+    const terms = A.norm(q).split(' ').filter(Boolean);
+    const matched = terms.length ? A.rank(terms) : INDEX;
     const fallback = terms.length && matched.length === 0;
     /* never a dead end: no match → the 3 latest guides (index is date-desc) */
     const list = fallback ? INDEX.slice(0, 3) : matched;
     const hits = list.slice(0, 8);
     currentHits = hits; activeIdx = -1;
     searchInput.removeAttribute('aria-activedescendant');
-    results.innerHTML = hits.map((p, i) => `<li role="option" id="search-opt-${i}" aria-selected="false"><a href="${p.url}" tabindex="-1"><h3>${hi(p.title, terms)}</h3><div class="sr-x">${hi(p.excerpt, terms)}</div><div class="sr-meta">${esc(p.meta)}</div></a></li>`).join('');
+    /* pre-typing rail (RECENT + TRENDING + scope) shows only when idle */
+    rail.hidden = !!terms.length;
+    /* live prefix completions while typing */
+    const comp = terms.length ? A.complete(q) : { suggestions: [], total: 0 };
+    compBox.hidden = !comp.suggestions.length;
+    compBox.innerHTML = comp.suggestions.map(s => `<button type="button" data-s="${esc(s)}">⌕ ${esc(s)}</button>`).join('')
+      + (comp.total > comp.suggestions.length ? `<span class="sr-more">+${comp.total - comp.suggestions.length} more</span>` : '');
+    results.innerHTML = hits.map((p, i) => `<li role="option" id="search-opt-${i}" aria-selected="false"><a href="${p.url}" tabindex="-1"><span class="sr-rank" aria-hidden="true">${i + 1}</span><span class="sr-body"><h3>${hi(p.title, terms)}</h3><span class="sr-x">${hi(p.excerpt, terms)}</span><span class="sr-meta"><b class="sr-cat">${esc(p.cat)}</b> · ${p.read_min ? esc(String(p.read_min)) + ' min · ' : ''}${esc(p.meta.split('·')[0].trim())}</span></span></a></li>`).join('');
+    if (!reduceMotion) results.querySelectorAll('li').forEach((li, i) => { li.style.animationDelay = Math.min(i * 24, 144) + 'ms'; });
     /* honest count: total matched, plus a showing-note when the slice hides some */
     if (!terms.length) searchStatus.textContent = INDEX.length + ' guides';
     else if (fallback) searchStatus.textContent = '0 matches — showing the 3 latest guides';
     else if (matched.length > hits.length) searchStatus.textContent = matched.length + ' matches — showing first ' + hits.length;
     else if (matched.length) searchStatus.textContent = matched.length + (matched.length === 1 ? ' match' : ' matches');
     else searchStatus.textContent = '0 matches';
+    const qt = q.trim();
+    if (!terms.length) { seeAll.textContent = `Browse all ${INDEX.length} guides →`; seeAll.href = '/search/'; }
+    else { seeAll.textContent = `See all ${matched.length} result${matched.length === 1 ? '' : 's'} for “${qt}” →`; seeAll.href = '/search/?q=' + encodeURIComponent(qt); }
     const emptyMsg = document.getElementById('search-empty-msg');
-    if (emptyMsg) emptyMsg.textContent = fallback ? 'No match for “' + q.trim() + '” — meanwhile, the latest from the shelves:' : '';
+    if (emptyMsg) emptyMsg.textContent = fallback ? `Nothing filed under “${qt}” yet — that's the backlog, not a dead end.` : '';
+    if (tellUs) tellUs.href = '/contact/' + (fallback ? '?q=' + encodeURIComponent(qt) : '');
     empty.hidden = !fallback;
     searchClear.hidden = !searchInput.value;
   }
   searchInput.addEventListener('input', () => render(searchInput.value));
+  compBox.addEventListener('click', e => {
+    const btn = e.target instanceof Element && e.target.closest('button[data-s]');
+    if (!btn) return;
+    const bits = searchInput.value.trim().split(/\s+/);
+    bits[bits.length - 1] = btn.dataset.s;
+    searchInput.value = bits.join(' ') + ' ';
+    render(searchInput.value); searchInput.focus({ preventScroll: true });
+  });
+  results.addEventListener('click', e => {
+    if (e.target instanceof Element && e.target.closest('a')) saveRecent(searchInput.value);
+  });
+  seeAll.addEventListener('click', () => saveRecent(searchInput.value));
   searchInput.addEventListener('keydown', e => {
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Enter') return;
-    if (!currentHits.length) return;
     if (e.key === 'Enter') {
-      if (activeIdx >= 0 && currentHits[activeIdx]) { e.preventDefault(); location.href = currentHits[activeIdx].url; }
+      /* Enter with a row focused → open it; else the /search page owns the query */
+      if (activeIdx >= 0 && currentHits[activeIdx]) { e.preventDefault(); saveRecent(searchInput.value); location.href = currentHits[activeIdx].url; }
+      else if (searchInput.value.trim()) { e.preventDefault(); saveRecent(searchInput.value); location.href = '/search/?q=' + encodeURIComponent(searchInput.value.trim()); }
       return;
     }
+    if (!currentHits.length) return;
     e.preventDefault();
     const n = currentHits.length;
     activeIdx = e.key === 'ArrowDown' ? (activeIdx + 1) % n : (activeIdx - 1 + n) % n;
@@ -465,5 +495,6 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
   });
 </script>
 
-<script type="application/json" id="search-index" set:html={JSON.stringify(POSTS.map(p => ({ title: p.title, url: p.url, excerpt: p.excerpt, cat: p.cat_name,
-    meta: `${p.date} · ${p.read_min} min · ${p.cat_name}` })))} />
+<script type="application/json" id="search-index" set:html={JSON.stringify(SEARCH_IDX)} />
+<script type="application/json" id="search-syn" set:html={JSON.stringify(SEARCH_SYN)} />
+<script type="module" is:inline set:html={searchCoreRaw}></script>

@@ -1,0 +1,118 @@
+---
+/* /search results page — v0.6.18 Direction A (P7 SEARCH26).
+   URL-addressable (?q=), same scorer as the overlay (search-core.js ?raw inline),
+   no-JS fallback = full shelf server-rendered. Canonical /search/ via Head;
+   JS injects robots noindex only when a ?q= is present (q-pages never indexed). */
+import Base from '../layouts/Base.astro';
+import { POSTS, TOTALS, PILLARS, postsIn, fmtDate } from '../data/site';
+import { buildSynonyms } from '../lib/search-core.js';
+import searchCoreRaw from '../lib/search-core.js?raw';
+const IDX = POSTS.map(p => ({ title: p.title, url: p.url, excerpt: p.excerpt, cat: p.cat_name,
+  read_min: p.read_min, meta: `${p.date} · ${p.read_min} min · ${p.cat_name}` }));
+const SYNM = buildSynonyms(IDX);
+const NEWEST3 = POSTS.slice(0, 3);
+const shelfCats = PILLARS.map(p => ({ name: p.name, path: p.path, n: postsIn(p).length })).filter(c => c.n > 0);
+---
+<Base title="Search" desc={`Search all ${TOTALS.posts} AndroidScroll guides — ranked client-side, zero network per keystroke.`}>
+  <div class="wrap" style="padding-bottom:56px">
+    <nav class="crumb" aria-label="Breadcrumb" style="padding-top:26px"><a href="/">Home</a> <span>›</span> <span>Search</span></nav>
+    <header style="padding-top:10px">
+      <div class="sq-kicker">Search results</div>
+      <h1 class="sq-h" id="sq-h">Every guide on the shelf<span class="dot">.</span></h1>
+      <p class="sq-count" id="sq-count" role="status" aria-live="polite">{TOTALS.posts} guides · shelf order, newest first</p>
+      <div class="sq-chips" aria-label="Browse shelves">
+        {shelfCats.map(c => (<a href={c.path}>{c.name} ({c.n})</a>))}
+      </div>
+    </header>
+
+    <ol class="sq-list" id="sq-list">
+      {POSTS.map((p, i) => (
+        <li><a href={p.url}><span class="sr-rank" aria-hidden="true">{i + 1}</span><span class="sr-body"><h3>{p.title}</h3><span class="sr-x">{p.excerpt}</span><span class="sr-meta"><b class="sr-cat">{p.cat_name}</b> · {p.read_min} min · {fmtDate(p.date)}</span></span></a></li>
+      ))}
+    </ol>
+
+    <section class="sq-none" id="sq-none" hidden>
+      <h2 id="sq-none-h">Nothing filed under that yet.</h2>
+      <p class="sq-dym" id="sq-dym" hidden>Did you mean: <button type="button" id="sq-dym-btn"></button></p>
+      <div class="sq-actions">
+        <button type="button" id="sq-or" hidden></button>
+        <a href="/latest/">Browse the 3 newest ↓</a>
+        <a id="sq-tell" href="/contact/">Tell us what to write →</a>
+      </div>
+      <ol class="sq-list" id="sq-newest">
+        {NEWEST3.map((p, i) => (
+          <li><a href={p.url}><span class="sr-rank" aria-hidden="true">{i + 1}</span><span class="sr-body"><h3>{p.title}</h3><span class="sr-x">{p.excerpt}</span><span class="sr-meta"><b class="sr-cat">{p.cat_name}</b> · {p.read_min} min · {fmtDate(p.date)}</span></span></a></li>
+        ))}
+      </ol>
+    </section>
+  </div>
+
+  <script type="application/json" id="sq-index" set:html={JSON.stringify(IDX)} />
+  <script type="application/json" id="sq-syn" set:html={JSON.stringify(SYNM)} />
+  <script type="module" is:inline set:html={searchCoreRaw}></script>
+  <script type="module">
+    const INDEX = JSON.parse(document.getElementById('sq-index').textContent);
+    const SYN = JSON.parse(document.getElementById('sq-syn').textContent);
+    const S = globalThis.makeSearch(INDEX, SYN);
+    const h = document.getElementById('sq-h'), count = document.getElementById('sq-count'),
+      list = document.getElementById('sq-list'), none = document.getElementById('sq-none'),
+      noneH = document.getElementById('sq-none-h'), dym = document.getElementById('sq-dym'),
+      dymBtn = document.getElementById('sq-dym-btn'), orBtn = document.getElementById('sq-or'),
+      tell = document.getElementById('sq-tell');
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const escReg = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const hi = (text, terms) => {
+      let out = esc(text);
+      for (const t of [...terms].sort((a, b) => b.length - a.length)) {
+        if (!t) continue;
+        out = out.replace(new RegExp('(' + escReg(esc(t)) + ')', 'gi'), '<mark>$1</mark>');
+      }
+      return out;
+    };
+    const row = (p, i, terms) => `<li><a href="${p.url}"><span class="sr-rank" aria-hidden="true">${i + 1}</span><span class="sr-body"><h3>${hi(p.title, terms)}</h3><span class="sr-x">${hi(p.excerpt, terms)}</span><span class="sr-meta"><b class="sr-cat">${esc(p.cat)}</b> · ${p.read_min ? esc(String(p.read_min)) + ' min · ' : ''}${esc(p.meta.split('·')[0].trim())}</span></span></a></li>`;
+    const q = new URLSearchParams(location.search).get('q') || '';
+    /* q-pages are addressable but never indexed: static shell can't vary meta at
+       build, so the hydrate marks q-views noindex (Google renders JS). */
+    if (q.trim()) {
+      const m = document.createElement('meta');
+      m.name = 'robots'; m.content = 'noindex';
+      document.head.appendChild(m);
+    }
+    function paint(query) {
+      const qt = query.trim();
+      const terms = S.norm(qt).split(' ').filter(Boolean);
+      if (!terms.length) return; /* idle = server shelf stays */
+      const matched = S.rank(terms);
+      h.innerHTML = `For “${esc(qt)}”<span class="dot">.</span>`;
+      document.title = `“${qt}” — Search — AndroidScroll`;
+      if (matched.length) {
+        none.hidden = true; list.hidden = false;
+        list.innerHTML = matched.map((p, i) => row(p, i, terms)).join('');
+        count.textContent = `${matched.length} guide${matched.length === 1 ? '' : 's'} · ranked, tie = newest first`;
+      } else {
+        list.hidden = true; none.hidden = false;
+        noneH.textContent = `Nothing filed under “${qt}” yet — that's the backlog, not a dead end.`;
+        count.textContent = '0 matches';
+        const sug = S.didYouMean(terms);
+        dym.hidden = !sug;
+        if (sug) {
+          dymBtn.textContent = `${sug.suggestion} (${sug.count} guide${sug.count === 1 ? '' : 's'})`;
+          dymBtn.onclick = () => { location.href = '/search/?q=' + encodeURIComponent(sug.suggestion); };
+        }
+        const orHits = S.rankOR(terms);
+        orBtn.hidden = !orHits.length;
+        if (orHits.length) {
+          orBtn.textContent = `Search any word (${orHits.length})`;
+          orBtn.onclick = () => {
+            list.hidden = false; none.hidden = true;
+            h.innerHTML = `For “${esc(qt)}” — any word<span class="dot">.</span>`;
+            list.innerHTML = orHits.map((p, i) => row(p, i, terms)).join('');
+            count.textContent = `${orHits.length} relaxed match${orHits.length === 1 ? '' : 'es'}`;
+          };
+        }
+        tell.href = '/contact/?q=' + encodeURIComponent(qt);
+      }
+    }
+    paint(q);
+  </script>
+</Base>
