@@ -180,8 +180,13 @@ const AV_BG = ['var(--deep)', 'var(--teal)', 'var(--deeper)', 'var(--verdict)'];
 // null) from the DESK author himself can still show his face: name match routes to his
 // Gravatar hash — the same sha256 the author box + byline use. Non-author null rows
 // stay initials (no hash exists for them; nothing to request).
+// v0.6.14 (King 'gravatar doesn't work' decisive probe): he also posts under his
+// legal name 'Godswill Udedibia' (row 7761 — pre-v0.1.3, email_hash NULL, salted
+// author_email_hash proves the SAME godschi10@gmail.com). One-way hash → the unsalted
+// value can't be recovered, so route that name to his hash too. Display-name only,
+// exact-anchored — never a privilege (worker is_author law unchanged).
 const AUTHOR_GRAVATAR = 'cd2c5f952ac6bbcba85fbf973b030b6d5af4f62f46e3c4a37abbcb7dfc28b6a9';
-const AUTHOR_NAME_RE = /^\s*g[-–—]?will\s+chijioke\s*$/i;
+const AUTHOR_NAME_RE = /^\s*(?:g[-–—]?will\s+chijioke|godswill\s+udedibia)\s*$/i;
 function photoHashFor(c: any): string | null {
   const h = String(c.email_hash || '').toLowerCase();
   if (/^([0-9a-f]{32}|[0-9a-f]{64})$/.test(h)) return h;

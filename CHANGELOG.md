@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.14] — 2026-09-15
+### Fixed
+- **Gravatar fallback now covers the King's legal display name (decisive email_hash probe)** —
+  his newest real row (7761, post 12251, 'Godswill Udedibia', 2026-09-13) predates worker v0.1.3,
+  carries `email_hash: NULL`, and its salted `author_email_hash` verifies as
+  sha256("androidscroll-comments/v1|godschi10@gmail.com") — he DID supply his email, but the
+  unsalted hash is unrecoverable (one-way). The v0.6.11 name-fallback matched only
+  'G-will Chijioke', so that row rendered initials: the exact 'gravatar doesn't work' sighting.
+  AUTHOR_NAME_RE now routes 'Godswill Udedibia' to his pinned hash too (exact-anchored,
+  display-name only; visitor rows with real hashes are untouched; worker 0.1.5 auto-approves
+  desk-Bearer replies at insert so future author replies need no approve click).
+
 ## [0.6.13] — 2026-09-15
 ### Fixed
 - **Share-bar Telegram glyph is now the real brand mark (King phone screenshot, 10:10 UTC:
