@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.23] — 2026-09-15
+### Fixed — P14 BREADCRUMB-SPACING: gap for ol-less .crumb trails
+- **Root cause** — ol-less `.crumb` markup (`search.astro`, `latest.astro`,
+  `StaticPage.astro`, `category/[...path].astro`: `<a>Home</a> <span>›</span>
+  <span>…</span>`) sat in a flex `.crumb` with NO gap, so separators kissed
+  the text (`Home›Search`, 0px both themes @390). Blog post `[...slug].astro`
+  uses `ol>li` with `gap:8px` and looked right.
+- **Fix** — one line in global.css: `gap:8px` on `.crumb`, matching the
+  `ol>li` trail rhythm. No-op on single-child `ol` pages. All four ol-less
+  pages fixed by the one rule; zero markup touched.
+- Files: src/styles/global.css (1 line). Obscura @390 before/after both
+  themes: 0px → 8px (gates gate14-*).
+
 ## [0.6.22] — 2026-09-15
 ### Fixed — P13 SEARCH-BRAND-A: honest query-scoped filter chips + mint-slab marks + mobile × close, dead clear-all gone
 - **Query-scoped chips (Direction A)** — `/search/?q=` chips are now live filter
