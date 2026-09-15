@@ -63,7 +63,7 @@ for (const p of POSTS) postMap[p.id] = { u: p.url, t: p.title };
       <section id="mod-panel" hidden aria-label="Console panel">
         <!-- QUEUE -->
         <div id="mod-view-queue" class="mod-view" hidden>
-          <label class="mod-selall" id="mod-queue-selall-wrap"><input type="checkbox" id="mod-queue-selall" class="mod-cbx" aria-label="Select all in queue"><span>Select all</span></label>
+          <label class="mod-selall" id="mod-queue-selall-wrap"><input type="checkbox" id="mod-queue-selall" class="mod-cbx" aria-label="Select all in queue"><span class="mod-cbx-box" aria-hidden="true"></span><span>Select all</span></label>
           <div id="mod-queue-list" class="mod-rows"></div>
           <p id="mod-queue-empty" class="mod-empty" hidden>Nothing waiting.</p>
         </div>
@@ -78,7 +78,7 @@ for (const p of POSTS) postMap[p.id] = { u: p.url, t: p.title };
               <button type="button" data-status="trash">Trash</button>
               <button type="button" data-status="all">All</button>
             </div>
-            <label class="mod-selall" id="mod-all-selall-wrap"><input type="checkbox" id="mod-all-selall" class="mod-cbx" aria-label="Select all on this page"><span>Select all</span></label>
+            <label class="mod-selall" id="mod-all-selall-wrap"><input type="checkbox" id="mod-all-selall" class="mod-cbx" aria-label="Select all on this page"><span class="mod-cbx-box" aria-hidden="true"></span><span>Select all</span></label>
             <form id="mod-postform" class="mod-postform" autocomplete="off">
               <label class="mod-label mod-label-inline" for="mod-postinp">Post ID</label>
               <input id="mod-postinp" class="mod-postinp" list="mod-postids" inputmode="numeric" placeholder="any" />
@@ -234,19 +234,43 @@ html[data-theme=dark] .mod-scoped .btn-danger{color:#FF8A7A;border-color:#FF8A7A
 html[data-theme=dark] .mod-scoped .btn-danger:hover{background:rgba(255,138,122,.12)}
 html[data-theme=dark] .mod-scoped .btn-danger.is-armed{background:#B4402F;border-color:#FF8A7A;color:#FFF;outline-color:#FF8A7A}
 
-/* v0.6.17 (B) BULK SELECT — 44px touch checkbox, header select-all scoped to
-   the visible filtered page, floating action bar pinned bottom-centre. */
-.mod-scoped .mod-cbx{appearance:none;-webkit-appearance:none;width:44px;height:44px;flex:none;margin:-8px 0;border:1px solid var(--line-2);border-radius:4px;background:var(--paper);display:inline-grid;place-items:center;cursor:pointer;position:relative;touch-action:manipulation}
-.mod-scoped .mod-cbx:checked{background:var(--deep);border-color:var(--deep)}
-.mod-scoped .mod-cbx:checked::after{content:"";width:14px;height:8px;border:2.5px solid var(--on-deep);border-top:0;border-right:0;transform:rotate(-45deg) translateY(-1px)}
-.mod-scoped .mod-cbx:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-.mod-scoped .mod-item.mod-selected{border-left-color:var(--mint)}
+/* v0.6.20 (P10 DESK SELECT-STYLE — King: native squares + white pill) —
+   custom Desk checkboxes: the native input stays in the DOM (change
+   events, data-sel, :checked/:indeterminate all untouched) but is
+   visually hidden; the styled box is a sibling span.mod-cbx-box —
+   24px rounded, subtle border, brand #00E9B0 tick on a dark fill when
+   on, --focus ring on keyboard focus. 44px touch target lives on the
+   label wrap. Suits dark AND light: unchecked = paper + line-2 border;
+   checked = verdict fill (dark in BOTH themes) + #00E9B0 tick. */
+.mod-scoped .mod-cbx-wrap,.mod-scoped .mod-selall{position:relative;display:inline-flex;align-items:center;min-width:44px;min-height:44px;cursor:pointer}
+.mod-scoped .mod-cbx{position:absolute;inset:0;width:44px;height:44px;margin:0;opacity:0;cursor:pointer;touch-action:manipulation}
+.mod-scoped .mod-cbx-box{flex:none;width:24px;height:24px;border-radius:7px;background:var(--paper);border:1.5px solid var(--line-2);display:inline-grid;place-items:center;transition:border-color .12s ease-out,background-color .12s ease-out}
+.mod-scoped .mod-cbx-box::after{content:"";width:12px;height:7px;border:2.5px solid transparent;border-top:0;border-right:0;transform:rotate(-45deg) translateY(-1px)}
+.mod-scoped .mod-cbx:checked+.mod-cbx-box{background:var(--verdict);border-color:#00E9B0}
+.mod-scoped .mod-cbx:checked+.mod-cbx-box::after{border-color:#00E9B0}
+.mod-scoped .mod-cbx:indeterminate+.mod-cbx-box{background:var(--verdict);border-color:#00E9B0}
+.mod-scoped .mod-cbx:indeterminate+.mod-cbx-box::after{width:11px;height:0;border:0;border-top:2.5px solid #00E9B0;transform:none}
+.mod-scoped .mod-cbx:focus-visible{outline:none}
+.mod-scoped .mod-cbx:focus-visible+.mod-cbx-box{outline:2px solid var(--focus);outline-offset:2px}
+/* .is-on/.is-mixed mirror :checked/:indeterminate for style engines that
+   never match dynamic :checked (proven live: Obscura); synced in
+   syncSelUI() only — same paint, zero behavior change. */
+.mod-scoped .mod-cbx-box.is-on{background:var(--verdict);border-color:#00E9B0}
+.mod-scoped .mod-cbx-box.is-on::after{border-color:#00E9B0}
+.mod-scoped .mod-cbx-box.is-mixed{background:var(--verdict);border-color:#00E9B0}
+.mod-scoped .mod-cbx-box.is-mixed::after{width:11px;height:0;border:0;border-top:2.5px solid #00E9B0;transform:none}
+.mod-scoped .mod-item.mod-selected{border-left-color:#00E9B0}
 .mod-scoped .mod-selbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;bottom:12px;z-index:30;margin:14px auto 0;max-width:680px;background:var(--verdict);border:1px solid var(--line-2);border-radius:6px;padding:8px 12px;box-shadow:var(--float)}
 .mod-scoped .mod-selbar:empty{display:none}
-.mod-scoped .mod-selbar .mod-sel-n{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--mint);margin-right:auto;white-space:nowrap}
-.mod-scoped .mod-selbar .btn-ghost{border-color:var(--mint);color:var(--mint);font-size:13px;padding:9px 14px;min-height:44px;background:transparent}
-.mod-scoped .mod-selbar .btn-ghost:hover{background:rgba(217,242,232,.12)}
-.mod-scoped .mod-selbar .btn-deep{border-top-color:transparent;background:var(--mint);color:#10231F;font-size:13px;padding:9px 14px}
+/* v0.6.20 (P10) — dark floating bar in BOTH themes: verdict fill is dark
+   light + dark, count in brand #00E9B0, Approve = mint slab / Spam-Trash-
+   Clear = mint-outline ghosts, danger keeps its red language. */
+.mod-scoped .mod-selbar .mod-sel-n{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#00E9B0;margin-right:auto;white-space:nowrap}
+.mod-scoped .mod-selbar .btn-ghost{border-color:#00E9B0;color:#00E9B0;font-size:13px;padding:9px 14px;min-height:44px;background:transparent}
+.mod-scoped .mod-selbar .btn-ghost:hover{background:rgba(0,233,176,.12)}
+.mod-scoped .mod-selbar .btn-deep{border-top-color:transparent;background:#00E9B0;color:#10231F;font-size:13px;padding:9px 14px}
+.mod-scoped .mod-selbar .btn-deep:hover{background:#00E9B0;color:#10231F;filter:brightness(1.1)}
+.mod-scoped .mod-selbar .btn-deep:focus-visible,.mod-scoped .mod-selbar .btn-ghost:focus-visible,.mod-scoped .mod-selbar .btn-danger:focus-visible{outline:2px solid #00E9B0;outline-offset:2px}
 .mod-scoped .mod-selbar .btn-danger{border-color:#FF8A7A;color:#FF8A7A;font-size:13px;padding:9px 14px}
 .mod-scoped .mod-selbar .btn-danger:hover{background:rgba(255,138,122,.12)}
 .mod-scoped .mod-selbar .btn-danger.is-armed{background:#B4402F;color:#FFF;border-color:#FF8A7A;outline-color:#FF8A7A}
@@ -880,13 +904,17 @@ function row(it: Item, opts: { reply?: boolean; bulk?: boolean }): HTMLElement {
 
   const head = el('div', 'mod-item-head');
   if (opts.bulk) {
-    /* v0.6.17 (B): 44px touch checkbox, accent = brand --deep fill */
+    /* v0.6.17 (B): 44px touch checkbox, accent = brand --deep fill
+       v0.6.20 (P10): custom Desk box — hidden native input + styled
+       span.mod-cbx-box sibling (CSS paints :checked/:indeterminate +
+       focus ring); input keeps .mod-cbx/data-sel/change = behavior kept. */
     const lb = el('label', 'mod-cbx-wrap');
     const cb = el('input'); (cb as HTMLInputElement).type = 'checkbox';
     cb.className = 'mod-cbx'; cb.dataset.sel = String(it.id);
     cb.setAttribute('aria-label', 'Select comment ' + it.id + ' by ' + (it.name || 'Anonymous'));
     cb.addEventListener('change', () => onSelChange());
-    lb.appendChild(cb);
+    const bx = el('span', 'mod-cbx-box'); bx.setAttribute('aria-hidden', 'true');
+    lb.append(cb, bx);
     head.appendChild(lb);
   }
   const name = el('span', 'mod-name'); name.textContent = it.name || 'Anonymous';
@@ -1152,6 +1180,9 @@ function syncSelUI(): void {
   for (const c of Array.from(host.querySelectorAll('input[data-sel]'))) {
     const art = (c as HTMLElement).closest('.mod-item');
     art?.classList.toggle('mod-selected', (c as HTMLInputElement).checked);
+    /* v0.6.20 (P10): styled box mirrors :checked for engines that never
+       match dynamic :checked (Obscura, proven live) — same paint. */
+    (c as HTMLElement).nextElementSibling?.classList.toggle('is-on', (c as HTMLInputElement).checked);
   }
   if (n === 0) { show(bar, false); bar.textContent = ''; }
   else {
@@ -1166,6 +1197,9 @@ function syncSelUI(): void {
     const visChecked = boxes.filter((b) => b.checked).length;
     sa.checked = boxes.length > 0 && visChecked === boxes.length;
     sa.indeterminate = visChecked > 0 && visChecked < boxes.length;
+    /* v0.6.20 (P10): select-all styled box mirrors checked/mixed. */
+    sa.nextElementSibling?.classList.toggle('is-on', sa.checked);
+    sa.nextElementSibling?.classList.toggle('is-mixed', sa.indeterminate);
   }
 }
 function renderBulkBar(bar: HTMLElement): void {

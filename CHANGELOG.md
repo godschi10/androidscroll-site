@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.6.20] — 2026-09-15
+### Fixed — P10 DESK SELECT-STYLE: custom checkboxes + dark bulk bar (King phone verdict)
+- **Custom Desk checkboxes** — row + select-all `.mod-cbx` native inputs stay
+  in the DOM (change events, data-sel, :checked/:indeterminate untouched)
+  but render hidden; new `span.mod-cbx-box` sibling paints the box: 24px
+  rounded, subtle line-2 border, brand #00E9B0 tick on dark verdict fill
+  when on, indeterminate dash, --focus ring on keyboard focus, 44px touch
+  target on the label wrap. Dark + light identical language.
+- **Dark floating bulk bar** — `#mod-bulkbar` keeps dark verdict fill in BOTH
+  themes, count in #00E9B0, Approve = mint slab / Spam-Trash-Clear =
+  mint-outline ghosts, danger keeps red language. Same button labels,
+  same show/hide, no behavior change.
+- Selected-row rail now #00E9B0 (was pale --mint).
+
 ## [0.6.19] — 2026-09-15
 ### Added — P8 AUTO-COUNTS: build-time comment/category counts, zero hard-coded numbers
 - **scripts/gen-content.mjs + `prebuild` hook** — regenerates src/data/content.json
