@@ -4,13 +4,18 @@ import { POSTS, PILLARS, postsIn } from '../data/site';
 const magnets = [...POSTS].sort((a, b) => b.comments - a.comments).slice(0, 3);
 ---
 <Base title="Page not found" desc="That door isn't on this site." robots="noindex">
-  <div class="col" style="padding-bottom:64px">
-    <header class="art-head">
-      <div class="hero-kicker">Error 404 · a working door, not a wall</div>
-      <h1 class="art-h1">No guide lives here.</h1>
-      <p class="art-stand">Search usually finds it — press the ⌕ in the header, or take one of the doors below. If a link broke on our side, tell us and we fix it same week.</p>
-    </header>
-    <div class="art-body">
+  <div class="col nf">
+    <section class="nf-hero" aria-labelledby="nf-h1">
+      <p class="nf-log mono" aria-hidden="true"><span class="lg-light">ERROR 404 · LOGGED</span><span class="lg-dark">&gt; route --404 · not found</span></p>
+      <div class="nf-num" aria-hidden="true">404</div>
+      <h1 class="nf-h1" id="nf-h1">No guide lives here.</h1>
+      <p class="nf-stand">Search usually finds it — press the button below or the ⌕ in the header, or take one of the doors further down. If a link broke on our side, tell us and we fix it same week.</p>
+      <div class="nf-ctas">
+        <button class="nf-search" id="nf-search" type="button">Search guides</button>
+        <a class="nf-home" href="/">Take me home</a>
+      </div>
+    </section>
+    <div class="nf-doors">
       <div class="kicker-h">The three traffic magnets</div>
       <div class="rel-grid" style="border-top:2px solid var(--ink)">
         {magnets.map(m => <article><h3><a href={m.url}>{m.title}</a></h3><div class="byline"><span>{m.comments} comments</span></div></article>)}
@@ -23,4 +28,9 @@ const magnets = [...POSTS].sort((a, b) => b.comments - a.comments).slice(0, 3);
       <p style="margin-top:26px"><a class="btn-deep" href="/contact/">Report a broken link →</a></p>
     </div>
   </div>
+  <script>
+    document.getElementById('nf-search')?.addEventListener('click', () => {
+      document.getElementById('search-trigger')?.click();
+    });
+  </script>
 </Base>

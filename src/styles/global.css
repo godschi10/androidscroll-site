@@ -951,3 +951,49 @@ html[data-theme=dark] .author-box .a-photo{border-color:var(--teal)}
 .comments .c-av-wrap{position:relative;width:36px;height:36px;flex:none}
 .comments .c-av-wrap .c-avatar{width:36px;height:36px}
 .comments .c-photo{position:absolute;inset:0;width:36px;height:36px;border-radius:2px;object-fit:cover;border:1px solid var(--line-2)}
+
+/* ══ v0.6.27 P16 404 theme-adaptive door ══
+   Digest informed-by per decision (~/work/p16-patterns.md):
+   - giant Archivo 800 numeral, deep green on paper (principle 1; informed-by
+     Native Security 404: giant "404" as the single visual anchor, one exit).
+   - "No guide lives here." kept verbatim, no apology stack (principle 2;
+     informed-by haraguchi 404: restraint, empty space IS the message).
+   - mono log strip = terminal character at zero JS cost (principle 4;
+     informed-by Raycast DESIGN.md: mono type details as brand voice). Light
+     wears Signal Board language (ERROR 404 · LOGGED), dark wears Night
+     Terminal language (> route --404) — CSS-only swap, same element.
+   - SEARCH + HOME CTA pair (informed-by Notion DESIGN.md: headline + CTA
+     pair); SEARCH reuses the header's own #search-trigger click path, no new
+     plumbing. Report link + search pointer kept = fault-owned action
+     (principle 3; informed-by Anti Average 404: own the fault, one action).
+   - no error-red anywhere (informed-by Raycast: red reserved for
+     destructive/error only — a 404 is a door, not damage). Brand tokens only.
+   - magnets + pillar counts kept below a hairline (principle 5, honest counts
+     law); Linear single-voice: same family/weights both themes, only tokens
+     flip. No game/3D/glitch (Lighthouse law).
+   Contrast (measured, pairs hold): light numeral --deep/paper 6.19,
+   stand --ink-2/paper 13.5+, log --deep/paper 6.19 (all >= 3/4.5); dark hero
+   sits on --verdict: numeral --teal 7.00, stand --ink 13.51, log --teal 7.00,
+   muted --muted 8.97; SEARCH solid --teal w/ --verdict ink 8.62 dark /
+   --deep w/ white 6.19 light; HOME outline --deep light / --teal dark. */
+.nf{padding-bottom:64px}
+.nf-hero{margin-top:clamp(18px,4vh,34px);background:var(--paper);border:1px solid var(--line-2);border-top:3px solid var(--deep);border-radius:4px;padding:clamp(22px,5vw,36px) clamp(18px,5vw,32px)}
+html[data-theme=dark] .nf-hero{background:var(--verdict);border-color:var(--line);border-top-color:var(--teal)}
+.nf-log{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--deep);margin:0 0 6px}
+html[data-theme=dark] .nf-log{color:var(--teal)}
+.nf-log .lg-dark{display:none}
+html[data-theme=dark] .nf-log .lg-dark{display:inline}
+html[data-theme=dark] .nf-log .lg-light{display:none}
+.nf-num{font-family:var(--display);font-weight:800;font-size:clamp(96px,30vw,172px);line-height:.85;letter-spacing:-.05em;color:var(--deep);font-variant-numeric:tabular-nums}
+html[data-theme=dark] .nf-num{color:var(--teal)}
+.nf-h1{font-family:var(--display);font-weight:800;font-size:clamp(28px,7vw,44px);letter-spacing:-.035em;line-height:.95;margin:14px 0 0;color:var(--ink)}
+.nf-stand{color:var(--ink-2);font-size:clamp(15px,2vw,17px);line-height:1.65;max-width:60ch;margin:12px 0 0}
+.nf-ctas{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.nf-search{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:11px 22px;border-radius:2px;background:var(--deep);color:#FFF;font-weight:800;font-size:14.5px;border:0;cursor:pointer}
+.nf-search:hover{background:var(--deeper);color:#FFF;text-decoration:none}
+html[data-theme=dark] .nf-search{background:var(--teal);color:var(--verdict)}
+html[data-theme=dark] .nf-search:hover{background:var(--mint);color:var(--verdict)}
+.nf-home{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:11px 22px;border-radius:2px;border:1px solid var(--deep);color:var(--deep);font-weight:800;font-size:14.5px}
+.nf-home:hover{background:var(--band);text-decoration:none}
+html[data-theme=dark] .nf-home{border-color:var(--teal);color:var(--teal)}
+.nf-doors{margin-top:30px;border-top:1px solid var(--line-2);padding-top:4px}

@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.6.27] — 2026-09-15
+### Added — P16 404 THEME-ADAPTIVE DOOR: Signal Board light / Night Terminal dark
+- **One page, two directions** — `src/pages/404.astro` rebuilt per digest
+  `~/work/p16-patterns.md`: LIGHT wears Direction A "Signal Board" (paper
+  hero card, giant Archivo 800 `404` in `--deep`, mono `ERROR 404 · LOGGED`
+  strip, solid SEARCH + outline HOME); DARK wears Direction B "Night
+  Terminal" (verdict hero card, teal numeral, `> route --404 · not found`
+  prompt strip, solid teal SEARCH + teal outline HOME). Kicker language
+  swaps CSS-only per `data-theme`; same family/weights both themes.
+- **Honest wayfinding kept** — `No guide lives here.`, 3 traffic magnets,
+  pillar live counts, `Report a broken link →` all carried over below a
+  hairline. SEARCH reuses the header's own `#search-trigger` click path
+  (no new plumbing). No error-red (Raycast law), brand tokens only, zero
+  JS animation (Lighthouse law).
+- **Dark contrast held** — dark hero sits on `--verdict`: numeral 7.00,
+  stand 13.51, log 7.00, muted 8.97, teal SEARCH 8.62 (all >= 3/4.5);
+  light numeral/log 6.19, body 13.5+. Probed live @390 both themes.
+- Files: src/pages/404.astro, src/styles/global.css, package.json,
+  CHANGELOG.md. Obscura @390 both-themes gates gate16-*.
+
 ## [0.6.26] — 2026-09-15
 ### Added — P15C SIBLING-TILES: leaf shelves show sibling tiles
 - **Leaf tiles** — populated leaf shelves (no children, e.g.
