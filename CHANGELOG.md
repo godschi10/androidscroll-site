@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.6.15] — 2026-09-15
+### Fixed
+- **Share-bar Telegram glyph is now the PLANE ALONE (King screenshot 12:29 + follow-up: "Telegram
+  SVG looks odd with the circle compared to others — I like the others, let Telegram match their
+  type design")** — the v0.6.13 Simple-Icons `telegram` path is a compound: first sub-path is the
+  brand disc, plane rendered as negative cutout inside it; on monochrome currentColor tiles that
+  read as a dark circle with a plane-shaped hole. Circle sub-path stripped; plane kept as a single
+  SOLID filled silhouette (relative `m` anchor baked to absolute `M16.906 7.224`, rest verbatim).
+  Even-odd fold slits A/B-tested at 16px — collapse to speckle noise at tile size, rejected;
+  clean solid ships. Re-centered on plane ink-bbox center, scale(1.67): trio lab @16px both themes
+  TG ink 15x13 vs X/WA 14x14 = w1.071 h0.929, inside ±10% law, centered [8,8]; blind cold-read
+  names "X / WhatsApp / Telegram", TG = solid plane, same family as X, no disc. aria-label/href/
+  tile/viewBox identical; X/WA/Copy bytes untouched.
+
 ## [0.6.14] — 2026-09-15
 ### Fixed
 - **Gravatar fallback now covers the King's legal display name (decisive email_hash probe)** —
