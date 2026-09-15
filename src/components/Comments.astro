@@ -421,7 +421,18 @@ async function toggleReact(btn: HTMLElement) {
       signal: ctl.signal,
     });
     clearTimeout(timer);
-    if (!res.ok) { let msg = ''; try { msg = (await res.json()).message || ''; } catch {} throw new Error(msg || String(res.status)); }
+    if (!res.ok) {
+      let data: any = {}; try { data = await res.json(); } catch {}
+      // v0.6.12 (worker v0.1.4): a tripped reaction limiter now answers with
+      // code:'rate_limited' + the honest message and a COMPUTED retryAfter —
+      // surface those verbatim instead of the generic save-failure copy.
+      if (data && data.code === 'rate_limited') {
+        throw Object.assign(new Error('rate_limited'), {
+          friendly: (data.message || '') + (data.retryAfter ? ` Try again in ${data.retryAfter}s.` : ''),
+        });
+      }
+      throw new Error((data && data.message) || String(res.status));
+    }
     const data = await res.json();
     // CONFIRMED: adopt the server's counts (authoritative — old emoji decremented,
     // new one incremented); mirror the single active key; mirror survives reload
@@ -436,7 +447,9 @@ async function toggleReact(btn: HTMLElement) {
     st.mine = prevMine;
     st.counts = prevCounts;
     persistMine(cid, st);
-    st.err = e && e.name === 'AbortError'
+    st.err = e && e.friendly
+      ? e.friendly // v0.6.12: rate-limited toast (server copy + retry-after), never the generic line
+      : e && e.name === 'AbortError'
       ? 'Reaction timed out — tap to retry.'
       : "Couldn't save that reaction — tap to retry.";
     pop(btn);

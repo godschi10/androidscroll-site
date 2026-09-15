@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.12] — 2026-09-15
+### Fixed
+- **reaction rate-limit UX: honest copy + computed retry-after (worker v0.1.4)** —
+  a tripped reaction limiter used to collapse into the generic "Couldn't save that
+  reaction — tap to retry." toast with no hint of what really happened. The react
+  fetch now reads the worker's `code:'rate_limited'` body and surfaces it verbatim
+  (`message` + ` Try again in <retryAfter>s.`), and that retry-after is genuinely
+  computed from the tripped bucket's reset in the Worker (v0.1.4) instead of the
+  hardcoded 60 that lied whenever the hourly tier tripped. Every other failure path
+  keeps its existing copy.
+
 ## [0.6.11] — 2026-09-15
 ### Fixed
 - **Share row cohesion (King phone-review, primary)** — v0.6.9's right-hand group
