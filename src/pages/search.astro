@@ -97,7 +97,7 @@ const shelfCats = PILLARS.map(p => ({ name: p.name, path: p.path, n: postsIn(p).
         dym.hidden = !sug;
         if (sug) {
           dymBtn.textContent = `${sug.suggestion} (${sug.count} guide${sug.count === 1 ? '' : 's'})`;
-          dymBtn.onclick = () => { location.href = '/search/?q=' + encodeURIComponent(sug.suggestion); };
+          dymBtn.onclick = () => { location.href = location.pathname + '?q=' + encodeURIComponent(sug.suggestion); };
         }
         const orHits = S.rankOR(terms);
         orBtn.hidden = !orHits.length;
@@ -110,7 +110,9 @@ const shelfCats = PILLARS.map(p => ({ name: p.name, path: p.path, n: postsIn(p).
             count.textContent = `${orHits.length} relaxed match${orHits.length === 1 ? '' : 'es'}`;
           };
         }
-        tell.href = '/contact/?q=' + encodeURIComponent(qt);
+        /* P11 base-aware: #sq-tell static href was relativized at build time —
+           derive from it so the contact link stays under the site's base. */
+        tell.href = (tell.getAttribute('href') || '../contact/').split('?')[0] + '?q=' + encodeURIComponent(qt);
       }
     }
     paint(q);

@@ -44,21 +44,21 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
 
     <div class="head-actions">
       <button class="icon-btn" id="browse-trigger" aria-expanded="false" aria-controls="browse-sheet" aria-label="Open browse menu" title="Browse the shelves">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.5 6.5h17M3.5 12h17M3.5 17.5h11"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.5 6.5h17M3.5 12h17M3.5 17.5h11"/></svg>
       </button>
       <button class="icon-btn" id="search-trigger" aria-label="Search guides" aria-expanded="false" aria-controls="search-layer" title="Search (/)">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="6.3"/><path d="M15.6 15.6 20.5 20.5"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="6.3"/><path d="M15.6 15.6 20.5 20.5"/></svg>
       </button>
       <button class="icon-btn" id="theme-toggle" aria-label="Theme: auto (follows system)" aria-haspopup="true" aria-expanded="false" aria-controls="theme-menu" title="Theme">
-        <svg class="glyph-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.6v2.5M12 18.9v2.5M2.6 12h2.5M18.9 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M18.7 5.3l-1.8 1.8M7.1 16.9l-1.8 1.8"/></svg>
-        <svg class="glyph-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.2 14.5A8.5 8.5 0 0 1 9.5 3.8a8.5 8.5 0 1 0 10.7 10.7Z"/></svg>
-        <svg class="glyph-auto" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.6"/><path d="M12 3.4a8.6 8.6 0 0 1 0 17.2Z" fill="currentColor" stroke="none"/><path d="M12 1.6v2.2M12 20.2v2.2M1.6 12h2.2M20.2 12h2.2"/></svg>
+        <svg class="glyph-sun" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.6v2.5M12 18.9v2.5M2.6 12h2.5M18.9 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M18.7 5.3l-1.8 1.8M7.1 16.9l-1.8 1.8"/></svg>
+        <svg class="glyph-moon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.2 14.5A8.5 8.5 0 0 1 9.5 3.8a8.5 8.5 0 1 0 10.7 10.7Z"/></svg>
+        <svg class="glyph-auto" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.6"/><path d="M12 3.4a8.6 8.6 0 0 1 0 17.2Z" fill="currentColor" stroke="none"/><path d="M12 1.6v2.2M12 20.2v2.2M1.6 12h2.2M20.2 12h2.2"/></svg>
       </button>
       <!-- King v0.5: header button OPENS a 3-option menu (no more cycle) -->
       <div class="theme-menu" id="theme-menu" role="menu" aria-label="Choose theme" hidden>
-        <button type="button" role="menuitemradio" aria-checked="false" data-pref="light"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.6v2.5M12 18.9v2.5M2.6 12h2.5M18.9 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M18.7 5.3l-1.8 1.8M7.1 16.9l-1.8 1.8"/></svg>Light</button>
-        <button type="button" role="menuitemradio" aria-checked="true" data-pref="system"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="M12 3.4a8.6 8.6 0 0 1 0 17.2Z" fill="currentColor" stroke="none"/></svg>Auto</button>
-        <button type="button" role="menuitemradio" aria-checked="false" data-pref="dark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 14.5A8.5 8.5 0 0 1 9.5 3.8a8.5 8.5 0 1 0 10.7 10.7Z"/></svg>Dark</button>
+        <button type="button" role="menuitemradio" aria-checked="false" data-pref="light"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.6v2.5M12 18.9v2.5M2.6 12h2.5M18.9 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M18.7 5.3l-1.8 1.8M7.1 16.9l-1.8 1.8"/></svg>Light</button>
+        <button type="button" role="menuitemradio" aria-checked="true" data-pref="system"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="M12 3.4a8.6 8.6 0 0 1 0 17.2Z" fill="currentColor" stroke="none"/></svg>Auto</button>
+        <button type="button" role="menuitemradio" aria-checked="false" data-pref="dark"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 14.5A8.5 8.5 0 0 1 9.5 3.8a8.5 8.5 0 1 0 10.7 10.7Z"/></svg>Dark</button>
       </div>
     </div>
   </div>
@@ -70,7 +70,7 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
   <div class="sheet-head">
     <h2>The shelves</h2>
     <button class="close-x" id="browse-close" aria-label="Close browse">
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5 5 19"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5 5 19"/></svg>
     </button>
   </div>
   <div class="sheet-theme">
@@ -380,6 +380,13 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
   const compBox = document.getElementById('search-complete');
   const seeAll = document.getElementById('search-seeall');
   const tellUs = document.getElementById('search-tellus');
+  /* P11 base-aware: the static hrefs above were relativized at build time
+     (relativize.mjs), so they stay under the site's base on staging
+     (/androidscroll-site) and apex (/). Stash them once — every runtime
+     navigation below derives from these, never a root-absolute literal
+     (which escapes the subpath to the domain-root fossil). */
+  const SEARCH_BASE = (seeAll.getAttribute('href') || './search/').split('?')[0];
+  const CONTACT_BASE = ((tellUs && tellUs.getAttribute('href')) || './contact/').split('?')[0];
   const REC_KEY = 'as-search-recent';
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const getRecent = () => { try { return JSON.parse(localStorage.getItem(REC_KEY)) || []; } catch (e) { return []; } };
@@ -432,11 +439,11 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
     else if (matched.length) searchStatus.textContent = matched.length + (matched.length === 1 ? ' match' : ' matches');
     else searchStatus.textContent = '0 matches';
     const qt = q.trim();
-    if (!terms.length) { seeAll.textContent = `See all ${INDEX.length} results →`; seeAll.href = '/search/'; }
-    else { seeAll.textContent = `See all ${matched.length} result${matched.length === 1 ? '' : 's'} for “${qt}” →`; seeAll.href = '/search/?q=' + encodeURIComponent(qt); }
+    if (!terms.length) { seeAll.textContent = `See all ${INDEX.length} results →`; seeAll.href = SEARCH_BASE; }
+    else { seeAll.textContent = `See all ${matched.length} result${matched.length === 1 ? '' : 's'} for “${qt}” →`; seeAll.href = SEARCH_BASE + '?q=' + encodeURIComponent(qt); }
     const emptyMsg = document.getElementById('search-empty-msg');
     if (emptyMsg) emptyMsg.textContent = fallback ? `Nothing filed under “${qt}” yet — that's the backlog, not a dead end.` : '';
-    if (tellUs) tellUs.href = '/contact/' + (fallback ? '?q=' + encodeURIComponent(qt) : '');
+    if (tellUs) tellUs.href = CONTACT_BASE + (fallback ? '?q=' + encodeURIComponent(qt) : '');
     empty.hidden = !fallback;
     searchClear.hidden = !searchInput.value;
   }
@@ -458,7 +465,7 @@ const shortCount = (name: string) => navLabel(name).toLowerCase();
     if (e.key === 'Enter') {
       /* Enter with a row focused → open it; else the /search page owns the query */
       if (activeIdx >= 0 && currentHits[activeIdx]) { e.preventDefault(); saveRecent(searchInput.value); location.href = currentHits[activeIdx].url; }
-      else if (searchInput.value.trim()) { e.preventDefault(); saveRecent(searchInput.value); location.href = '/search/?q=' + encodeURIComponent(searchInput.value.trim()); }
+      else if (searchInput.value.trim()) { e.preventDefault(); saveRecent(searchInput.value); location.href = SEARCH_BASE + '?q=' + encodeURIComponent(searchInput.value.trim()); }
       return;
     }
     if (!currentHits.length) return;

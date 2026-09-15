@@ -710,6 +710,8 @@ function sparklineSVG(b: number[]): SVGElement | null {
   const NS = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(NS, 'svg') as SVGElement;
   svg.setAttribute('viewBox', '0 0 280 44');
+  svg.setAttribute('width', '280');
+  svg.setAttribute('height', '44');
   svg.setAttribute('preserveAspectRatio', 'none');
   svg.setAttribute('role', 'img');
   svg.setAttribute('aria-label', 'Comments per day, last 7 days');
@@ -878,7 +880,7 @@ async function loadOverview(): Promise<void> {
       const g = el('span', 'mod-mix-g');
       g.setAttribute('aria-hidden', 'true');
       g.dataset.mixglyph = emoji;
-      g.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + (REACT_SVG[emoji] || '') + '</svg>';
+      g.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + (REACT_SVG[emoji] || '') + '</svg>';
       const sr = el('span'); /* sr-only accessible name for the glyph (no word label shown) */
       sr.className = 'mod-mix-l';
       sr.style.position = 'absolute'; sr.style.width = '1px'; sr.style.height = '1px';

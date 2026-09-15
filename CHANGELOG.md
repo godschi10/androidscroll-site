@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.6.21] — 2026-09-15
+### Fixed — P11 SEARCH-ROBUST: intrinsic width/height on all icon SVGs (unstyled-degradation fix)
+- **Root cause** — header/menu/chevron/share/social/reaction icon SVGs carried
+  viewBox but NO width/height, so a zero-CSS render (mid-deploy propagation,
+  King's phone) blew them up to giant full-width black monsters.
+- **Fix** — intrinsic dims on every icon-only inline SVG site-wide, matching
+  the styled sizes exactly (attributes are fallback only; CSS still wins when
+  applied): header browse/search/theme glyphs 20px, theme-menu + browse-close
+  16px, share + social + reaction glyphs 16px, facade badges 14px, mod sparkline
+  280x44. Wordmark lockup already had dims (untouched). Zero visual change
+  with CSS on (Obscura @390 + @1280 screenshots + pixel-compare), readable
+  plain-but-small render with CSS off (screenshots gate11-*).
+- Files: Header, ArticleChrome, SocialRow, Comments (reactIcon), mod desk
+  (mix glyph + sparkline), style-test badges.
+
 ## [0.6.20] — 2026-09-15
 ### Fixed — P10 DESK SELECT-STYLE: custom checkboxes + dark bulk bar (King phone verdict)
 - **Custom Desk checkboxes** — row + select-all `.mod-cbx` native inputs stay

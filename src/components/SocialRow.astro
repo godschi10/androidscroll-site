@@ -18,7 +18,7 @@ const { items, label, variant = 'foot' } = Astro.props;
   {items.map(s => (
     <a class="soc-btn" href={s.href} target="_blank" rel="noopener noreferrer"
        aria-label={s.label} data-soc={s.slug} title={s.label}>
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <g transform={`translate(12 12) scale(${s.scale}) translate(-12 -12)`}>
           <path style="fill:currentColor;stroke:none" d={s.d} />
         </g>
