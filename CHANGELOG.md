@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.6.19] — 2026-09-15
+### Added — P8 AUTO-COUNTS: build-time comment/category counts, zero hard-coded numbers
+- **scripts/gen-content.mjs + `prebuild` hook** — regenerates src/data/content.json
+  counts at build time: per-post + total comments from the Worker PUBLIC API
+  (GET /api/comments/count?post=, sequential, 5s timeout x3 tries), posts /
+  categories / empty-category math derived from the posts array (direct-post
+  semantics, matching WP count); stamps generated + source line. Never breaks
+  the build: any fetch failure keeps the previous value, stamps stale:true,
+  exits 0 always.
+- **Footer derivation** — category `.cnt` badges + 'Latest N guides' render from
+  TOTALS/postsDirect, so staged bytes always match content.json.
+- Counts this build: 13 posts / 19 categories / 52 approved-visible comments
+  (NOT the 54 desk total) / 12 empty shelves, stale=false.
+
 ## [0.6.18] — 2026-09-15
 ### Added — Search 2026 Direction A 'The Desk' (overlay + /search + scorer)
 - **OVERLAY TOP-SHEET** — oversized Archivo 26px field, RECENT rail (localStorage

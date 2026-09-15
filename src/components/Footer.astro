@@ -6,7 +6,7 @@
 import Wordmark from './Wordmark.astro';
 import SocialRow from './SocialRow.astro';
 import { SOCIAL_BRAND } from '../data/socials';
-import { SITE, PILLARS, POSTS, TOTALS, postsIn } from '../data/site';
+import { SITE, PILLARS, POSTS, TOTALS, postsIn, postsDirect } from '../data/site';
 const latest3 = POSTS.slice(0, 3);
 const year = 2026;
 const started = POSTS.reduce((min, p) => p.date < min ? p.date : min, POSTS[0].date).slice(0, 4);
@@ -53,7 +53,7 @@ const footPillars = PILLARS
           <ul>
             <li><a href={p.path}><span>All {p.name.toLowerCase()}</span></a></li>
             {p.children.slice(0, 6).map(k => (
-              <li><a href={k.path}><span>{k.name}</span><span class="cnt">{k.count}</span></a></li>
+              <li><a href={k.path}><span>{k.name}</span><span class="cnt">{postsDirect(k).length}</span></a></li>
             ))}
             {p.children.length === 0 && latest3.filter(x => x.root_slug === p.slug).map(x => (
               <li><a href={x.url}><span>{x.title.length > 34 ? x.title.slice(0, 34) + '…' : x.title}</span></a></li>
