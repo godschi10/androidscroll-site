@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.6.28] — 2026-09-15
+### Fixed — P18 SEARCH-OVERLAY-CLIP: dvh-aware overlay fit, see-all footer never clipped
+- **Root cause** — `.search-box` had `overflow:hidden` with no max-height
+  while `.search-results` alone was capped at `52dvh`; field + rail +
+  meta + results + see-all stacked past the viewport on phones, so the
+  `See all N results` footer sat below the fold with no scroll path.
+- **Fix (CSS-only, brand tokens only)** — `.search-box` is now a flex
+  column capped at `100dvh − header − margin` (`vh` fallback first,
+  `dvh` wins where supported; desktop cap mirrors its `+12px` offset);
+  `.search-results` is the shrinking scroller (`flex:1 1 auto`,
+  `min-height:0`, keeps its `52dvh` cap); field/rail/meta/see-all/keys
+  are `flex:none` so the footer stays pinned in view; the no-match note
+  scrolls like results on short viewports. No markup/JS/behavior change.
+- Files: src/styles/global.css, package.json, CHANGELOG.md.
+  Obscura @390 both-themes gates gate18-* (`battery`: full overlay +
+  see-all visible, no clipping).
+
 ## [0.6.27] — 2026-09-15
 ### Added — P16 404 THEME-ADAPTIVE DOOR: Signal Board light / Night Terminal dark
 - **One page, two directions** — `src/pages/404.astro` rebuilt per digest

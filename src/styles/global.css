@@ -225,8 +225,12 @@ html[data-theme=dark] .theme-seg button.is-active{background:#006E5E;color:#FFF}
    rgb(54,55,55) = exactly 22% of 247). Panel must sit above its own backdrop. */
 .search-layer .scrim{z-index:0;background:rgba(10,51,44,.6)}
 html[data-theme=dark] .search-layer .scrim{background:rgba(0,0,0,.72)}
-.search-box{position:absolute;z-index:1;left:0;right:0;top:var(--header-h,54px);margin:0;background:var(--paper);border:0;border-bottom:1px solid var(--line-2);border-radius:0 0 14px 14px;box-shadow:0 24px 60px rgba(7,21,18,.3);overflow:hidden}
-@media(min-width:900px){.search-box{left:50%;right:auto;transform:translateX(-50%);top:calc(var(--header-h,60px) + 12px);width:min(620px,calc(100vw - 48px));border:1px solid var(--line-2);border-radius:14px}}
+/* P18: dvh-aware fit — the box is a flex column capped at the viewport (vh
+   fallback + dvh wins where supported); the results list absorbs all shrink
+   and scrolls internally, chrome rows (field/meta/see-all/footer) stay
+   flex:none so the see-all footer can never be pushed below the fold. */
+.search-box{position:absolute;z-index:1;left:0;right:0;top:var(--header-h,54px);margin:0;background:var(--paper);border:0;border-bottom:1px solid var(--line-2);border-radius:0 0 14px 14px;box-shadow:0 24px 60px rgba(7,21,18,.3);overflow:hidden;display:flex;flex-direction:column;max-height:calc(100vh - var(--header-h,54px) - 12px);max-height:calc(100dvh - var(--header-h,54px) - 12px)}
+@media(min-width:900px){.search-box{left:50%;right:auto;transform:translateX(-50%);top:calc(var(--header-h,60px) + 12px);width:min(620px,calc(100vw - 48px));border:1px solid var(--line-2);border-radius:14px;max-height:calc(100vh - var(--header-h,60px) - 24px);max-height:calc(100dvh - var(--header-h,60px) - 24px)}}
 html[data-theme=dark] .search-box{border-color:var(--line-2);box-shadow:0 24px 70px rgba(0,0,0,.75)}
 @media (prefers-reduced-motion:no-preference){
   .search-layer.is-open .search-box{animation:desk-in 220ms cubic-bezier(.32,.72,0,1)}
@@ -275,7 +279,11 @@ html[data-theme=dark] .search-box{border-color:var(--line-2);box-shadow:0 24px 7
 .search-close .sc-esc{display:none}
 @media(min-width:900px){.search-close{min-width:88px}.search-close .sc-x{display:none}.search-close .sc-esc{display:inline}}
 .search-meta{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 20px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--muted)}
-.search-results{max-height:52dvh;overflow:auto;overscroll-behavior:contain;list-style:none;margin:0;padding:4px 0 8px}
+.search-results{flex:1 1 auto;min-height:0;max-height:52vh;max-height:52dvh;overflow:auto;overscroll-behavior:contain;list-style:none;margin:0;padding:4px 0 8px}
+/* P18: chrome rows never shrink (footer stays pinned in view); the no-match
+   note scrolls like results when the viewport is short. */
+.search-field,.search-rail,.search-complete,.search-meta,.search-seeall,.search-keys{flex:none}
+.search-empty{flex:1 1 auto;min-height:0;overflow:auto}
 .search-results li a{display:flex;gap:12px;align-items:baseline;padding:12px 20px;border-bottom:1px solid var(--line);color:var(--ink)}
 .search-results li a:hover{background:var(--band);text-decoration:none}
 .search-results li.is-active a{background:var(--band);box-shadow:inset 4px 0 0 var(--teal)}
