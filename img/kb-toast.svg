@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" role="img" aria-label="App-not-installed system alert on a dark phone screen, annotated with the three real causes: blocked unknown-sources permission, corrupted partial download, existing app signed with a different key">
+<defs>
+<clipPath id="clip"><rect width="800" height="450"/></clipPath>
+</defs>
+<g clip-path="url(#clip)">
+<rect width="800" height="450" fill="#0A332C"/>
+<rect width="800" height="6" fill="#00A88F"/>
+<rect y="444" width="800" height="6" fill="#014F44"/>
+
+<!-- phone -->
+<rect x="44" y="40" width="252" height="370" rx="18" fill="#050F0D" stroke="#123430"/>
+<rect x="50" y="46" width="240" height="358" rx="14" fill="#071512"/>
+<rect x="144" y="52" width="52" height="6" rx="3" fill="#123430"/>
+<!-- dimmed installer behind -->
+<text x="66" y="88" font-family="'IBM Plex Mono',monospace" font-size="10" letter-spacing="1" fill="#52635F">PACKAGE INSTALLER</text>
+<rect x="66" y="98" width="208" height="1" fill="#123430"/>
+<rect x="66" y="112" width="34" height="34" fill="#0E2A23"/>
+<rect x="74" y="120" width="18" height="18" fill="#123430"/>
+<text x="110" y="126" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#52635F">fieldtool.apk</text>
+<text x="110" y="140" font-family="'IBM Plex Mono',monospace" font-size="9" fill="#3D554E">41.2 MB · com.example.fieldtool</text>
+<rect x="66" y="158" width="208" height="26" fill="#0E2A23"/>
+<rect x="74" y="167" width="90" height="8" fill="#014F44"/>
+<!-- the alert -->
+<rect x="62" y="222" width="216" height="86" fill="#0B241D" stroke="#00A88F"/>
+<rect x="62" y="222" width="216" height="3" fill="#00C896"/>
+<rect x="76" y="238" width="14" height="14" fill="none" stroke="#00C896" stroke-width="2"/><text x="83" y="249" font-family="'IBM Plex Mono',monospace" font-size="11" fill="#00C896" text-anchor="middle">!</text>
+<text x="100" y="250" font-family="'IBM Plex Mono',monospace" font-size="11" fill="#D9F2E8">App not installed</text>
+<text x="76" y="272" font-family="'IBM Plex Mono',monospace" font-size="9" fill="#8FA9A2">For security, your phone doesn't allow</text>
+<text x="76" y="284" font-family="'IBM Plex Mono',monospace" font-size="9" fill="#8FA9A2">unknown apps from this source.</text>
+<rect x="196" y="292" width="66" height="12" fill="#00A88F"/>
+<text x="229" y="301" font-family="'IBM Plex Mono',monospace" font-size="8" fill="#071512" text-anchor="middle">SETTINGS</text>
+<rect x="140" y="392" width="60" height="4" rx="2" fill="#123430"/>
+
+<!-- cause annotations -->
+<rect x="336" y="238" width="56" height="2" fill="#00A88F"/>
+<path d="M384 232 l8 6 l-8 6" fill="none" stroke="#00A88F" stroke-width="2"/>
+<rect x="404" y="58" width="368" height="334" fill="#0E2A23" stroke="#123430"/>
+<rect x="404" y="58" width="368" height="4" fill="#00A88F"/>
+<text x="428" y="92" font-family="'IBM Plex Mono',monospace" font-size="11" letter-spacing="2" fill="#5EEAD4">THREE CAUSES — IN ORDER</text>
+<rect x="428" y="102" width="320" height="1" fill="#123430"/>
+<rect x="428" y="118" width="22" height="22" fill="#00A88F"/><text x="439" y="133" font-family="'IBM Plex Mono',monospace" font-size="11" fill="#071512" text-anchor="middle" font-weight="700">1</text>
+<text x="462" y="130" font-family="'IBM Plex Mono',monospace" font-size="11.5" fill="#D9F2E8">Permission blocked: Settings › Apps ›</text>
+<text x="462" y="146" font-family="'IBM Plex Mono',monospace" font-size="11.5" fill="#8FA9A2">special access › install unknown apps —</text>
+<text x="462" y="162" font-family="'IBM Plex Mono',monospace" font-size="11.5" fill="#8FA9A2">allow ONLY your file manager.</text>
+<rect x="428" y="178" width="22" height="22" fill="#00A88F"/><text x="439" y="193" font-family="'IBM Plex Mono',monospace" font-size="11" fill="#071512" text-anchor="middle" font-weight="700">2</text>
+<text x="462" y="190" font-family="'IBM Plex Mono',monospace" font-size="11.5" fill="#D9F2E8">Broken download: re-download from the</text>
+<text x="462" y="206" font-family="'IBM Plex Mono',monospace" font-size="11.5" fill="#8FA9A2">official store — a partial file passes size</text>
+<text x="462" y="222" font-family="'IBM Plex Mono',monospace" font-size="11.5" fill="#8FA9A2">checks but fails install.</text>
+<rect x="428" y="238" width="22" height="22" fill="#00A88F"/><text x="439" y="253" font-family="'IBM Plex Mono',monospace" font-size="11" fill="#071512" text-anchor="middle" font-weight="700">3</text>
+<text x="462" y="250" font-family="'IBM Plex Mono',monospace" font-size="11.5" fill="#D9F2E8">Signature conflict: an older copy is</text>
+<text x="462" y="266" font-family="'IBM Plex Mono',monospace" font-size="11.5" fill="#8FA9A2">installed from another source —</text>
+<text x="462" y="282" font-family="'IBM Plex Mono',monospace" font-size="11.5" fill="#5EEAD4">uninstall it once, then install clean.</text>
+<rect x="428" y="304" width="320" height="1" fill="#123430"/>
+<text x="428" y="328" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#8FA9A2">Never side-load from SMS links or "mod" sites —</text>
+<text x="428" y="344" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#8FA9A2">that's how the next article's malware starts.</text>
+<rect x="428" y="360" width="150" height="18" fill="none" stroke="#014F44"/>
+<text x="503" y="373" font-family="'IBM Plex Mono',monospace" font-size="9" letter-spacing="1" fill="#52635F" text-anchor="middle">GALAXY A14 · ONE UI 6</text>
+</g>
+</svg>

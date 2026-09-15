@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" role="img" aria-label="Android storage settings screen with a nearly full bar, a breakdown by category, and a Clear cache action highlighted next to a note that the cache is the real space thief">
+<defs>
+<clipPath id="clip"><rect width="800" height="450"/></clipPath>
+</defs>
+<g clip-path="url(#clip)">
+<!-- canvas + rules -->
+<rect width="800" height="450" fill="#F7FAF9"/>
+<rect width="800" height="4" fill="#0A332C"/>
+<rect x="0" y="446" width="800" height="4" fill="#00A88F"/>
+<!-- faint grid marks -->
+<rect x="24" y="24" width="16" height="2" fill="#B9CCC6"/><rect x="24" y="24" width="2" height="16" fill="#B9CCC6"/>
+<rect x="760" y="410" width="16" height="2" fill="#B9CCC6"/><rect x="774" y="410" width="2" height="16" fill="#B9CCC6"/>
+
+<!-- phone -->
+<rect x="48" y="44" width="236" height="362" rx="18" fill="#10231F"/>
+<rect x="54" y="50" width="224" height="350" rx="14" fill="#FFFFFF" stroke="#DDE8E3"/>
+<rect x="140" y="56" width="52" height="6" rx="3" fill="#10231F"/>
+<text x="70" y="88" font-family="'IBM Plex Mono',monospace" font-size="11" letter-spacing="1" fill="#10231F" font-weight="600">Settings › Storage</text>
+<!-- used bar -->
+<rect x="70" y="102" width="192" height="14" fill="#DDE8E3"/>
+<rect x="70" y="102" width="163" height="14" fill="#006E5E"/>
+<rect x="205" y="102" width="28" height="14" fill="#0A332C"/>
+<text x="70" y="134" font-family="'IBM Plex Mono',monospace" font-size="12" fill="#10231F">87.2 / 128 GB used</text>
+<!-- breakdown rows -->
+<rect x="70" y="148" width="192" height="1" fill="#DDE8E3"/>
+<rect x="70" y="158" width="10" height="10" fill="#006E5E"/><text x="88" y="167" font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#2C4640">Apps</text><text x="262" y="167" font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#10231F" text-anchor="end">31.4</text>
+<rect x="70" y="176" width="10" height="10" fill="#00A88F"/><text x="88" y="185" font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#2C4640">Media</text><text x="262" y="185" font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#10231F" text-anchor="end">40.8</text>
+<rect x="70" y="194" width="10" height="10" fill="#0A332C"/><text x="88" y="203" font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#2C4640">System</text><text x="262" y="203" font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#10231F" text-anchor="end">14.1</text>
+<rect x="70" y="212" width="10" height="10" fill="#B9CCC6"/><text x="88" y="221" font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#006E5E" font-weight="600">Cache</text><text x="262" y="221" font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#006E5E" text-anchor="end" font-weight="600">9.6</text>
+<!-- clear cache button -->
+<rect x="70" y="238" width="192" height="36" fill="#006E5E"/>
+<rect x="70" y="238" width="192" height="3" fill="#00A88F"/>
+<text x="166" y="261" font-family="'IBM Plex Mono',monospace" font-size="12" fill="#FFFFFF" text-anchor="middle">Clear cache</text>
+<text x="70" y="292" font-family="'IBM Plex Mono',monospace" font-size="9.5" fill="#52635F">Safe: apps rebuild their cache.</text>
+<!-- home indicator -->
+<rect x="140" y="386" width="52" height="4" rx="2" fill="#DDE8E3"/>
+
+<!-- callout rail -->
+<rect x="320" y="209" width="60" height="2" fill="#006E5E"/>
+<path d="M372 203 l8 6 l-8 6" fill="none" stroke="#006E5E" stroke-width="2"/>
+<!-- notes panel -->
+<rect x="390" y="64" width="382" height="322" fill="#EDF6F3" stroke="#B9CCC6"/>
+<rect x="390" y="64" width="382" height="4" fill="#0A332C"/>
+<text x="414" y="100" font-family="'IBM Plex Mono',monospace" font-size="11" letter-spacing="2" fill="#006E5E">FIELD READING</text>
+<rect x="414" y="118" width="8" height="8" fill="#006E5E"/>
+<text x="434" y="126" font-family="'IBM Plex Mono',monospace" font-size="12.5" fill="#10231F">Delete files? The bar barely moves —</text>
+<text x="434" y="146" font-family="'IBM Plex Mono',monospace" font-size="12.5" fill="#10231F">apps are silent growers.</text>
+<rect x="414" y="164" width="8" height="8" fill="#00A88F"/>
+<text x="434" y="172" font-family="'IBM Plex Mono',monospace" font-size="12.5" fill="#10231F">Cache returns to ~9 GB within</text>
+<text x="434" y="192" font-family="'IBM Plex Mono',monospace" font-size="12.5" fill="#10231F">days. Clear it from Settings,</text>
+<text x="434" y="212" font-family="'IBM Plex Mono',monospace" font-size="12.5" fill="#10231F">never a cleaner app.</text>
+<rect x="414" y="236" width="334" height="1" fill="#B9CCC6"/>
+<text x="414" y="262" font-family="'IBM Plex Mono',monospace" font-size="12.5" fill="#006E5E" font-weight="600">Rule of thumb: free 2x the APK size</text>
+<text x="414" y="282" font-family="'IBM Plex Mono',monospace" font-size="12.5" fill="#2C4640">before any install — 82 MB app,</text>
+<text x="414" y="302" font-family="'IBM Plex Mono',monospace" font-size="12.5" fill="#2C4640">164 MB free minimum.</text>
+<rect x="414" y="326" width="120" height="34" fill="#FFFFFF" stroke="#006E5E" stroke-width="2"/>
+<text x="474" y="348" font-family="'IBM Plex Mono',monospace" font-size="11" fill="#006E5E" text-anchor="middle">STORAGE › CACHE</text>
+<text x="748" y="348" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#52635F" text-anchor="end">TECNO SPARK 10</text>
+</g>
+</svg>
