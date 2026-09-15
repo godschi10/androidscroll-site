@@ -18,10 +18,12 @@ import Base from '../layouts/Base.astro';
 import Wordmark from '../components/Wordmark.astro';
 import { POSTS } from '../data/site';
 
-/* Build-time post_id → local URL map. Unknown ids render as bare "Post <id>"
-   meta with an honest no-link fallback (v0.6.14 — never a dead href). */
-const postMap: Record<number, string> = {};
-for (const p of POSTS) postMap[p.id] = p.url;
+/* Build-time post_id → {url, title} map (v0.6.17: titles over ids — King
+   "I hate post number idea… prefer the name of the post link back"). Unknown
+   ids render as bare "Post <id>" meta with an honest no-link fallback
+   (v0.6.14 — never a dead href). */
+const postMap: Record<number, { u: string; t: string }> = {};
+for (const p of POSTS) postMap[p.id] = { u: p.url, t: p.title };
 ---
 <Base title="Moderation desk" desc="Private moderation console — queue, all comments, reports, overview." robots="noindex, nofollow">
   <div class="mod-scoped" id="mod-desk" data-post-map={JSON.stringify(postMap)}>
@@ -61,6 +63,7 @@ for (const p of POSTS) postMap[p.id] = p.url;
       <section id="mod-panel" hidden aria-label="Console panel">
         <!-- QUEUE -->
         <div id="mod-view-queue" class="mod-view" hidden>
+          <label class="mod-selall" id="mod-queue-selall-wrap"><input type="checkbox" id="mod-queue-selall" class="mod-cbx" aria-label="Select all in queue"><span>Select all</span></label>
           <div id="mod-queue-list" class="mod-rows"></div>
           <p id="mod-queue-empty" class="mod-empty" hidden>Nothing waiting.</p>
         </div>
@@ -75,6 +78,7 @@ for (const p of POSTS) postMap[p.id] = p.url;
               <button type="button" data-status="trash">Trash</button>
               <button type="button" data-status="all">All</button>
             </div>
+            <label class="mod-selall" id="mod-all-selall-wrap"><input type="checkbox" id="mod-all-selall" class="mod-cbx" aria-label="Select all on this page"><span>Select all</span></label>
             <form id="mod-postform" class="mod-postform" autocomplete="off">
               <label class="mod-label mod-label-inline" for="mod-postinp">Post ID</label>
               <input id="mod-postinp" class="mod-postinp" list="mod-postids" inputmode="numeric" placeholder="any" />
@@ -94,12 +98,15 @@ for (const p of POSTS) postMap[p.id] = p.url;
             <button id="mod-next" class="btn-ghost" type="button">Next</button>
           </div>
         </div>
-
-        <!-- REPORTS -->
+        <!-- REPORTS (no checkboxes — Dismiss/resolve is its own lifecycle) -->
         <div id="mod-view-reports" class="mod-view" hidden>
           <div id="mod-rep-list" class="mod-rows"></div>
           <p id="mod-rep-empty" class="mod-empty" hidden>No open reports.</p>
         </div>
+
+        <!-- v0.6.17 BULK BAR — floats over Queue + All Comments (sticky at
+             the panel bottom) whenever rows are selected. -->
+        <div id="mod-bulkbar" class="mod-selbar" hidden></div>
 
         <!-- OVERVIEW (v0.6.16: first + default tab, expanded real-data-only) -->
         <div id="mod-view-overview" class="mod-view" hidden>
@@ -139,9 +146,16 @@ for (const p of POSTS) postMap[p.id] = p.url;
 .mod-scoped .mod-band-actions .btn-ghost{white-space:nowrap}
 .mod-scoped .mod-main{padding-top:14px;padding-bottom:var(--sp-e)}
 
-/* Tabs — mono uppercase, active gets brand mint underline. */
-.mod-scoped .mod-tabs{display:flex;gap:4px;overflow-x:auto;border-top:1px solid var(--line);padding-top:2px}
-.mod-scoped .mod-tab{appearance:none;background:none;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;min-height:44px;padding:12px 14px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap;cursor:pointer}
+/* Tabs — mono uppercase, active gets brand mint underline.
+   v0.6.17 (C — King: "revert the vertical scroll bar in the tab menu"):
+   overflow-x:auto FORCES computed overflow-y to auto, and the tab row's
+   fractional line-height (10.5px mono x 1.65 = 17.325px) + margin-bottom:-1px
+   bled 1px past the rail → ghost vertical scrollbar on fractional-DPR
+   phones. Fix: line-height:1 (integer box), margin-bottom:0, rail pinned to
+   an exact 47px (1 border + 2 pad + 44 tab), and overflow-y:hidden then
+   clip (progressive) so no vertical scrollbar can ever paint. */
+.mod-scoped .mod-tabs{display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;overflow-y:clip;border-top:1px solid var(--line);padding-top:2px;height:47px;box-sizing:border-box;align-items:flex-start}
+.mod-scoped .mod-tab{appearance:none;background:none;border:0;border-bottom:3px solid transparent;min-height:44px;line-height:1;padding:12px 14px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap;cursor:pointer}
 .mod-scoped .mod-tab:hover{color:var(--deep)}
 .mod-scoped .mod-tab.is-on{color:var(--ink);border-bottom-color:var(--mint)}
 .mod-scoped .mod-tab:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
@@ -202,6 +216,41 @@ for (const p of POSTS) postMap[p.id] = p.url;
 .mod-scoped .mod-pager{display:flex;align-items:center;gap:14px;margin-top:18px}
 .mod-scoped .mod-pagen{margin:0;font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--muted);font-variant-numeric:tabular-nums}
 
+/* v0.6.17 (A) DELETE FOREVER — red danger language (house has no red token:
+   derived from --verdict ink family), inline two-tap arm, NEVER native
+   confirm(). Armed button swaps label + full ring; auto-disarms in 4s. */
+.mod-scoped .btn-danger{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border:1px solid #A3352A;color:#A3352A;font-weight:800;font-size:14.5px;padding:11px 18px;min-height:44px;border-radius:2px;background:transparent}
+.mod-scoped .btn-danger:hover{background:rgba(163,53,42,.08)}
+.mod-scoped .btn-danger.is-armed{background:#A3352A;color:#FFF;border-color:#A3352A;outline:2px solid #A3352A;outline-offset:2px}
+@media (prefers-color-scheme:dark){html:not([data-theme=light]) .mod-scoped .btn-danger{color:#FF8A7A;border-color:#FF8A7A}html:not([data-theme=light]) .mod-scoped .btn-danger:hover{background:rgba(255,138,122,.12)}html:not([data-theme=light]) .mod-scoped .btn-danger.is-armed{background:#B4402F;border-color:#FF8A7A;color:#FFF;outline-color:#FF8A7A}}
+html[data-theme=dark] .mod-scoped .btn-danger{color:#FF8A7A;border-color:#FF8A7A}
+html[data-theme=dark] .mod-scoped .btn-danger:hover{background:rgba(255,138,122,.12)}
+html[data-theme=dark] .mod-scoped .btn-danger.is-armed{background:#B4402F;border-color:#FF8A7A;color:#FFF;outline-color:#FF8A7A}
+
+/* v0.6.17 (B) BULK SELECT — 44px touch checkbox, header select-all scoped to
+   the visible filtered page, floating action bar pinned bottom-centre. */
+.mod-scoped .mod-cbx{appearance:none;-webkit-appearance:none;width:44px;height:44px;flex:none;margin:-8px 0;border:1px solid var(--line-2);border-radius:4px;background:var(--paper);display:inline-grid;place-items:center;cursor:pointer;position:relative;touch-action:manipulation}
+.mod-scoped .mod-cbx:checked{background:var(--deep);border-color:var(--deep)}
+.mod-scoped .mod-cbx:checked::after{content:"";width:14px;height:8px;border:2.5px solid var(--on-deep);border-top:0;border-right:0;transform:rotate(-45deg) translateY(-1px)}
+.mod-scoped .mod-cbx:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.mod-scoped .mod-item.mod-selected{border-left-color:var(--mint)}
+.mod-scoped .mod-selbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;bottom:12px;z-index:30;margin:14px auto 0;max-width:680px;background:var(--verdict);border:1px solid var(--line-2);border-radius:6px;padding:8px 12px;box-shadow:var(--float)}
+.mod-scoped .mod-selbar:empty{display:none}
+.mod-scoped .mod-selbar .mod-sel-n{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--mint);margin-right:auto;white-space:nowrap}
+.mod-scoped .mod-selbar .btn-ghost{border-color:var(--mint);color:var(--mint);font-size:13px;padding:9px 14px;min-height:44px;background:transparent}
+.mod-scoped .mod-selbar .btn-ghost:hover{background:rgba(217,242,232,.12)}
+.mod-scoped .mod-selbar .btn-deep{border-top-color:transparent;background:var(--mint);color:#10231F;font-size:13px;padding:9px 14px}
+.mod-scoped .mod-selbar .btn-danger{border-color:#FF8A7A;color:#FF8A7A;font-size:13px;padding:9px 14px}
+.mod-scoped .mod-selbar .btn-danger:hover{background:rgba(255,138,122,.12)}
+.mod-scoped .mod-selbar .btn-danger.is-armed{background:#B4402F;color:#FFF;border-color:#FF8A7A;outline-color:#FF8A7A}
+.mod-scoped .mod-selall{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);cursor:pointer}
+
+/* v0.6.17 (E) POST TITLES — link text = title (one line, ellipsis); the raw
+   id survives only as a tiny muted '#id' suffix, never a primary label. */
+.mod-scoped .mod-ptitle{display:inline-block;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;text-transform:none;letter-spacing:.02em;font-size:11px;font-weight:600}
+@media (max-width:639px){.mod-scoped .mod-ptitle{max-width:180px}}
+.mod-scoped .mod-pid{font-size:9.5px;color:var(--muted);letter-spacing:.06em;margin-left:6px}
+
 /* Overview cards */
 .mod-scoped .mod-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px}
 .mod-scoped .mod-kpi{background:var(--paper);border:1px solid var(--line-2);border-radius:4px;padding:14px 16px}
@@ -236,6 +285,12 @@ for (const p of POSTS) postMap[p.id] = p.url;
 .mod-scoped .mod-mix-row{display:flex;align-items:center;gap:12px;margin-top:10px;font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
 .mod-scoped .mod-mix-e{font-size:16px}
 .mod-scoped .mod-mix-n{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--muted)}
+/* v0.6.17 (D): reaction mix = EXACT brand SVG glyph from the comment summary
+   bubbles (same paths/strokes as .rx-bub svg @16px), NO word label, NO emoji
+   character — the 'fire 🔥 17' double-glyph read was King-rejected. */
+.mod-scoped .mod-mix-g{display:inline-flex;width:16px;height:16px;color:var(--muted);flex:none}
+.mod-scoped .mod-mix-g svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:square;stroke-linejoin:miter;display:block}
+.mod-scoped .mod-mix-g svg .fl{fill:none}
 .mod-scoped .mod-top-head{margin-top:26px}
 .mod-scoped .mod-top-row{display:flex;align-items:baseline;gap:10px;margin-top:10px;font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
 .mod-scoped .mod-top-row a{color:var(--deep)}
@@ -307,9 +362,19 @@ const IS_LOCAL = ['127.0.0.1', 'localhost'].includes(location.hostname);
 const API = IS_LOCAL ? '/api' : PROD_API + '/api';
 
 const TOK_KEY = 'androidscroll:modtok';
-const POST_MAP: Record<string, string> = (() => {
+const POST_MAP: Record<string, { u?: string; t?: string } | string> = (() => {
+  /* v0.6.17: map values became {u:url, t:title}; accept legacy string form
+     defensively so an old cached page+new script never crashes. */
   try { return JSON.parse(ROOT?.dataset.postMap || '{}'); } catch { return {}; }
 })();
+function mapSlug(id: number | string): string {
+  const v = POST_MAP[String(id)];
+  return typeof v === 'string' ? v : (v?.u || '');
+}
+function mapTitle(id: number | string): string {
+  const v = POST_MAP[String(id)];
+  return typeof v === 'object' && v ? (v.t || '') : '';
+}
 
 /* Site root at runtime — the desk is served from any origin: apex '/',
    staging '/androidscroll-site/'. Astro base is '' at build, so the only
@@ -392,6 +457,7 @@ function syncHash() {
 }
 function setTab(tab: string) {
   state.tab = tab;
+  clearSelectionSilent(); // v0.6.17: selection clears on tab change
   syncHash();
   paintTabs();
   for (const k of TABS) if (views[k]) views[k]!.hidden = k !== tab;
@@ -451,17 +517,40 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string): HTMLEl
   if (cls) e.className = cls;
   return e;
 }
+/* ── v0.6.17 (D): EXACT brand reaction SVGs — paths copied VERBATIM from the
+   comment summary bubbles (Comments.astro REACT_SVG: like/heart/fire/laugh,
+   r7.9s laugh geometry, non-scaling-stroke, currentColor). Inline innerHTML
+   build (not innerHTML from API data — keys are from OUR map). ── */
+const VE = ' vector-effect="non-scaling-stroke"';
+const REACT_SVG: Record<string, string> = {
+  like: `<path class="fl"${VE} d="M8.6 20.4V11l5-8.2c2 0 3.2 1.2 3.2 3.2l-.6 3.4h4c1.6 0 2.6 1.2 2.4 2.6l-1.2 6.4c-.2 1.2-1.2 2-2.4 2H8.6Z"/><path class="fl"${VE} d="M3.6 11.6h5v8.8h-5z"/>`,
+  heart: `<path class="fl"${VE} d="M12 20.8C12 20.8 3.2 15 3.2 9.4 3.2 6.4 5.5 4.3 8.2 4.3c1.8 0 3.1 1 3.8 2.3.7-1.3 2-2.3 3.8-2.3 2.7 0 5 2.1 5 5.1 0 5.6-8.8 11.4-8.8 11.4Z"/>`,
+  fire: `<path${VE} d="M12 2.8 16.2 9.4l1.6-1.6c1.6 2 2.6 4 2.6 6.2a8.4 8.4 0 1 1-16.8 0c0-2.2 1-4.2 2.6-6.2l1.6 1.6L12 2.8Z"/><path fill="currentColor" stroke="none" d="M12 10.6 15.5 15.4 12 20.2 8.5 15.4Z"/>`,
+  laugh: `<path fill="currentColor" stroke="none" fill-rule="evenodd" d="M4.1 12a7.9 7.9 0 1 0 15.8 0a7.9 7.9 0 1 0 -15.8 0Z M7.935 7.411L6.314 9.965L10.264 9.965L8.644 7.411A0.419 0.419 0 0 0 7.935 7.411Z M15.356 7.411L13.736 9.965L17.686 9.965L16.065 7.411A0.419 0.419 0 0 0 15.356 7.411Z M6.614 11.88H17.386a5.386 6.344 0 0 1 -10.773 0Z"/><path d="M3.073 8.75L2.765 10.849A1.36 1.36 0 1 1 1.037 9.347Z" fill="currentColor" stroke="none"/><path d="M20.927 8.75L22.963 9.347A1.36 1.36 0 1 1 21.235 10.849Z" fill="currentColor" stroke="none"/>`,
+};
+
 function postRef(id: number, commentId?: number): HTMLElement {
   const meta = el('span', 'mod-meta');
-  const slug = POST_MAP[String(id)];
+  const slug = mapSlug(id);
+  const title = mapTitle(id);
   if (slug) {
     // v0.6.14/16: base-aware — absolute slug 404s under the staging base;
     // withBase() derives the real root from the /mod/ path. When we know the
     // comment row we land on its #comment-<id> anchor (Comments.astro).
     const a = el('a'); a.href = withBase(slug) + (commentId ? '#comment-' + commentId : '');
-    a.textContent = 'Post ' + id;
-    meta.append(a);
-  } else meta.textContent = 'Post ' + id;
+    a.title = title || slug;
+    a.dataset.postlink = String(id);
+    const lab = el('span', 'mod-ptitle');
+    lab.textContent = title || 'Post ' + id; /* v0.6.17 E: TITLE is the link text; mapped-URL-but-no-title falls back honestly */
+    a.appendChild(lab);
+    meta.appendChild(a);
+    const pid = el('span', 'mod-pid');
+    pid.textContent = '#' + id; /* raw id: tiny muted suffix ONLY */
+    meta.appendChild(pid);
+  } else {
+    meta.textContent = 'Post ' + id;
+    meta.dataset.postlink = 'raw-' + id;
+  }
   return meta;
 }
 function skeletons(host: HTMLElement | null, n = 3) {
@@ -500,9 +589,12 @@ async function loadQueue(): Promise<void> {
   skeletons(queueList, 0);
   const items = data.items || [];
   show(queueEmpty, items.length === 0);
+  const saQ = $('mod-queue-selall-wrap'); if (saQ) saQ.hidden = items.length === 0;
+  clearSelectionSilent();
+  listStatusById = {};
   if (queueList) {
     queueList.textContent = '';
-    for (const it of items) queueList.appendChild(row(it, { reply: true }));
+    for (const it of items) { listStatusById[String(it.id)] = it.status; queueList.appendChild(row(it, { reply: true, bulk: true })); }
   }
 }
 
@@ -530,9 +622,12 @@ async function loadAll(): Promise<void> {
   skeletons(allList, 0);
   const items = data.items || [];
   show(allEmpty, items.length === 0);
+  const saA = $('mod-all-selall-wrap'); if (saA) saA.hidden = items.length === 0;
+  clearSelectionSilent(); // selection clears on tab/filter/page change (King: visible filtered scope only)
+  listStatusById = {};
   if (allList) {
     allList.textContent = '';
-    for (const it of items) allList.appendChild(row(it, { reply: true }));
+    for (const it of items) { listStatusById[String(it.id)] = it.status; allList.appendChild(row(it, { reply: true, bulk: true })); }
   }
   const total = data.total ?? items.length;
   const page = data.page ?? state.page;
@@ -746,28 +841,47 @@ async function loadOverview(): Promise<void> {
     show(mixHead, any);
     for (const [emoji, count] of entries) {
       const rowE = el('div', 'mod-card mod-mix-row');
-      const e = el('span', 'mod-mix-e'); e.textContent = emoji;
-      const l = el('span'); l.textContent = emojiLabel(emoji);
+      /* v0.6.17 (D): brand SVG glyph ONLY — no word label, no emoji char
+         (the 'fire 🔥 17' double read was King-rejected), then the count.
+         Keys come from OUR map, so this innerHTML is build-time content. */
+      const g = el('span', 'mod-mix-g');
+      g.setAttribute('aria-hidden', 'true');
+      g.dataset.mixglyph = emoji;
+      g.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + (REACT_SVG[emoji] || '') + '</svg>';
+      const sr = el('span'); /* sr-only accessible name for the glyph (no word label shown) */
+      sr.className = 'mod-mix-l';
+      sr.style.position = 'absolute'; sr.style.width = '1px'; sr.style.height = '1px';
+      sr.style.overflow = 'hidden'; sr.style.clip = 'rect(1px 1px 1px 1px)'; sr.style.whiteSpace = 'nowrap';
+      sr.textContent = (REACTIONS_LABEL[emoji] || emoji) + ' reactions';
       const c = el('span', 'mod-mix-n'); c.dataset.mix = emoji; c.textContent = String(count);
-      rowE.append(e, l, c);
+      rowE.append(g, sr, c);
       mixHost.appendChild(rowE);
     }
   }
 }
-function emojiLabel(e: string): string {
-  return ({ like: 'Like', heart: 'Heart', fire: 'Fire', laugh: 'Laugh' } as Record<string, string>)[e] || e;
-}
+const REACTIONS_LABEL: Record<string, string> = { like: 'Like', heart: 'Heart', fire: 'Fire', laugh: 'Laugh' };
 function jumpFiltered(status: string): void {
   state.status = status; state.page = 1; state.post = '';
   setTab('all');
 }
 
 /* ---------- comment row (Queue + All) ---------- */
-function row(it: Item, opts: { reply?: boolean }): HTMLElement {
+function row(it: Item, opts: { reply?: boolean; bulk?: boolean }): HTMLElement {
   const box = el('article', 'mod-card mod-item');
   box.dataset.id = String(it.id);
+  if (opts.bulk) box.dataset.bulk = '1';
 
   const head = el('div', 'mod-item-head');
+  if (opts.bulk) {
+    /* v0.6.17 (B): 44px touch checkbox, accent = brand --deep fill */
+    const lb = el('label', 'mod-cbx-wrap');
+    const cb = el('input'); (cb as HTMLInputElement).type = 'checkbox';
+    cb.className = 'mod-cbx'; cb.dataset.sel = String(it.id);
+    cb.setAttribute('aria-label', 'Select comment ' + it.id + ' by ' + (it.name || 'Anonymous'));
+    cb.addEventListener('change', () => onSelChange());
+    lb.appendChild(cb);
+    head.appendChild(lb);
+  }
   const name = el('span', 'mod-name'); name.textContent = it.name || 'Anonymous';
   const post = postRef(it.post_id, it.id);
   const time = el('span', 'mod-meta');
@@ -799,6 +913,10 @@ function row(it: Item, opts: { reply?: boolean }): HTMLElement {
   if (it.status !== 'spam') arow.appendChild(mk('Spam', 'btn-ghost', 'spam'));
   if (it.status !== 'trash') arow.appendChild(mk('Trash', 'btn-ghost', 'trash'));
   if (it.status === 'spam' || it.status === 'trash') arow.appendChild(mk('Restore', 'btn-ghost', 'restore'));
+  /* v0.6.17 (A): trash is terminal unless mass-deleted — DELETE FOREVER on
+     trash rows only (worker guard: DELETE route requires status=trash).
+     Inline two-tap arm, 4s timeout, never native confirm(). */
+  if (it.status === 'trash') arow.appendChild(deleteForeverButton('Delete forever', () => void purgeOne(it.id), String(it.id)));
   box.appendChild(arow);
   box.appendChild(result);
 
@@ -861,10 +979,17 @@ function reportRow(r: Report): HTMLElement {
   const keep = el('button', 'btn-ghost'); keep.type = 'button'; keep.textContent = 'Resolve \u2014 keep';
   dismiss.addEventListener('click', () => resolveReport(r.id, 'dismiss', dismiss, repResult));
   keep.addEventListener('click', () => resolveReport(r.id, 'keep', keep, repResult));
-  const go = el('a', 'btn-ghost');
-  const slug = POST_MAP[String(r.post_id)];
+  const go = el('a');
+  const slug = mapSlug(r.post_id);
   go.href = slug ? withBase(slug) + (r.comment_id ? '#comment-' + r.comment_id : '') : '/';
-  go.textContent = 'Go to post';
+  /* v0.6.17 E: report card post link uses the TITLE (Go to post kept as the
+     action verb via aria-label; visible text = title, ellipsized). */
+  go.className = 'btn-ghost mod-golink';
+  const goLabel = el('span', 'mod-ptitle');
+  goLabel.textContent = mapTitle(r.post_id) || 'Go to post';
+  go.dataset.postlink = slug ? String(r.post_id) : 'raw-' + r.post_id;
+  go.setAttribute('aria-label', 'Go to post' + (mapTitle(r.post_id) ? ': ' + mapTitle(r.post_id) : ' #' + r.post_id));
+  go.appendChild(goLabel);
   repRow.append(dismiss, keep, go);
   box.appendChild(repRow);
   box.appendChild(repResult);
@@ -881,6 +1006,7 @@ function reportRow(r: Report): HTMLElement {
   if (r.comment_status !== 'spam') cRow.appendChild(cmk('Spam', 'btn-ghost', 'spam'));
   if (r.comment_status !== 'trash') cRow.appendChild(cmk('Trash', 'btn-ghost', 'trash'));
   if (r.comment_status === 'spam' || r.comment_status === 'trash') cRow.appendChild(cmk('Restore', 'btn-ghost', 'restore'));
+  if (r.comment_status === 'trash') cRow.appendChild(deleteForeverButton('Delete forever', () => void purgeOne(r.comment_id), String(r.comment_id)));
   if (cRow.children.length) {
     const lead = el('span', 'mod-label mod-rep-lead'); lead.textContent = 'On the comment';
     box.appendChild(lead); box.appendChild(cRow); box.appendChild(cResult);
@@ -929,6 +1055,161 @@ async function moderate(id: number, action: string, btn: HTMLButtonElement, resu
   } finally {
     btn.disabled = false;
   }
+}
+
+/* ---------- v0.6.17 (A): DELETE FOREVER — two-tap inline arm ---------- */
+const ARM_TIMERS = new WeakMap<HTMLButtonElement, ReturnType<typeof setTimeout>>();
+function armTwoTap(btn: HTMLButtonElement, label: string, onConfirm: () => void): void {
+  /* first tap arms ('Tap again to confirm'); second tap fires. Disarms after
+     4s. Never native confirm() (King law: inline two-tap). */
+  const t = ARM_TIMERS.get(btn);
+  if (t) { clearTimeout(t); ARM_TIMERS.delete(btn); }
+  if (btn.dataset.armed === '1') {
+    btn.dataset.armed = '0';
+    btn.classList.remove('is-armed');
+    btn.textContent = label;
+    onConfirm();
+    return;
+  }
+  btn.dataset.armed = '1';
+  btn.classList.add('is-armed');
+  btn.textContent = 'Tap again to confirm';
+  ARM_TIMERS.set(btn, setTimeout(() => {
+    if (btn.isConnected && btn.dataset.armed === '1') {
+      btn.dataset.armed = '0';
+      btn.classList.remove('is-armed');
+      btn.textContent = label;
+    }
+  }, 4000));
+}
+
+function deleteForeverButton(label: string, onConfirm: () => void, idForAria: string): HTMLButtonElement {
+  const b = el('button', 'btn-danger'); b.type = 'button'; b.textContent = label;
+  b.dataset.deleteForever = idForAria;
+  b.setAttribute('aria-label', 'Delete forever — ' + idForAria + ' (permanent)');
+  b.addEventListener('click', () => armTwoTap(b, label, onConfirm));
+  return b;
+}
+
+async function purgeOne(id: number): Promise<void> {
+  const btn = document.querySelector('button[data-delete-forever="' + id + '"]') as HTMLButtonElement | null;
+  if (btn) btn.disabled = true;
+  try {
+    const res = await api('/moderation/comments/' + id, { method: 'DELETE' });
+    const data = await res.json().catch(() => ({} as Record<string, unknown>));
+    if (res.status === 401) { wrongToken(); return; }
+    if (res.ok) {
+      setToast('#' + id + ' permanently deleted');
+      selected.delete(String(id));
+      await reloadActive();
+    } else {
+      setToast('#' + id + ' delete failed — ' + String((data as { message?: string }).message || (data as { code?: string }).code || res.status), true);
+      if (btn) btn.disabled = false;
+    }
+  } catch {
+    netError();
+    if (btn) btn.disabled = false;
+  }
+}
+
+/* ---------- v0.6.17 (B): BULK SELECT + mass actions ---------- */
+const selected = new Set<string>();               // comment ids (string)
+let listStatusById: Record<string, string> = {};  // last rendered rows by id
+
+function activeBulkHost(): HTMLElement | null {
+  if (state.tab === 'queue') return queueList;
+  if (state.tab === 'all') return allList;
+  return null;
+}
+function onSelChange(): void {
+  const host = activeBulkHost();
+  if (!host) return;
+  const ids = Array.from(host.querySelectorAll('input[data-sel]'))
+    .map((i) => (i as HTMLInputElement)).filter((i) => i.checked)
+    .map((i) => i.dataset.sel as string);
+  for (const k of Array.from(selected)) if (!ids.includes(k)) selected.delete(k);
+  for (const k of ids) selected.add(k);
+  syncSelUI();
+}
+function clearSelection(): void {
+  selected.clear();
+  const host = activeBulkHost();
+  if (host) for (const i of Array.from(host.querySelectorAll('input[data-sel]'))) (i as HTMLInputElement).checked = false;
+  syncSelUI();
+}
+function syncSelUI(): void {
+  const bar = $('mod-bulkbar');
+  const host = activeBulkHost();
+  const n = selected.size;
+  if (!bar || !host) return;
+  for (const c of Array.from(host.querySelectorAll('input[data-sel]'))) {
+    const art = (c as HTMLElement).closest('.mod-item');
+    art?.classList.toggle('mod-selected', (c as HTMLInputElement).checked);
+  }
+  if (n === 0) { show(bar, false); bar.textContent = ''; }
+  else {
+    show(bar, true);
+    renderBulkBar(bar);
+  }
+  /* header select-all reflects the visible filtered scope */
+  for (const key of ['queue', 'all']) {
+    const sa = $('mod-' + key + '-selall') as HTMLInputElement | null;
+    if (!sa) continue;
+    const boxes = Array.from(host.querySelectorAll('input[data-sel]')) as HTMLInputElement[];
+    const visChecked = boxes.filter((b) => b.checked).length;
+    sa.checked = boxes.length > 0 && visChecked === boxes.length;
+    sa.indeterminate = visChecked > 0 && visChecked < boxes.length;
+  }
+}
+function renderBulkBar(bar: HTMLElement): void {
+  bar.textContent = '';
+  const ids = Array.from(selected).map(Number);
+  const cnt = el('span', 'mod-sel-n'); cnt.dataset.selcount = String(ids.length);
+  cnt.textContent = ids.length + ' selected';
+  const mkB = (label: string, cls: string, fn: () => void) => {
+    const b = el('button', cls); b.type = 'button'; b.textContent = label;
+    b.dataset.bulkaction = label.toLowerCase(); b.addEventListener('click', fn);
+    return b;
+  };
+  bar.appendChild(cnt);
+  bar.appendChild(mkB('Approve', 'btn-deep', () => void bulkApply(ids, 'approve', bar)));
+  bar.appendChild(mkB('Spam', 'btn-ghost', () => void bulkApply(ids, 'spam', bar)));
+  bar.appendChild(mkB('Trash', 'btn-ghost', () => void bulkApply(ids, 'trash', bar)));
+  /* Delete-forever only when EVERY selected row is trash (worker guard). */
+  const allTrash = ids.length > 0 && ids.every((id) => listStatusById[String(id)] === 'trash');
+  if (allTrash) {
+    bar.appendChild(deleteForeverButton('Delete forever', () => void bulkApply(ids, 'purge', bar), ids.length + ' selected'));
+  }
+  bar.appendChild(mkB('Clear', 'btn-ghost', () => clearSelection()));
+}
+async function bulkApply(ids: number[], action: string, bar: HTMLElement): Promise<void> {
+  for (const b of Array.from(bar.querySelectorAll('button'))) (b as HTMLButtonElement).disabled = true;
+  let res: Response;
+  try { res = await api('/moderation/bulk', { method: 'POST', body: JSON.stringify({ ids, action }) }); }
+  catch { netError(); for (const b of Array.from(bar.querySelectorAll('button'))) (b as HTMLButtonElement).disabled = false; return; }
+  const data = await res.json().catch(() => ({} as Record<string, unknown>));
+  if (res.status === 401) { wrongToken(); return; }
+  if (!res.ok) {
+    setToast('Bulk ' + action + ' failed — ' + String((data as { message?: string }).message || res.status), true);
+    for (const b of Array.from(bar.querySelectorAll('button'))) (b as HTMLButtonElement).disabled = false;
+    return;
+  }
+  const d = data as { succeeded?: number; total?: number; results?: { id: number; ok: boolean; code?: string }[] };
+  const okN = Number(d.succeeded ?? 0); const tot = Number(d.total ?? ids.length);
+  const fails = (d.results || []).filter((r) => !r.ok);
+  const PAST: Record<string, string> = { approve: 'approved', spam: 'spammed', trash: 'trashed', purge: 'purged' };
+  if (fails.length) {
+    setToast(okN + '/' + tot + ' applied — failed: ' + fails.map((f) => '#' + f.id + ' ' + (f.code || 'error')).join(', '), true);
+  } else {
+    setToast(okN + '/' + tot + ' ' + (PAST[action] || action));
+  }
+  clearSelectionSilent();
+  await reloadActive();
+}
+function clearSelectionSilent(): void {
+  selected.clear();
+  const bar = $('mod-bulkbar');
+  if (bar) { show(bar, false); bar.textContent = ''; }
 }
 
 async function sendReply(it: Item, ta: HTMLTextAreaElement, btn: HTMLButtonElement, msg: HTMLElement): Promise<void> {
@@ -1007,6 +1288,17 @@ prevB?.addEventListener('click', () => {
 nextB?.addEventListener('click', () => { state.page += 1; syncHash(); void loadAll(); });
 
 refreshB?.addEventListener('click', () => void reloadActive());
+/* v0.6.17 (B): header select-all — scope = the rows actually rendered in the
+   current filtered tab (visible filtered scope, per brief). */
+for (const key of ['queue', 'all']) {
+  const sa = $('mod-' + key + '-selall') as HTMLInputElement | null;
+  sa?.addEventListener('change', () => {
+    const host = key === 'queue' ? queueList : allList;
+    if (!host) return;
+    for (const c of Array.from(host.querySelectorAll('input[data-sel]'))) (c as HTMLInputElement).checked = sa.checked;
+    onSelChange();
+  });
+}
 retryB?.addEventListener('click', () => void reloadActive());
 signoutB?.addEventListener('click', () => {
   saveTok('');

@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.6.17] — 2026-09-15
+### Added — Mod desk: delete-forever, bulk select, title links (King ledger; pairs worker v0.1.7)
+- **DELETE FOREVER (A)** — trash rows get a red 'Delete forever' button: inline two-tap arm
+  ('Tap again to confirm', 4s auto-disarm, never native confirm) → `DELETE
+  /api/moderation/comments/:id` (guard: only status=trash purges) → row gone, stats refresh,
+  failures toast. Report cards' on-the-comment row gets it too.
+- **BULK SELECT (B)** — 44px touch checkbox per row in Queue + All Comments, header 'Select all'
+  scoped to the visible filtered page, floating action bar: 'N selected' + Approve/Spam/Trash +
+  Delete-forever (only when ALL selected are trash) → one `POST /api/moderation/bulk` with
+  per-id honesty ('x/y applied — failed: #id code'). Selection clears on tab/filter/page change.
+  Reports tab has no checkboxes (Dismiss/Resolve is its own lifecycle).
+### Fixed
+- **Tab-rail ghost scrollbar (C — King: "revert the vertical scroll bar in the tab menu")** —
+  measured on staged v0.6.16: `overflow-x:auto` forces computed `overflow-y:auto`, and the
+  tab row's fractional line-height (17.325px) + `margin-bottom:-1px` bled 1px past the rail
+  clientHeight → a teal vertical thumb painted at the strip's right edge on fractional-DPR
+  phones. Fix: tabs get `line-height:1`, `margin-bottom:0`, rail pinned to exactly 47px with
+  `align-items:flex-start`, and `overflow-y:hidden`→`clip` (progressive). Every rail element
+  asserts scrollHeight ≤ clientHeight @390 + 1280, both themes.
+- **Reaction mix double glyphs (D)** — rows no longer print the word + emoji character + count
+  ('fire 🔥 17' King-rejected). The leading mark is now the EXACT brand SVG copied from the
+  comment summary bubbles (same paths, currentColor, r7.9s laugh geometry, 16px), sr-only label
+  keeps the accessible name, then the count.
+- **POST TITLES over ids (E)** — 'POST 8720' chips become the post TITLE as the link text
+  (content map extended id→{url,title} at build), 1-line ellipsis on mobile, raw id demoted to
+  a tiny muted '#8720' suffix. Applies to comment-row meta, Top guides and report cards.
+
 ## [0.6.16] — 2026-09-15
 ### Added — Moderation desk overhaul (King ledger 10:20–11:17, pairs worker v0.1.6)
 - **Overview is now the FIRST and DEFAULT tab** — tab order Overview|Queue|All Comments|Reports;
