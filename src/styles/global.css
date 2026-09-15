@@ -466,6 +466,7 @@ html[data-theme=dark] .notify .btn-deep{color:var(--mint)}
 .meta-bar a{color:var(--deep);font-weight:500}
 .meta-who{display:inline-flex;align-items:center;gap:10px} /* v0.4.14 King: avatar + byline on one centered row — no more hanging author */
 .meta-bar .t-mono-av{width:32px;height:32px;font-size:13px} /* hero avatar steps down from the 40px author-box block */
+img.t-mono-av{object-fit:cover;border-radius:2px} /* v0.6.11 #4: byline monogram replaced by the author's Gravatar photo (same box, zero CLS) */
 .meta-bar .upd{border:1px solid var(--deep);color:var(--deep);padding:2px 7px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:9.5px;margin-left:10px} /* v0.5.1 King: pill needs clean separation from whatever precedes it (year on desktop, first element on mobile) */
 /* v0.4.3 King: meta is TWO deliberate lines, never wrap-shrapnel — author line + middot facts line */
 .meta-facts{display:flex;flex-wrap:wrap;gap:8px 0;align-items:center}
@@ -681,11 +682,17 @@ html[data-theme=dark] .prose audio{color-scheme:dark}
 .post-tags a:hover{border-color:var(--deep);text-decoration:none}
 .share-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:18px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding-top:14px;padding-bottom:14px}
 .share-k{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-right:4px}
-/* v0.6.9 King addendum #5: icons + Copy link share ONE right-hand group. The group
-   wraps INTERNALLY (justify-content:flex-end), so a narrow row stacks Copy link
-   UNDER the icon column — never orphaned under the Share label. Wide = one line. */
-.share-grp{display:inline-flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:10px;margin-left:auto}
-.sh-btn{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;border:1px solid var(--line-2);border-radius:2px;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink-2);padding-top:9px;padding-bottom:9px;padding-left:14px;padding-right:14px;background:var(--paper)}
+/* v0.6.11 King phone-review: v0.6.9's margin-left:auto + flex-end pinned the whole
+   group RIGHT — cluster drifted off the SHARE label and Copy link read as a banner.
+   Restore the v0.6.8-approved geometry: label flush-left, buttons LEFT-ALIGNED on the
+   SAME rail as the label, Copy link a content-sized 4th peer. justify-content:flex-end
+   STAYS but only matters when the group wraps internally at narrow widths (≤300px):
+   Copy link then stacks under the icon column's right rail, never under the Share
+   label (v0.6.9 clause preserved for the fallback only). */
+.share-grp{display:inline-flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:10px}
+.sh-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid #8FADA4;border-radius:2px;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink);padding:0;background:var(--paper)} /* v0.6.11: exact 44×44 tiles (was 46×44 — padding beat min-width), border + glyph one step stronger (King a11y law) */
+html[data-theme=dark] .sh-btn{border-color:#3E7264}
+.sh-btn[data-copy-link]{width:auto;padding:0 14px;gap:7px}
 .sh-btn:hover{border-color:var(--deep);color:var(--deep);text-decoration:none}
 /* v0.6.2 share glyphs (King: "X/WA/TG look like plain text abbrevs") — brand-drawn
    inline SVGs in the reaction-icon stroke family: 24 viewBox, stroke currentColor,

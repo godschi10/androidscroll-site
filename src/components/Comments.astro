@@ -176,6 +176,18 @@ const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)');
 // ── monogram avatar (t-mono-av house component — §4.3) ──
 // Deterministic bg among the 4 brand greens only: deep, teal, deeper, verdict.
 const AV_BG = ['var(--deep)', 'var(--teal)', 'var(--deeper)', 'var(--verdict)'];
+// v0.6.11 King phone-review #4: legacy rows (email never stored unsalted → email_hash
+// null) from the DESK author himself can still show his face: name match routes to his
+// Gravatar hash — the same sha256 the author box + byline use. Non-author null rows
+// stay initials (no hash exists for them; nothing to request).
+const AUTHOR_GRAVATAR = 'cd2c5f952ac6bbcba85fbf973b030b6d5af4f62f46e3c4a37abbcb7dfc28b6a9';
+const AUTHOR_NAME_RE = /^\s*g[-–—]?will\s+chijioke\s*$/i;
+function photoHashFor(c: any): string | null {
+  const h = String(c.email_hash || '').toLowerCase();
+  if (/^([0-9a-f]{32}|[0-9a-f]{64})$/.test(h)) return h;
+  if (c.is_author || AUTHOR_NAME_RE.test(String(c.name || ''))) return AUTHOR_GRAVATAR;
+  return null;
+}
 function avHash(s: string): number {
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
@@ -587,9 +599,12 @@ function renderThread(comments: any[]): string {
         <div class="c-meta">
           <!-- v0.6.10: email_hash (worker v0.1.3) -> 36px gravatar overlay on the
                monogram; d=404 miss removes the img, initials show through. Hash is
-               regex-gated to [0-9a-f]{32,64} before it touches the URL. Null hash
-               (every row today) renders the initials span exactly as before. -->
-          <span class="c-av-wrap"><span class="c-avatar" aria-hidden="true" style="background:${avatarBg(c)}">${esc(initials(c.name || 'Anonymous'))}</span>${/^([0-9a-f]{32}|[0-9a-f]{64})$/.test(String(c.email_hash || '')) ? `<img class="c-photo" src="https://www.gravatar.com/avatar/${String(c.email_hash).toLowerCase()}?s=64&d=404" alt="${esc(c.name || 'Anonymous')}" loading="lazy" decoding="async" width="36" height="36" onerror="this.remove()">` : ''}</span>
+               regex-gated to [0-9a-f]{32,64} before it touches the URL. v0.6.11:
+               null-hash rows whose name is the desk author route to his hash
+               (photoHashFor); other null rows render initials exactly as before.
+               v0.6.11 retina: s=96 for the 36px box (was s=64 — dead-leg vision read
+               caught blocky upscaling; s must be ≥ 2× display px on 2x phone DPRs). -->
+          <span class="c-av-wrap"><span class="c-avatar" aria-hidden="true" style="background:${avatarBg(c)}">${esc(initials(c.name || 'Anonymous'))}</span>${photoHashFor(c) ? `<img class="c-photo" src="https://www.gravatar.com/avatar/${photoHashFor(c)}?s=96&d=404" alt="${esc(c.name || 'Anonymous')}" loading="lazy" decoding="async" width="36" height="36" onerror="this.remove()">` : ''}</span>
           <span class="c-headline">
             <span class="c-name-wrap">${linkOpen}<span class="c-name">${safeName}</span>${linkClose}</span>
             <span class="c-sub">
@@ -957,6 +972,16 @@ html[data-theme=dark] .comments .c-pend-chip{border-color:var(--teal);color:var(
 .comments .c-foot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-top:1px solid var(--line);margin-top:12px;padding-top:10px}
 .comments .c-rx{position:relative;display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
 .comments .c-actions{margin-left:auto;display:flex;align-items:center;gap:14px}
+/* v0.6.11 King phone-review #1: at phone width a NESTED card's footer can't hold
+   pill + actions on one line. The old margin-left:auto made the wrapped action row
+   float RIGHT — a lone pill with dead space beside it and an off-rail second line
+   (his "spacing issue", img shot A). Below 640px the actions stay on the LEFT RAIL
+   (same edge as the pill and the body text above) and row-gap is tightened so the
+   two-line footer reads as one even block. Desktop keeps pill-left/actions-right. */
+@media (max-width:639px){
+  .comments .c-foot{gap:8px 12px}
+  .comments .c-actions{margin-left:0;gap:12px}
+}
 
 /* reaction summary pill (P3) — house pill skeleton (post-tags), one per comment */
 .comments .c-react-sum{display:inline-flex;gap:7px;align-items:center;border:1px solid var(--line-2);border-radius:999px;background:var(--paper);padding:4px 11px;min-height:32px;font-family:var(--mono);font-size:12px;color:var(--muted);cursor:pointer;transition:border-color .14s ease-out,color .14s ease-out}

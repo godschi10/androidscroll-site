@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.6.11] — 2026-09-15
+### Fixed
+- **Share row cohesion (King phone-review, primary)** — v0.6.9's right-hand group
+  (`margin-left:auto` + internal `justify-content:flex-end`) broke the approved
+  default row: the cluster drifted off the SHARE label and Copy link read as a
+  stretched banner. Base row restored to the v0.6.8 geometry: label flush-left,
+  buttons left-aligned on the SAME rail, Copy link content-sized (icon + text +
+  tile padding) as a 4th peer. Tiles are now exactly 44×44 (was 46×44 — padding
+  beat min-width). `flex-end` inside the group stays for the narrow-wrap fallback
+  only (≤300px: Copy link stacks under the icon column, never under the label).
+  Tile borders + glyph ink one step stronger both themes (a11y: visible boundaries).
+- **Comment footer spacing at phone width** — in nested cards the action row
+  (Reply/Share/Report) wrapped to a second line AND floated right
+  (`margin-left:auto`), leaving the reaction pill alone with dead space beside it
+  (King: "didn't fix the spacing issue"). Below 640px actions now stay on the
+  left rail (flush with pill + body text) with tightened row gap. Desktop keeps
+  pill-left / actions-right.
+### Added
+- **Gravatar coverage** — every remaining monogram-avatar element now carries the
+  author's photo (same sha256 URL): post-meta byline chip (both article layouts),
+  home trust cell, about-page author block. Legacy comment rows (null email_hash)
+  whose name is the desk author route to his gravatar via `photoHashFor()` — his
+  own replies show his face; other null-hash rows keep initials.
+- **Retina gravatar sizes (sprint-3 catch)** — dead leg's last vision read flagged
+  the byline face as "4-pixel image upscaled → heavy blocky artifacts": it was
+  served `?s=64` and, on King's 2×-DPR phone, the 200%-zoom crop left no real detail
+  (source cap ≈ 64 CSS px). Rule now applied across the board — request ≥ 2× display
+  px: byline 32px → `s=96`, home trust cell 40px → `s=96`, author box on about 48px →
+  `s=96`, comment photos 36px → `s=96`, ArticleChrome author-box stays `s=128`
+  (already ≥ 2×48). Verified against live Gravatar: exact sizes served, bogus hash
+  still 404s at the new `s` values so the `onerror` initials fallback survives.
+
 ## [0.6.10] — 2026-09-14
 ### Added
 - **Brand social row (footer + header sheet)** — nine accounts as inline simple-icons
